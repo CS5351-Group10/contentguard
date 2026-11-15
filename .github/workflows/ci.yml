@@ -42,6 +42,8 @@ jobs:
       # ---------------- Gate 1 — test approval (PRs only) ----------------------
       - name: "Gate 1 — test plan approved before implementation"
         if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/check_test_approval.py
 
       # ---------------- Gate 4 — semantic evaluation (PRs only) ----------------
