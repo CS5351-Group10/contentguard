@@ -68,6 +68,10 @@
 
 ## Memos
 
+> RM-N = the Nth memo appended to this ledger, assigned at append time
+> (numbering decisions: issue #4). A dismissed "RM-003" review draft on
+> PR #5 predates this ledger's RM-003 and is void.
+
 <!-- Append memos below, newest last. -->
 
 ## RM-001 — PR #7: fix(ci): gate 1/4/6 PR-file fetch 401 (token plumbing) — TD-3, supports REQ-INV-005
