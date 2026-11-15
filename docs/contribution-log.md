@@ -21,17 +21,25 @@
 > "Project (Demo Video)" both due **2026-11-25 23:59 HKT**. Zip must NOT contain the
 > demo video (sheet slide 23). Phase calendar from team proposal §4.3.
 
-## Recording protocol (set by PM 2026-11-15; open for objection at any stand-up)
+## Recording protocol (set by PM 2026-11-15; amended 2026-11-16 — see the amendment note below; open for objection in PR comments or directly to the PM)
 
 Set before the first logged entry — no historical hours are rewritten.
+
+> Amendment (2026-11-16, PM, before the first logged entry): hours are now reported
+> PR-natively — in the description or comments of the PR that carries the work; work
+> with no PR goes in the most closely related PR's comments. Urgent/blocking signals
+> still go to the group chat; hour figures do not. Rationale: the audit chain stays
+> next to the reviewed diff, so every entry anchors to reviewed changes.
 
 1. **Per-phase cadence, not weekly.** The project spans 11-15 → 11-30, so weekly logging
    would give only ~2 data points. Members report at every phase close (table above); the
    PM aggregates into the man-hours log at the same cadence.
 2. **Same-day capture.** Hours are reported to the PM the day they are spent (one line:
-   date, span, what, hours — stand-up or group chat). End-of-phase recall estimates are
-   not accepted. Cross-check anchors at phase close: git commit timestamps, the five
-   locked transcripts (due 11-21), and `docs/ai-use-log.yaml`.
+   date, span, what, hours — PR-native: in the description or comments of the PR that
+   carries the work; work that produces no PR is reported in the comments of the most
+   closely related PR). End-of-phase recall estimates are not accepted. Cross-check
+   anchors at phase close: git commit timestamps, the five locked transcripts
+   (due 11-21), and `docs/ai-use-log.yaml`.
 3. **Hours only.** Spec D6 computes weights from productive hours (its example uses hrs);
    story points are dropped — a 16-day project does not run sprint planning.
 4. **What counts (pre-agreed).** Build, testing, debugging, CR/review duty, memos,
