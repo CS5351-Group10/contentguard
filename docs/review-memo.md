@@ -81,3 +81,22 @@
 - Efficiency: n/a (CI plumbing)
 - Operational metadata: `docs/ai-use-log.yaml` updated in-PR (agent-session evidence, gate 6); TD-3 entry added to debt register
 - Verdict: APPROVE
+
+## RM-002 — PR #2: docs(governance): repo transferred to team org + public; update repo URL
+
+> **Post-merge backfill (2026-11-16).** PR #2 was merged without a memo — an
+> execution gap against "memos are written before merge" (review process §4),
+> the exact hole **Gate 7 (issue #4)** exists to close. Recorded transparently
+> as a case study rather than silently patched. Verdict source: creator-xiyuan's
+> APPROVED review (2026-11-15T14:32:40Z); recorded by PM from that verdict
+> (PM is also the PR author, so the domain verdict is the independent one).
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI owner — APPROVED 2026-11-15); PM sign-off: this entry
+- Spec alignment: no requirement change; governance records feeding D7 (repo transfer to team org, old-URL retirement, repo-scoped admin grant); MoSCoW unaffected
+- Architecture alignment: no ADR/invariant impact; repository-level operations only
+- Code quality: n/a (human-owned docs/governance files only — README repo section, contribution-log governance-events ledger, team index row)
+- Test quality: docs-only; blocking-gates green after rebase onto post-#7 main (both check runs SUCCESS)
+- Security: visibility private → public accepted by PM (roster student IDs readable — deliberate, documented); admin granted repo-scoped to @creator-xiyuan (least blast radius)
+- Efficiency: n/a
+- Operational metadata: governance-events ledger updated in-PR; no code/prompt change → no ai-use-log delta
+- Verdict: APPROVE (post-merge ratification of the domain CR's verdict)
