@@ -1,0 +1,181 @@
+# ContentGuard — Machine-Readable Requirements Registry (D1)
+# Validated against req-schema.json by CI gate 3 (scripts/validate_requirements.py).
+#
+# Conventions:
+#   - IDs: REQ-<TYPE>-<NNN>, TYPE in {FUN, INV, QUA, PER, COS, GOV, SEC}
+#   - Invariants (REQ-INV-*): non-negotiable, zero-tolerance; each carries an
+#     enforcing component, a verification method, and a CONCRETE operational fallback.
+#   - MoSCoW priority: must / should / could / wont.
+#   - Status lifecycle: draft -> agreed -> baselined -> implemented -> verified.
+#
+# STATUS: DRAFT — seeded with the governance invariants discussed at project start.
+# The full registry (functional + quality + performance + cost + governance + security)
+# is baselined in the W12 requirements session with the whole team.
+
+project: ContentGuard
+version: "0.1"
+
+moscow_tradeoff_note: >-
+  DRAFT tradeoff statement: the MVP ships must-have moderation triage with the five
+  safety invariants; should-have bulk-import and analytics dashboards are deferred to
+  protect invariant verification depth; could-have multi-language support is dropped
+  from the MVP. This statement is revisited at every registry baseline change.
+
+requirements:
+  # ---------------------------------------------------------------- invariants
+  - id: REQ-INV-001
+    type: invariant
+    title: AI output never executes enforcement
+    statement: >-
+      The LLM analysis component shall never directly execute an enforcement action
+      (approve/publish, reject/remove, ban). Every enforcement action is decided and
+      executed exclusively by the deterministic policy engine.
+    fit_criterion: >-
+      Structural test (import/call-graph check) proves no module outside
+      src/contentguard/policy/ references the enforcement action API; a negative test
+      demonstrates the call is blocked.
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: structural-check, evidence: "test/offline/test_invariants.py (TBD)" }
+    source: { origin: "Team kickoff discussion 2026-11-15; CS5351 project sheet p.3 advisory/authoritative boundary" }
+    enforcing_component: policy engine (deterministic)
+    fallback: >-
+      If the structural check detects an enforcement call outside the policy engine,
+      CI blocks the merge and the offending path is feature-flagged off at deploy until
+      a human-approved fix lands.
+    zero_tolerance: true
+
+  - id: REQ-INV-002
+    type: invariant
+    title: Fail-safe hold on AI unavailability
+    statement: >-
+      If the AI analysis service is unavailable, times out, or returns an invalid
+      response, the affected content is placed in the human review queue; it is never
+      auto-approved and never auto-rejected.
+    fit_criterion: >-
+      Fault-injection test: with the AI client mocked to timeout/error, the system
+      asserts queue placement for 100% of affected items and zero auto-actions.
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: unit-test, evidence: "test/offline/test_failsafe_hold.py (TBD)" }
+    source: { origin: "Team kickoff discussion 2026-11-15" }
+    enforcing_component: escalation (human review queue)
+    fallback: >-
+      On violation detection at runtime (an auto-action taken without a valid AI verdict
+      AND a policy decision), the audit subsystem marks the decision invalid, the content
+      item is reverted to the queue, and an alert page is raised to the on-call moderator.
+    zero_tolerance: true
+
+  - id: REQ-INV-003
+    type: invariant
+    title: High-severity content always reaches human review
+    statement: >-
+      Content flagged high-severity (by AI analysis or by deterministic keyword/policy
+      pre-filters) is routed to the human review queue regardless of any automated
+      verdict, including a policy-engine allow verdict.
+    fit_criterion: >-
+      Table-driven test over the severity x policy matrix asserts human-queue routing
+      for every high-severity combination.
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: unit-test, evidence: "test/offline/test_escalation_routing.py (TBD)" }
+    source: { origin: "Team kickoff discussion 2026-11-15" }
+    enforcing_component: policy engine routing rules
+    fallback: >-
+      If an audit record shows a high-severity item resolved without human review, the
+      item is reopened into the queue automatically by the daily audit reconciliation
+      job and the case is logged in docs/bug-diary.md.
+    zero_tolerance: true
+
+  - id: REQ-INV-004
+    type: invariant
+    title: Every decision leaves an audit record
+    statement: >-
+      Every moderation decision persists an audit record containing input content hash,
+      AI verdict (if any), policy rule hit, final action, timestamps, and actor IDs
+      (AI/human/policy).
+    fit_criterion: >-
+      Integration test asserts exactly one audit record per decision with all required
+      fields non-null; schema check rejects records missing fields.
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: integration-test, evidence: "test/offline/test_audit_completeness.py (TBD)" }
+    source: { origin: "Team kickoff discussion 2026-11-15; traceability requirement (project sheet core expectation)" }
+    enforcing_component: audit subsystem
+    fallback: >-
+      If a decision is found without an audit record, the decision is voided, the item
+      re-enters the moderation pipeline from scratch, and writes are suspended (fail
+      closed) until the audit write path is restored.
+    zero_tolerance: true
+
+  - id: REQ-INV-005
+    type: invariant
+    title: Prompt/model changes pass semantic evaluation before production
+    statement: >-
+      A change to any runtime prompt or model configuration cannot merge to the
+      production branch unless the fixed semantic evaluation set replays green against
+      the quality thresholds (CI gate 4).
+    fit_criterion: >-
+      CI gate 4 replay of test/eval/moderation_eval.jsonl reports pass-rate and
+      safety-escape metrics; any metric below threshold blocks the merge (exit != 0).
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: ci-gate, evidence: ".github/workflows/ci.yml gate 4 + scripts/check_semantic_eval.py" }
+    source: { origin: "Project requirement sheet §6 gate 4" }
+    enforcing_component: CI semantic evaluation gate
+    fallback: >-
+      If a prompt/model change reached production without gate 4 evidence, the change is
+      reverted (prompt version pinning allows instant rollback to prompt_vN.yaml) and
+      the incident is recorded in docs/debt-register.md under guardrail debt.
+    zero_tolerance: true
+
+  # ------------------------------------------------------------ functional (draft seed)
+  - id: REQ-FUN-001
+    type: functional
+    title: Content submission intake
+    statement: >-
+      The system accepts user-generated content submissions (text) through its API and
+      returns a triage outcome (approve / hold / reject / escalate) with an audit ID.
+    fit_criterion: >-
+      Integration test: POST a sample item, assert one of the four outcomes and a
+      resolvable audit ID within the response.
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: integration-test, evidence: "TBD" }
+    source: { origin: "Team kickoff discussion 2026-11-15" }
+
+  - id: REQ-FUN-002
+    type: functional
+    title: AI advisory analysis
+    statement: >-
+      For each submitted item the system obtains an LLM moderation analysis (verdict,
+      severity, rationale) and passes it to the policy engine as advisory input only.
+    fit_criterion: >-
+      Contract test: analysis output validates against the runtime prompt response
+      schema (prompts/prompt_v1.0.yaml); malformed output triggers REQ-INV-002 behavior.
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: unit-test, evidence: "TBD" }
+    source: { origin: "Team kickoff discussion 2026-11-15" }
+
+  - id: REQ-FUN-003
+    type: functional
+    title: Human review queue
+    statement: >-
+      Held and escalated items appear in a human review queue where a moderator can
+      approve or reject; moderator actions are audited like automated ones.
+    fit_criterion: >-
+      Integration test: an escalated item appears in the queue; a moderator decision
+      produces a complete audit record (REQ-INV-004).
+    priority: must
+    status: draft
+    changed_date: "2026-11-15"
+    verification: { method: integration-test, evidence: "TBD" }
+    source: { origin: "Team kickoff discussion 2026-11-15" }

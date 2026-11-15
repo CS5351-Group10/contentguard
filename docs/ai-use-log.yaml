@@ -1,0 +1,21 @@
+# AI-Use Log (D1; enforced by CI gate 6)
+#
+# Every use of the AI coding agent (OpenCode) that produces or changes code, tests,
+# or prompts must be recorded here — in the SAME PR as the change (gate 6 blocks
+# code/prompt PRs that do not touch this file).
+#
+# Entry format (one entry per agent session):
+#   - id: AI-<NNN>
+#     date: YYYY-MM-DD
+#     agent: opencode
+#     model: <model id>
+#     operator: <member name>
+#     session_transcript: transcripts/<student-id>-<student-name>.md   # if annotated yet
+#     scope: <files/modules touched>
+#     summary: <what the agent produced>
+#     human_interventions: <count>
+#     intervention_summary: <one line: interrupted/redirected/approved/rejected what>
+#     pr: <PR number or "direct (human-only docs)">
+
+version: "0.1"
+entries: []

@@ -1,0 +1,88 @@
+// OpenCode project-level permission model (D3).
+// Default: NO read, NO write. Every path is explicitly whitelisted.
+// Human-readable authority: docs/architecture/permission-model.md (keep in lockstep).
+// Guard rules & enforcement: see bottom of this file.
+{
+  "default": { "read": false, "write": false },
+  "roles": {
+    "plan-agent": {
+      "read": [
+        "AGENTS.md",
+        "Prompt.md",
+        "architecture-blueprint.md",
+        "docs/**",
+        "src/**",
+        "test/**",
+        "prompts/**",
+        "scripts/**"
+      ],
+      "write": []
+    },
+    "code-agent": {
+      "read": [
+        "AGENTS.md",
+        "Prompt.md",
+        "architecture-blueprint.md",
+        "docs/**",
+        "src/**",
+        "test/**",
+        "prompts/**",
+        "scripts/**"
+      ],
+      "write": [
+        "src/**",
+        "test/**",
+        "prompts/**"
+      ]
+    },
+    "verify-agent": {
+      "read": [
+        "AGENTS.md",
+        "docs/**",
+        "src/**",
+        "test/**",
+        "prompts/**",
+        "scripts/**"
+      ],
+      "write": [
+        "test/reports/**"
+      ]
+    }
+  },
+  "deny": {
+    // Human-only files: agents never read or write these.
+    ".opencode/rules.md": { "read": false, "write": false },
+    ".opencode/permissions.jsonc": { "read": false, "write": false },
+    ".agent/rules.md": { "read": false, "write": false },
+    ".github/**": { "read": false, "write": false },
+    "transcripts/**": { "read": false, "write": false },
+    // Secrets: never read, never touch (course red line).
+    ".env": { "read": false, "write": false },
+    "*.env": { "read": false, "write": false },
+    "token*": { "read": false, "write": false }
+  },
+  "guard_rules": [
+    {
+      // INV-1: no write access can bypass the module boundary; the CI structural
+      // call-graph check is the real enforcement — this rule is defense in depth.
+      "id": "GR-1",
+      "statement": "code-agent writes to src/** are permitted only for whitelisted module dirs; writes under src/contentguard/policy/** additionally require a human-approved ADR reference in the PR description.",
+      "enforcement": "CI structural gate (scripts + workflow) + branch protection"
+    },
+    {
+      "id": "GR-2",
+      "statement": "Any write to prompts/** or model configuration flags the semantic evaluation gate (gate 4) as required for that PR.",
+      "enforcement": "scripts/check_semantic_eval.py"
+    },
+    {
+      "id": "GR-3",
+      "statement": "A PR that writes src/**, test/**, prompts/**, or scripts/** without touching docs/ai-use-log.yaml is blocked.",
+      "enforcement": "scripts/check_ai_use_log.py (gate 6)"
+    },
+    {
+      "id": "GR-4",
+      "statement": "Agent output is delivered exclusively via pull requests; agents never run git commit/push.",
+      "enforcement": "mcp-tool-manifest.md (no git tool granted) + branch protection"
+    }
+  ]
+}

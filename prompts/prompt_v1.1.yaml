@@ -1,0 +1,11 @@
+# Reserved for the first revision of the runtime prompt (project sheet §5 lists
+# prompt_v1.0.yaml + prompt_v1.1.yaml; generate v1.1 at the first prompt change).
+#
+# Procedure for creating this file:
+#   1. Copy prompt_v1.0.yaml, bump `version`, make the wording change.
+#   2. Record the change in docs/ai-use-log.yaml (gate 6) in the same PR.
+#   3. The semantic evaluation gate (gate 4) replays the fixed eval set (INV-5);
+#      merge only when thresholds pass.
+
+version: "1.1-draft"
+status: reserved

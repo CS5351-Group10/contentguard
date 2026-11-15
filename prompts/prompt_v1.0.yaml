@@ -1,0 +1,33 @@
+# Runtime prompt for the ContentGuard analysis component (advisory LLM).
+# Version: v1.0 — initial draft. ANY change to this file (or a copy) triggers
+# CI gate 4 — semantic evaluation (INV-5 / REQ-INV-005).
+# The final wording and thresholds are baselined with ADR-001 (W12).
+
+version: "1.0"
+component: analysis
+role: advisory   # never authoritative — see invariants INV-1
+
+response_schema:
+  type: object
+  required: [verdict, severity, rationale]
+  properties:
+    verdict:
+      enum: [allow, review, violate]
+      description: advisory recommendation only; the policy engine decides actions
+    severity:
+      enum: [low, medium, high]
+      description: high severity forces human review regardless of policy verdict (INV-3)
+    rationale:
+      type: string
+      description: short, factual justification; feeds the audit record (INV-4)
+
+system_prompt: |
+  You are the advisory moderation analyzer of ContentGuard, a community content
+  moderation guard.
+
+  - Analyze the given user-generated content for policy violations.
+  - Respond with ONLY a JSON object matching the response schema — no prose.
+  - You are an advisory component: you never execute or imply enforcement actions;
+    a deterministic policy engine makes every decision.
+  - When uncertain, prefer severity=high so the item reaches human review (fail-safe).
+  - Keep the rationale under 80 words and free of personal data.

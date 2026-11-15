@@ -1,0 +1,30 @@
+# --- Secrets (course red line: never commit API keys / tokens) ---
+.env
+*.env
+.env.*
+token.txt
+*.token
+*_token.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Local working files (not part of deliverables) ---
+*.local.md
+scratch/
