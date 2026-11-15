@@ -19,7 +19,7 @@
 - Permissions conformance: agent PRs touch only whitelisted paths
   (`docs/architecture/permission-model.md`).
 - Architectural fitness functions: call-graph check that enforcement API is reachable
-  only from `src/contentguard/policy/` (INV-1).
+  only from `src/contentguard/policy/` (INV-1) — **planned, TD-4**.
 - Lint + type-check clean (`ruff`, `mypy`).
 
 ## Tier 2 — Regression (every PR)

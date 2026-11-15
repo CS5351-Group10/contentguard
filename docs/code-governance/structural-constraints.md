@@ -1,7 +1,8 @@
 # Structural Constraints (D3)
 
-> Module organization rules the coding agent must obey. Enforced by CI structural
-> checks (gate 2, safety-relevant subset) and review memos.
+> Module organization rules the coding agent must obey. To be enforced by CI
+> structural checks (**planned — TD-4**, not yet implemented) and review memos
+> meanwhile.
 
 1. **One-to-one mapping:** each architectural element maps to exactly one module.
    Module names match architectural elements (`src/contentguard/<element>/`). If the

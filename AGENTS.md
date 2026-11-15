@@ -29,14 +29,17 @@ the MVP; anything else is out of scope unless a human explicitly changes the reg
 
 ## 3. Code baseline
 
-- `src/` is currently **empty** (pre-architecture). The first modules appear only after
-  ADR-001 (architecture choice) is approved by humans. Do not create modules before that.
-- **Scaffold seed compliance note:** `ci.yml`, `scripts/**`, `test/offline/test_smoke.py`,
-  and `prompts/prompt_v1.0.yaml` were **human-drafted pre-arrangement references**. Per
-  the agentic red line (proposal §1.3: CI configuration, scripts, tests and prompts are
-  changed only through agent sessions), they must be **regenerated/refined through
-  OpenCode sessions** (governance-CI owner's session) before counting as agent-generated
-  baseline — tracked as TD-3 in `docs/debt-register.md`.
+- `src/` contains only a placeholder README (pre-architecture). The first modules
+  appear only after ADR-001 (architecture choice) is approved by humans. Do not
+  create modules before that.
+- **Scaffold seed compliance note:** the whole scaffold seed — CI workflow,
+  `scripts/**`, `prompts/**`, `test/**` scaffolding (READMEs + `test_smoke.py`),
+  `pytest.ini`, `src/README.md` — was **human-drafted pre-arrangement reference**.
+  Per the agentic red line (proposal §1.3: CI configuration, scripts, tests and
+  prompts are changed only through agent sessions), it must be
+  **regenerated/refined through OpenCode sessions** (governance-CI owner's session)
+  before counting as agent-generated baseline — tracked as TD-3 in
+  `docs/debt-register.md`.
 - Every new module must map to exactly one architectural element (see
   `docs/code-governance/structural-constraints.md`).
 - New work **extends** the baseline; never replace or rewrite an existing module wholesale.

@@ -36,10 +36,11 @@
 ## Guard rules & enforcement
 
 1. Default deny: any path not listed above is unreadable and unwritable for agents.
-2. Human-only files are additionally guarded by CI (structural check rejects agent
-   commits touching them without a human co-author).
+2. Human-only files are additionally guarded by a planned CI structural check —
+   **not yet implemented (TD-4)**; until then humans enforce via review memos.
 3. Safety-critical paths (`src/contentguard/policy/**`, anything named in the invariant
    register) require human review **with an architecture decision** per branch
    protection (project sheet §6).
-4. Violations: the CI structural gate blocks the merge; the incident is logged in
+4. Violations: once the planned structural check lands (TD-4), CI blocks the merge;
+   until then the review memo rejects the PR. Either way the incident is logged in
    `docs/bug-diary.md` with the invariant gap it exposed.

@@ -54,15 +54,17 @@
   (authored by the member), (3) the man-hours table in `docs/contribution-log.md`.
   Authors merge their own PRs after approval — a responsibility discipline, not the
   attribution mechanism.
-- **Prologue (history chapter 0):** the 10 commits of 2026-11-15 were direct pushes
-  during governance bootstrap while branch protection was being set up. They contain
-  human-written docs/governance files (red-line compliant) **and** human-drafted
-  seed code — `.github/workflows/ci.yml`, `scripts/**`, `test/offline/test_smoke.py`,
-  `prompts/prompt_v1.0.yaml` — written before the team adopted the agentic red line.
-  Those seeds are tracked as **TD-3** in `docs/debt-register.md` and must be
-  regenerated through OpenCode sessions before counting as the agent-generated
-  baseline. From now on **every change lands via PR**; any exceptional admin window
-  is stated in the commit message.
+- **Prologue (history chapter 0):** the first 10 commits (the 2026-11-15 bootstrap
+  cohort) were direct pushes while branch protection was being set up. They contain
+  human-written docs/governance files (red-line compliant) **and** the human-drafted
+  scaffold seed (CI workflow, `scripts/**`, `prompts/**`, test scaffolding incl.
+  `test_smoke.py`, `pytest.ini`) written before the team adopted the agentic red
+  line — tracked as **TD-3** in `docs/debt-register.md`, to be regenerated through
+  OpenCode sessions. Two follow-up governance fixes also landed via admin windows
+  (roster re-key; cross-session audit fixes) — recorded here as exceptions. From
+  now on **every change lands via PR**; an exceptional admin window must carry an
+  `[admin-window]` tag in the commit message **and** be recorded in the next review
+  memo.
 
 ## Memos
 

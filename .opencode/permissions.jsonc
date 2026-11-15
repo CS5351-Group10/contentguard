@@ -15,7 +15,10 @@
         "test/**",
         "prompts/**",
         "scripts/**",
-        ".github/workflows/**"
+        ".github/workflows/**",
+        ".github/CODEOWNERS",
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/ISSUE_TEMPLATE/**"
       ],
       "write": []
     },
@@ -29,7 +32,10 @@
         "test/**",
         "prompts/**",
         "scripts/**",
-        ".github/workflows/**"
+        ".github/workflows/**",
+        ".github/CODEOWNERS",
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/ISSUE_TEMPLATE/**"
       ],
       "write": [
         "src/**",
@@ -47,7 +53,10 @@
         "test/**",
         "prompts/**",
         "scripts/**",
-        ".github/workflows/**"
+        ".github/workflows/**",
+        ".github/CODEOWNERS",
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/ISSUE_TEMPLATE/**"
       ],
       "write": [
         "test/reports/**"
@@ -74,7 +83,7 @@
       // call-graph check is the real enforcement — this rule is defense in depth.
       "id": "GR-1",
       "statement": "code-agent writes to src/** are permitted only for whitelisted module dirs; writes under src/contentguard/policy/** additionally require a human-approved ADR reference in the PR description.",
-      "enforcement": "CI structural gate (scripts + workflow) + branch protection"
+      "enforcement": "planned: CI structural gate (TD-4); meanwhile branch protection + review memos"
     },
     {
       "id": "GR-2",
