@@ -1,65 +1,109 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "contentguard-requirements-schema-v1",
-  "title": "ContentGuard requirements registry schema (D1, CI gate 3)",
-  "description": "Validates docs/req/requirements.yaml. Every requirement: ID, type, statement, machine-checkable fit criterion, MoSCoW priority. Invariants additionally require an enforcing component, a verification method, a concrete operational fallback, and zero-tolerance marking.",
+  "$id": "contentguard-requirements-schema-v2-proposed",
+  "title": "ContentGuard streamlined requirements registry schema (D1, proposed)",
+  "description": "Proposed streamlined schema. Does not require status or source; stores traceability and approval records separately.",
   "type": "object",
-  "required": ["project", "version", "requirements"],
+  "required": [
+    "project",
+    "version",
+    "requirements"
+  ],
   "additionalProperties": false,
   "properties": {
-    "project": { "type": "string", "const": "ContentGuard" },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
-    "moscow_tradeoff_note": {
+    "project": {
       "type": "string",
-      "minLength": 20,
-      "description": "The explicit MoSCoW tradeoff statement required by the spec (D1)."
+      "const": "ContentGuard"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
     },
     "requirements": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/requirement" }
+      "items": {
+        "$ref": "#/$defs/requirement"
+      }
     }
   },
   "$defs": {
     "requirement": {
       "type": "object",
-      "required": ["id", "type", "statement", "fit_criterion", "priority", "status", "verification", "source"],
+      "required": [
+        "id",
+        "type",
+        "statement",
+        "fit_criterion",
+        "priority",
+        "verification"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string", "pattern": "^REQ-(FUN|INV|QUA|PER|COS|GOV|SEC)-\\d{3}$" },
+        "id": {
+          "type": "string",
+          "pattern": "^REQ-(FUN|INV|QUA|PER|COS|GOV|SEC)-\\d{3}$"
+        },
         "type": {
           "type": "string",
-          "enum": ["functional", "invariant", "quality", "performance", "cost", "governance", "security"]
+          "enum": [
+            "functional",
+            "invariant",
+            "quality",
+            "performance",
+            "cost",
+            "governance",
+            "security"
+          ]
         },
-        "title": { "type": "string", "minLength": 3 },
-        "statement": { "type": "string", "minLength": 15 },
+        "title": {
+          "type": "string",
+          "minLength": 3
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 15
+        },
         "fit_criterion": {
           "type": "string",
           "minLength": 15,
           "description": "Machine-checkable pass/fail criterion (metric + threshold + verification for non-functional)."
         },
-        "priority": { "type": "string", "enum": ["must", "should", "could", "wont"] },
-        "status": { "type": "string", "enum": ["draft", "agreed", "baselined", "implemented", "verified"] },
-        "changed_date": { "type": "string", "format": "date" },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "must",
+            "should",
+            "could",
+            "wont"
+          ]
+        },
+        "changed_date": {
+          "type": "string",
+          "format": "date"
+        },
         "verification": {
           "type": "object",
-          "required": ["method"],
+          "required": [
+            "method"
+          ],
           "additionalProperties": false,
           "properties": {
             "method": {
               "type": "string",
-              "enum": ["unit-test", "integration-test", "structural-check", "live-test", "ci-gate", "manual-review"]
+              "enum": [
+                "unit-test",
+                "integration-test",
+                "structural-check",
+                "live-test",
+                "ci-gate",
+                "manual-review"
+              ]
             },
-            "evidence": { "type": "string", "description": "Test file path / CI gate / review memo reference." }
-          }
-        },
-        "source": {
-          "type": "object",
-          "required": ["origin"],
-          "additionalProperties": false,
-          "properties": {
-            "origin": { "type": "string", "minLength": 3 },
-            "links": { "type": "array", "items": { "type": "string" } }
+            "evidence": {
+              "type": "string",
+              "description": "Test file path / CI gate / review memo reference."
+            }
           }
         },
         "enforcing_component": {
@@ -69,7 +113,7 @@
         "fallback": {
           "type": "string",
           "minLength": 20,
-          "description": "Concrete operational action taken if violated — must be an action, not 'fix the bug' (mandatory for invariants)."
+          "description": "Concrete operational action taken if violated (mandatory for invariants)."
         },
         "zero_tolerance": {
           "type": "boolean",
@@ -78,17 +122,50 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "type": { "const": "invariant" } }, "required": ["type"] },
+          "if": {
+            "properties": {
+              "type": {
+                "const": "invariant"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
           "then": {
-            "required": ["enforcing_component", "fallback", "zero_tolerance"],
-            "properties": { "zero_tolerance": { "const": true } }
+            "required": [
+              "enforcing_component",
+              "fallback",
+              "zero_tolerance"
+            ],
+            "properties": {
+              "zero_tolerance": {
+                "const": true
+              }
+            }
           }
         },
         {
-          "if": { "properties": { "type": { "enum": ["quality", "performance", "cost"] } }, "required": ["type"] },
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "quality",
+                  "performance",
+                  "cost"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
           "then": {
             "properties": {
-              "fit_criterion": { "type": "string", "minLength": 25 }
+              "fit_criterion": {
+                "type": "string",
+                "minLength": 25
+              }
             }
           }
         }
