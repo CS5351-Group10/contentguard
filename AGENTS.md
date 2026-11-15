@@ -45,7 +45,7 @@ the MVP; anything else is out of scope unless a human explicitly changes the reg
 
 | Scope | Status |
 |---|---|
-| `docs/**`, `src/**`, `test/**`, `prompts/**`, `scripts/**`, `.github/workflows/**` | readable |
+| `docs/**`, `src/**`, `test/**`, `prompts/**`, `scripts/**`, `.github/workflows/**`, `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/**` | readable |
 | `src/**`, `test/**`, `scripts/**` | modifiable (with verification requirements below) |
 | `prompts/**` | modifiable, but any change triggers the semantic evaluation gate (gate 4) |
 | `.github/workflows/**` | modifiable via agent session (governance-CI owner + PM review) — agentic red line: CI configuration is changed only through agent sessions |
