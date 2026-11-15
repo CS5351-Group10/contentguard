@@ -10,10 +10,14 @@
 
 | Sprint | Dates | Focus | Done |
 |---|---|---|---|
-| S1 | 2026-11-16 → 11-20 | Requirements baseline + architecture (ADD) + governance docs | ⬜ |
-| S2 | 2026-11-21 → 11-25 | Build MVP slice 1 (intake → analysis → policy → audit) + suites | ⬜ |
-| S3 | 2026-11-26 → 11-29 | Build slice 2 (escalation queue), eval harness, harden gates | ⬜ |
-| S4 | W13 end | Report, transcripts annotation, demo video, submission zip | ⬜ |
+| S1 | 2026-11-16 → 11-19 | Requirements baseline + architecture (ADD) + governance docs | ⬜ |
+| S2 | 2026-11-20 → 11-22 | Build MVP slice 1 (intake → analysis → policy → audit) + suites | ⬜ |
+| S3 | 2026-11-23 → 11-24 | Build slice 2 (escalation queue), eval harness, harden gates | ⬜ |
+| S4 | 2026-11-25 | Report, transcripts annotation, demo video, submission zip | ⬜ |
+
+> Deadline source (Canvas, confirmed 2026-11-15): both "Project (Zip file)" and
+> "Project (Demo Video)" are due **2026-11-25 23:59 HKT** (UTC 15:59:59). Zip must
+> NOT contain the demo video (sheet slide 23).
 
 ## Man-hours log (append per week)
 
