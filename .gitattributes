@@ -1,0 +1,19 @@
+# Line-ending policy for ContentGuard.
+#
+# The repo is edited from two environments on one working tree:
+#   - WSL (Linux git, /mnt/d/... , core.autocrlf defaults to false)
+#   - Windows (Git for Windows, system config sets core.autocrlf=true)
+# Without an explicit policy, a Windows-side edit can rewrite a whole file to CRLF
+# and produce a full-file diff. Normalize to LF everywhere instead.
+#
+# Paired setting (already applied at repo level): core.autocrlf=false
+* text=auto eol=lf
+
+# Never convert binary artifacts.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.ico binary
