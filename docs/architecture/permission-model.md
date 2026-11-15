@@ -26,8 +26,9 @@
 | `src/**` | read | read/write (post-ADR-001) | read | read/write |
 | `test/**` | read | read/write | read/write (reports only) | read/write |
 | `prompts/**` | read | read/write (triggers gate 4) | read | read/write |
-| `scripts/**` | read | propose in PR | read | read/write |
-| `.opencode/**`, `.agent/**`, `.github/**` | none | none | none | read/write (human-only) |
+| `scripts/**` | read | read/write (via agent session — red line) | read | read/write |
+| `.github/workflows/**` | read | read/write (via agent session — red line) | read | read/write |
+| `.opencode/**`, `.agent/**` | none | none | none | read/write (human-only) |
 | `transcripts/**` | none | none | none | read/write (human-only; sanitized before commit) |
 | `.env*`, `token*` (secrets) | none | none | none | read locally only; never committed |
 

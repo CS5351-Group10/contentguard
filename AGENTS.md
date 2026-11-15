@@ -31,6 +31,12 @@ the MVP; anything else is out of scope unless a human explicitly changes the reg
 
 - `src/` is currently **empty** (pre-architecture). The first modules appear only after
   ADR-001 (architecture choice) is approved by humans. Do not create modules before that.
+- **Scaffold seed compliance note:** `ci.yml`, `scripts/**`, `test/offline/test_smoke.py`,
+  and `prompts/prompt_v1.0.yaml` were **human-drafted pre-arrangement references**. Per
+  the agentic red line (proposal §1.3: CI configuration, scripts, tests and prompts are
+  changed only through agent sessions), they must be **regenerated/refined through
+  OpenCode sessions** (governance-CI owner's session) before counting as agent-generated
+  baseline — tracked as TD-3 in `docs/debt-register.md`.
 - Every new module must map to exactly one architectural element (see
   `docs/code-governance/structural-constraints.md`).
 - New work **extends** the baseline; never replace or rewrite an existing module wholesale.
@@ -39,12 +45,12 @@ the MVP; anything else is out of scope unless a human explicitly changes the reg
 
 | Scope | Status |
 |---|---|
-| `docs/**`, `src/**`, `test/**`, `prompts/**`, `scripts/**` | readable |
-| `src/**`, `test/**` | modifiable (with verification requirements below) |
+| `docs/**`, `src/**`, `test/**`, `prompts/**`, `scripts/**`, `.github/workflows/**` | readable |
+| `src/**`, `test/**`, `scripts/**` | modifiable (with verification requirements below) |
 | `prompts/**` | modifiable, but any change triggers the semantic evaluation gate (gate 4) |
+| `.github/workflows/**` | modifiable via agent session (governance-CI owner + PM review) — agentic red line: CI configuration is changed only through agent sessions |
 | `docs/req/**`, `docs/architecture/**` | **human-owned** — the agent may propose changes in a PR, only humans approve |
-| `.opencode/rules.md`, `.opencode/permissions.jsonc`, `.agent/rules.md`, `.github/**` | **frozen** (human-only) |
-| `transcripts/**` | **frozen** (human-authored annotations; agent must never write here) |
+| `.opencode/rules.md`, `.opencode/permissions.jsonc`, `.agent/rules.md`, `transcripts/**` | **frozen** (human-only) |
 | `.env*`, `token*` | never read, never touch (secrets) |
 
 Machine-readable rights: `.opencode/permissions.jsonc` (default: no read, no write;

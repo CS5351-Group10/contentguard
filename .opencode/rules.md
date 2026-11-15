@@ -7,8 +7,10 @@
 2. Follow `Prompt.md` stage gates exactly; stop for human approval where it says stop.
 3. Never read, write, or traverse secret files: `.env*`, `token*`, anything ignored by
    `.gitignore` under the secrets section.
-4. Never write to frozen/human-only paths: `.opencode/**`, `.agent/**`, `.github/**`,
+4. Never write to frozen/human-only paths: `.opencode/**`, `.agent/**`,
    `transcripts/**`, `docs/req/**`, `docs/architecture/**` (propose via PR instead).
+   `.github/workflows/**` and `scripts/**` are **code**: change them only through an
+   OpenCode session per the agentic red line — never by hand-editing.
 5. Never generate code before the execution plan is human-approved (gate 1: tests
    approved before implementation began — write tests first, per the approved plan).
 6. Every feature ships with at least one negative test (`.agent/rules.md` covenant).

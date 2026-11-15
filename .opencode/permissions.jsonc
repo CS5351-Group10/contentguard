@@ -14,7 +14,8 @@
         "src/**",
         "test/**",
         "prompts/**",
-        "scripts/**"
+        "scripts/**",
+        ".github/workflows/**"
       ],
       "write": []
     },
@@ -27,12 +28,15 @@
         "src/**",
         "test/**",
         "prompts/**",
-        "scripts/**"
+        "scripts/**",
+        ".github/workflows/**"
       ],
       "write": [
         "src/**",
         "test/**",
-        "prompts/**"
+        "prompts/**",
+        "scripts/**",
+        ".github/workflows/**"
       ]
     },
     "verify-agent": {
@@ -42,7 +46,8 @@
         "src/**",
         "test/**",
         "prompts/**",
-        "scripts/**"
+        "scripts/**",
+        ".github/workflows/**"
       ],
       "write": [
         "test/reports/**"
@@ -54,7 +59,6 @@
     ".opencode/rules.md": { "read": false, "write": false },
     ".opencode/permissions.jsonc": { "read": false, "write": false },
     ".agent/rules.md": { "read": false, "write": false },
-    ".github/**": { "read": false, "write": false },
     "transcripts/**": { "read": false, "write": false },
     // Secrets: never read, never touch (course red line).
     ".env": { "read": false, "write": false },
