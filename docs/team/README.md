@@ -14,7 +14,7 @@
 | PM — Report, review-memo sign-off, contribution log, demo video, slides | LIU Jianwei (61022208) | [61022208-LIU-Jianwei.md](61022208-LIU-Jianwei.md) | @swordnew123 |
 | Requirements — D1 registry + req-schema + policy docs | — | pending | — |
 | Architecture — D2 artifacts (multi-round ADD) + D9 Prompt.md | — | pending | — |
-| Governance & CI — D3 + D7 gates + README + ai-use-log | — | pending | — |
+| Governance & CI — D3 + D7 gates + README + ai-use-log | creator-xiyuan | pending (card via first-PR exercise) | @creator-xiyuan |
 | Testing — D4 verification governance + D8 suites + bug-diary/debt-register | — | pending | — |
 
 ## Add yourself (first PR exercise)
