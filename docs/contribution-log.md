@@ -49,6 +49,36 @@ Set before the first logged entry — no historical hours are rewritten.
 5. **Defensible granularity.** Every What entry must be verifiable against commits,
    memos, or transcripts ("2.5h: review PR#7 + sign-off memo") — never "worked on project".
 
+Rules 6–9 added 2026-11-16 (PM), same amendment window — still before the first logged
+entry, so nothing below rewrites any recorded hours.
+
+6. **Backfill.** The initial backfill (pre-protocol days, before the first logged entry)
+   is legitimate and is marked as such in the entry. A missed same-day report may be
+   backfilled within 48h **if anchored** (commits / PR / records). Later than that: log
+   it anyway, flagged as a phase-close estimate — never silently rewritten.
+7. **Net hours.** Report net productive time: subtract work for other courses done in
+   parallel; short breaks count, distinct non-project work blocks don't. Round to 0.5h.
+8. **AI-assisted logging is allowed.** Having an AI session draft or submit your
+   man-hours entry is fine — this is an Agentic SE course, and supervising AI is itself
+   reportable work (rule 4). Cite the anchor as "session records".
+9. **No-PR work, terminal fallback.** Report in the PR that carries the work; if none
+   does, in the most closely related PR's comments; if nothing relates (reading,
+   discussions, stand-ups, design sketches), hold the entries and report them in the
+   comments of the phase-close **aggregation PR** — the PM opens one at every phase
+   close to update the Man-hours log table, and it accepts orphan entries.
+
+## Filling template (copy-paste per entry; live examples: the PM's man-hours comments on PR #8 / #9 / #10, 2026-11-16)
+
+- 2026-11-16, 14:00–16:30, <what — verifiable against commits/PRs/records>, <anchors:
+  commit short-hash(es) / PR # / "session records"> — **2.5h**
+
+- One bullet per work block, per day; span is local time (HKT, UTC+8).
+- Hours rounded to 0.5h; flag edge items with `[borderline]` — logged and flagged at
+  aggregation, not dropped (rule 4).
+- End each PR's report with a running-total line.
+- Language: keep the skeleton fields (date, span, hours, anchors) in English; the What
+  text may be Chinese — the PM normalizes wording at aggregation.
+
 ## Man-hours log (append per phase)
 
 | Member | Phase | Hours | What |
