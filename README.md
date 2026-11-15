@@ -26,7 +26,7 @@ CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking
 | `docs/ai-use-log.yaml` | Mandatory AI-use log (updated with every code/prompt change) | D1, gate 6 |
 | `docs/review-memo.md` | One review memo per pull request, ending in a verdict | D4 |
 | `docs/project-proposal.md` | Team proposal — requirements context, timeline, roles (internal working doc, Chinese; **not** a D1–D9 deliverable) | context |
-| `docs/team.md` | Team roster working file + first-PR exercise guide (feeds `Report.md` §1) | D6 |
+| `docs/team/` | Team roster cards (one per member) + first-PR exercise guide (feeds `Report.md` §1) | D6 |
 | `docs/debt-register.md` | AI-era technical debt tracker | D4 |
 | `docs/bug-diary.md` | Diary entry per significant bug | D4 |
 | `docs/contribution-log.md` | Working log of man-hours / story points (feeds the D6 contribution table) | D6 |
