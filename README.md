@@ -25,6 +25,8 @@ CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking
 | `docs/code-governance/` | Structural constraints, verification constraints, MCP tool manifest | D3/D4 |
 | `docs/ai-use-log.yaml` | Mandatory AI-use log (updated with every code/prompt change) | D1, gate 6 |
 | `docs/review-memo.md` | One review memo per pull request, ending in a verdict | D4 |
+| `docs/project-proposal.md` | Team proposal — requirements context, timeline, roles (internal working doc, Chinese; **not** a D1–D9 deliverable) | context |
+| `docs/team.md` | Team roster working file + first-PR exercise guide (feeds `Report.md` §1) | D6 |
 | `docs/debt-register.md` | AI-era technical debt tracker | D4 |
 | `docs/bug-diary.md` | Diary entry per significant bug | D4 |
 | `docs/contribution-log.md` | Working log of man-hours / story points (feeds the D6 contribution table) | D6 |
@@ -76,5 +78,6 @@ accompanying architecture decision (§6).
 
 ## Team
 
-> TODO: member names, student IDs, and roles (see `Report.md` §Contributions and
-> `docs/contribution-log.md` for the man-hours log that determines relative weights).
+Live roster: `docs/team.md` (members add themselves via PR). The final table with
+names, student IDs, and relative contributions is transcribed into `Report.md` §1
+at submission; man-hours evidence lives in `docs/contribution-log.md`.
