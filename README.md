@@ -58,10 +58,10 @@ mypy scripts test                          # gate 2: type check
 
 ## GitHub repository
 
-> TODO: paste the team GitHub repository URL here once the team repo is created
-> (requirement sheet §4). Branch protection must be enabled: CI must pass to merge,
-> and safety-critical paths additionally require human review with an architecture
-> decision (§6).
+https://github.com/swordnew123/contentguard (private; team collaborators invited
+separately). Branch protection on `main`: the CI check `blocking-gates` must pass
+before merge, and safety-critical paths additionally require human review with an
+accompanying architecture decision (§6).
 
 ## Blocking-gate design (§6)
 
