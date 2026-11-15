@@ -35,7 +35,11 @@ def main() -> int:
     repo = str(pr["base"]["repo"]["full_name"])
     number = int(pr["number"])
     token = os.environ.get("GITHUB_TOKEN", "")
-    files = changed_files(repo, number, token)
+    try:
+        files = changed_files(repo, number, token)
+    except RuntimeError as exc:
+        print(f"GATE 1 FAIL: could not list PR files — {exc}")
+        return 1
     if not changed_code_files(files):
         print("GATE 1 PASS: no code/prompt changes in this PR (docs-only)")
         return 0

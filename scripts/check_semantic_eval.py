@@ -42,7 +42,11 @@ def main() -> int:
 
     repo = str(pr["base"]["repo"]["full_name"])
     number = int(pr["number"])
-    files = changed_files(repo, number, os.environ.get("GITHUB_TOKEN", ""))
+    try:
+        files = changed_files(repo, number, os.environ.get("GITHUB_TOKEN", ""))
+    except RuntimeError as exc:
+        print(f"GATE 4 FAIL: could not list PR files — {exc}")
+        return 1
     hits = prompt_or_model_files(files)
     if not hits:
         print("GATE 4 PASS: no prompt/model change in this PR")
