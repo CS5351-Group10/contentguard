@@ -35,3 +35,9 @@
 
 > Rule: no member self-certifies their own hours at sprint end — the PM aggregates
 > from this log weekly (every stand-up), so the final table is defensible.
+
+## Governance events (append-only)
+
+| Date | Event | Rationale |
+|---|---|---|
+| 2026-11-15 | Repo transferred `swordnew123/contentguard` → `CS5351-Group10/contentguard`; visibility private → public | Personal repos cannot grant repo-admin to collaborators; the org enables repository-admin roles for CI governance. Public keeps protected branches free on the org's Free plan (private → Free org would drop them) — rules verified intact after transfer (strict `blocking-gates` + 1 review + enforce-admins + linear history). Side effect accepted by PM: roster cards (student IDs) are now publicly readable. The old URL redirects until a repo is recreated there; members update remotes to `github.com/CS5351-Group10/contentguard.git`. |
