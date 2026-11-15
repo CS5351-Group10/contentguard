@@ -1,10 +1,10 @@
 # Contribution Log (working file for the D6 relative-contribution table)
 
-> Log man-hours / story points **weekly, from day one** (the requirement sheet's D6
+> Log man-hours **per phase, same-day, from day one** (the requirement sheet's D6
 > method computes each member's weight = individual total / mean total). The final
 > table lives in `Report.md` §2; this file is the raw, append-only evidence.
 > PM work, review duty, and governance documentation count as real hours — the sheet
-> explicitly rewards "difficult tasks and project management".
+> explicitly rewards "difficult tasks and project management". Protocol: § Recording protocol.
 
 ## Phase plan (proposal §4.3, agreed 2026-11-15)
 
@@ -21,11 +21,31 @@
 > "Project (Demo Video)" both due **2026-11-25 23:59 HKT**. Zip must NOT contain the
 > demo video (sheet slide 23). Phase calendar from team proposal §4.3.
 
-## Man-hours log (append per week)
+## Recording protocol (set by PM 2026-11-15; open for objection at any stand-up)
 
-| Member | Sprint | Hours | Story points | What |
-|---|---|---|---|---|
-| — | — | — | — | — |
+Set before the first logged entry — no historical hours are rewritten.
+
+1. **Per-phase cadence, not weekly.** The project spans 11-15 → 11-30, so weekly logging
+   would give only ~2 data points. Members report at every phase close (table above); the
+   PM aggregates into the man-hours log at the same cadence.
+2. **Same-day capture.** Hours are reported to the PM the day they are spent (one line:
+   date, span, what, hours — stand-up or group chat). End-of-phase recall estimates are
+   not accepted. Cross-check anchors at phase close: git commit timestamps, the five
+   locked transcripts (due 11-21), and `docs/ai-use-log.yaml`.
+3. **Hours only.** Spec D6 computes weights from productive hours (its example uses hrs);
+   story points are dropped — a 16-day project does not run sprint planning.
+4. **What counts (pre-agreed).** Build, testing, debugging, CR/review duty, memos,
+   governance docs, stand-ups, PM coordination, demo/slides work, and required reading
+   all count. General course study unrelated to this project does not. Borderline items
+   are logged and flagged at aggregation, not dropped.
+5. **Defensible granularity.** Every What entry must be verifiable against commits,
+   memos, or transcripts ("2.5h: review PR#7 + sign-off memo") — never "worked on project".
+
+## Man-hours log (append per phase)
+
+| Member | Phase | Hours | What |
+|---|---|---|---|
+| — | — | — | — |
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
@@ -33,8 +53,8 @@
 |---|---|---|---|---|
 | — | — | — | — | — |
 
-> Rule: no member self-certifies their own hours at sprint end — the PM aggregates
-> from this log weekly (every stand-up), so the final table is defensible.
+> Rule: no member self-certifies their own hours at phase close — the PM aggregates
+> from this log at every phase close, so the final table is defensible.
 
 ## Governance events (append-only)
 
