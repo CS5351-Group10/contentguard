@@ -7,8 +7,9 @@ is made exclusively by a deterministic policy engine constrained by auditable in
 This advisory-vs-authoritative split is the safety-relevant boundary required by the
 CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking gates).
 
-> **Status:** governance bootstrap complete (2026-11-15); Phase ② in progress —
-> requirements final + evaluation set due 11-16 (see `docs/contribution-log.md`).
+> **Status:** Phase ② closing (2026-11-16): blocking-gates green (11-16 CI fix, PR #7);
+> man-hours protocol under review (PR #8); requirements registry v1.0 under review
+> (PR #11); evaluation set due today. Working log: `docs/contribution-log.md`.
 
 ## Repository organization
 
