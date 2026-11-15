@@ -49,7 +49,7 @@ the MVP; anything else is out of scope unless a human explicitly changes the reg
 | `src/**`, `test/**`, `scripts/**` | modifiable (with verification requirements below) |
 | `prompts/**` | modifiable, but any change triggers the semantic evaluation gate (gate 4) |
 | `.github/workflows/**` | modifiable via agent session (governance-CI owner + PM review) — agentic red line: CI configuration is changed only through agent sessions |
-| `docs/req/**`, `docs/architecture/**` | **human-owned** — the agent may propose changes in a PR, only humans approve |
+| `docs/req/**`, `docs/architecture/**`, `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/**` | **human-owned** — the agent may propose changes in a PR, only humans approve. (`.github` governance config is not "CI configuration": the agentic red line covers `workflows/**` only) |
 | `.opencode/rules.md`, `.opencode/permissions.jsonc`, `.agent/rules.md`, `transcripts/**` | **frozen** (human-only) |
 | `.env*`, `token*` | never read, never touch (secrets) |
 

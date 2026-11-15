@@ -28,6 +28,7 @@
 | `prompts/**` | read | read/write (triggers gate 4) | read | read/write |
 | `scripts/**` | read | read/write (via agent session — red line) | read | read/write |
 | `.github/workflows/**` | read | read/write (via agent session — red line) | read | read/write |
+| `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/**` | read | read (propose in PR) | read | read/write (human-only governance config) |
 | `.opencode/**`, `.agent/**` | none | none | none | read/write (human-only) |
 | `transcripts/**` | none | none | none | read/write (human-only; sanitized before commit) |
 | `.env*`, `token*` (secrets) | none | none | none | read locally only; never committed |

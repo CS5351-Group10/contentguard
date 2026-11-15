@@ -38,6 +38,28 @@
 - Verdict: APPROVE / CHANGES REQUIRED / REJECT
 ```
 
+## PR & commit conventions (agreed 2026-11-15)
+
+- **One logical change per PR** — a feature slice or a single deliverable chunk;
+  small PRs keep memos meaningful.
+- **Branch:** `<type>/<req-or-inv-id>-<slug>` (e.g. `feat/REQ-FUN-001-intake`).
+- **PR title:** `<type>(<scope>): <subject>` — cite REQ/INV IDs in title or body;
+  squash merge appends `(#<n>)`. Template: `.github/PULL_REQUEST_TEMPLATE.md`;
+  test plans go through `.github/ISSUE_TEMPLATE/test-plan.md` issues (gate 1).
+- **Merge method: squash only** (repo setting) — `main` becomes a curated ledger of
+  one commit per reviewed change; granular agent-session commits stay visible on the
+  PR page (D5 evidence). Consistent with the required linear history.
+- **Contribution attribution (D6) rests on three anchors**, not on squash-commit
+  authorship: (1) `docs/ai-use-log.yaml` `operator` + `pr` fields, (2) the PR body
+  (authored by the member), (3) the man-hours table in `docs/contribution-log.md`.
+  Authors merge their own PRs after approval — a responsibility discipline, not the
+  attribution mechanism.
+- **Prologue (history chapter 0):** the 10 commits of 2026-11-15 were direct pushes
+  during governance bootstrap (scaffold/docs/governance files only — no
+  src/test/prompts/CI content, so the agentic red line was never engaged) while
+  branch protection was being set up. From now on **every change lands via PR**;
+  any exceptional admin window is stated in the commit message.
+
 ## Memos
 
 <!-- Append memos below, newest last. -->

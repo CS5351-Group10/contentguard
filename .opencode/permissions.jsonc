@@ -60,6 +60,9 @@
     ".opencode/permissions.jsonc": { "read": false, "write": false },
     ".agent/rules.md": { "read": false, "write": false },
     "transcripts/**": { "read": false, "write": false },
+    // .github governance config (CODEOWNERS, PULL_REQUEST_TEMPLATE.md,
+    // ISSUE_TEMPLATE/**): human-owned — not whitelisted for any role's write
+    // (default no-write applies; in lockstep with permission-model.md).
     // Secrets: never read, never touch (course red line).
     ".env": { "read": false, "write": false },
     "*.env": { "read": false, "write": false },

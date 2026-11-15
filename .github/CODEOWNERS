@@ -1,0 +1,9 @@
+# Default: everything requires PM review (branch protection additionally requires
+# 1 approving review on every PR).
+#
+# Domain co-signers (proposal §4.2) get added here as owners onboard:
+#   - Safety-critical paths — /src/contentguard/policy/** and files named in
+#     docs/architecture/invariants.md — require the architecture owner's co-sign
+#     (D7). Uncomment and fill the architecture owner's handle when known:
+#     /src/contentguard/policy/     @<arch-owner>
+* @swordnew123
