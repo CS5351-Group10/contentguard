@@ -100,3 +100,15 @@
 - Efficiency: n/a
 - Operational metadata: governance-events ledger updated in-PR; no code/prompt change → no ai-use-log delta
 - Verdict: APPROVE (post-merge ratification of the domain CR's verdict)
+
+## RM-003 — PR #9: docs(review-memo): RM-002 post-merge backfill for PR #2
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI owner); PM authored this PR, so the domain verdict is the independent one (recorded by PM from the CR's approve on this PR)
+- Spec alignment: no requirement change; closes the PR #2 memo-gap audit item (RM-002 post-merge backfill; enforcement path → Gate 7, issue #4)
+- Architecture alignment: n/a (ledger append only)
+- Code quality: n/a (docs)
+- Test quality: docs-only; blocking-gates green on this branch
+- Security: n/a
+- Efficiency: n/a
+- Operational metadata: governance-events row for the incident added in this PR (contribution-log.md)
+- Verdict: APPROVE
