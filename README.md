@@ -66,6 +66,9 @@ paths additionally require human review with an accompanying architecture decisi
 (§6) — machine-enforced via CODEOWNERS once domain owners onboard; review-process
 enforced until then.
 
+Submitting a PR: member guide at `.github/CONTRIBUTING.md` (thin summary —
+authoritative rules live in `docs/review-memo.md`).
+
 ## Blocking-gate design (§6)
 
 | # | Gate | What it enforces | Where implemented | Status |
