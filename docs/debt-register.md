@@ -14,6 +14,7 @@
 | TD-6 | human/cognitive debt | Five transcripts + a growing memo backlog are due in a short window; the PM is the default reviewer | missed D5/D4 evidence; review bottleneck | Daily checkpoints from 11/17; delegate domain reviews/memos; transcript lock 11/21 | Phase ② review, 2026-11-16 | open |
 | TD-7 | agent-induced bloat | Build sessions may add unnecessary abstractions, flags, or dependencies | review/maintenance cost; scope creep | ADR-001 abstraction limits; small PRs; PM/test-owner review | Phase ② review, 2026-11-16 | open |
 | TD-8 | hallucinated dependencies | Agent may import undeclared packages in build sessions | CI/type failures; supply-chain risk | Declare runtime/test dependencies in a manifest; add a dependency check to gate 2 (S4) | Phase ② review, 2026-11-16 | open |
+| TD-9 | guardrail debt | Proposed gate 7 (review-memo presence gate) not implemented; PM decision 2026-11-16 to defer during the build window (issue #4) | memos remain process-enforced, not machine-enforced | Revisit after the 11/21 lock / submission; use issue #4's implementation spec | PM, 2026-11-16 | deferred |
 | — | — | — | — | — | — | — |
 
 > Discipline: every review memo or bug-diary entry that spots debt adds a row; rows
@@ -36,5 +37,5 @@
 - **2026-11-16 (Phase ② close):** D2 support artifacts drafted (memory design,
   evaluation table, runtime policy catalog, option ledger, evaluation logbook, risk
   list); trace-matrix rows prepared for PR #11. Local checks green: gate 3, pytest
-  offline, ruff, mypy. TD-1..TD-4 remain open with S4 pay-down dates; TD-5..TD-8 added
-  for build-phase tracking.
+  offline, ruff, mypy. TD-1..TD-4 remain open with S4 pay-down dates; TD-5..TD-9 added
+  for build-phase tracking (TD-9 records the gate-7 deferral per issue #4).
