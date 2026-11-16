@@ -84,10 +84,12 @@
 
 ## Memos
 
-> RM-N = the Nth memo in this ledger, ordered by the intended PR sequence.
-> RM-002/RM-003 were backfilled by PR #9 after RM-004 was drafted in PR #8;
-> they are placed before RM-004 so the ledger reads in PR order. A dismissed
-> "RM-003" review draft on PR #5 predates this ledger's RM-003 and is void.
+> RM-N = the Nth memo in this ledger. RM-001..RM-004 follow the intended PR
+> sequence; RM-005 onward follow the 2026-11-16 finalization note below (posted
+> labels where unique, ledger renumbering where they collided). RM-002/RM-003
+> were backfilled by PR #9 after RM-004 was drafted in PR #8; they are placed
+> before RM-004 so the early ledger reads in PR order. A dismissed "RM-003"
+> review draft on PR #5 predates this ledger's RM-003 and is void.
 >
 > **2026-11-16 ledger finalization note (supersedes the ordering rule above for
 > RM-005 onward).** Reviewers posted memos in PR threads faster than the ledger could
@@ -100,8 +102,10 @@
 >   memo is **RM-004** on the merged head (`12d4936`).
 > - PR #13 (RM-008), PR #14 (RM-009), PR #17 (RM-005), PR #16 (RM-006) and PR #29
 >   (RM-007) keep their posted numbers.
-> - PR #11 and PR #15 remain unnumbered until their final heads are re-reviewed and
->   merged; their current verdicts are CHANGES REQUIRED and are not final memos.
+> - PR #15 was approved and merged after this append (squash `8747723`); its memo is
+>   **RM-013** below, added in the 2026-11-16 backfill. PR #11 remains unnumbered
+>   until its final head is re-reviewed and merged; its current verdict is CHANGES
+>   REQUIRED and is not a final memo.
 
 <!-- Append memos below, newest last. -->
 
@@ -166,11 +170,11 @@
 - Spec alignment: no registry change; records D4/D6 evidence — bug-diary BUG-001/BUG-002, debt register TD-1..TD-9 with owners and pay-down dates, Report §1 roster and §2 hours skeleton, and the `docs/team/README.md` index
 - Architecture alignment: n/a (governance/docs)
 - Code quality: n/a (docs)
-- Test quality: docs-only; `blocking-gates` green on `311dcd7`
+- Test quality: docs-only; `blocking-gates` green on `311dcd7`; final head `ce88b3d` (main merge + this ledger append) re-approved by the reviewer before squash merge
 - Security: n/a
 - Efficiency: n/a
 - Operational metadata: BUG-002's "Fixed in: PR #11 (pending)" is correct at memo time; update when #11 lands
-- Oversight case: yes — reviewer independently reproduced BUG-001's 401 path (`Authorization: Bearer ` with a blank token; only gate 6 had `GITHUB_TOKEN`), checked that TD-3 is honestly `partial`, verified TD-1..TD-4 dates and TD-9's gate-7 deferral, and confirmed AI-001 `pr: 7` matches the squash commit
+- Oversight case: yes — reviewer independently reproduced BUG-001's 401 path (`Authorization: Bearer ` with a blank token; only gate 6 was wired to `GITHUB_TOKEN`, gate 1 died with a 401 and gates 4/6 never ran. Reviewer also checked that TD-3 is honestly `partial`, verified TD-1..TD-4 dates and TD-9's gate-7 deferral, and confirmed AI-001 `pr: 7` matches PR #7's squash commit `9cd38f7`
 - Verdict: APPROVE
 
 ## RM-006 — PR #16: docs(architecture): complete D2 support artifacts for Phase 2
@@ -179,7 +183,7 @@
 - Spec alignment: fills D2.5 memory, D2.7 runtime policy, D2.8 evaluation table, D2.9 logbook, D2.10 risk list, D2.11 option ledger; no registry change
 - Architecture alignment: design judgment explicitly distinguished from benchmark evidence; S4/S5 logbook rows marked Planned, not evidence; retention/access values marked pending ratification
 - Code quality: n/a (docs)
-- Test quality: n/a (docs); evaluation arithmetic recomputed
+- Test quality: n/a (docs); evaluation arithmetic recomputed. Review head `d6f4c7c`; final head `8e9509d` adds the ADR/contracts link fix and awaits @xiaolizi33's path approval — not yet merged at ledger time
 - Security: n/a
 - Efficiency: n/a
 - Operational metadata: review hours 0.5h (11/16 18:40–19:10); future D3 edits to `docs/code-governance/mcp-tool-manifest.md` route through the governance & CI owner
@@ -192,11 +196,11 @@
 - Spec alignment: no registry change; documents handoff/decision/test-plan/deferred/closed issue discipline, close reasons, never-delete-closed rule, and the Resolution section
 - Architecture alignment: n/a
 - Code quality: n/a (docs)
-- Test quality: docs-only; `blocking-gates` green on `2973770`
+- Test quality: docs-only; `blocking-gates` green on `2973770`; final head `602330c` after update-branch, approval preserved, merged
 - Security: n/a
 - Efficiency: n/a
 - Operational metadata: docs-only gate-6 wording moves to "n/a (no code/prompt change; note any AI-assisted drafting)" — an honest relaxation; review hours 0.3h (11/16 19:10–19:30)
-- Oversight case: yes — reviewer flagged the gate-6 wording change explicitly, checked the follow-up consistency obligation, and confirmed the PR deliberately avoids `docs/review-memo.md` to stay clear of the #8 collision
+- Oversight case: yes — reviewer flagged the gate-6 wording change explicitly (docs-only PRs may now disclose AI-assisted drafting) and confirmed the PR deliberately avoids `docs/review-memo.md` to stay clear of the #8 collision
 - Verdict: APPROVE
 
 ## RM-008 — PR #13: roster: add 60368210
@@ -209,7 +213,7 @@
 - Security: student ID public by the PM decision of 2026-11-15; no secrets
 - Efficiency: n/a
 - Operational metadata: index update deferred to the PM per the roster design
-- Oversight case: no material defect caught; template conformance and public-ID decision checked
+- Oversight case: no (routine roster card); template conformance and public-ID decision checked
 - Verdict: APPROVE
 
 ## RM-009 — PR #14: docs(d5): archive annotated governance-CI session transcript (60368210)
@@ -222,7 +226,7 @@
 - Security: sanitized — only example `Bearer ` / `Bearer xxx` strings; no real token; working-directory paths present (acceptable, could be redacted)
 - Efficiency: n/a
 - Operational metadata: `docs/ai-use-log.yaml` AI-001 exists (`pr: 7`); filename matches the D5 convention. Non-blocking follow-up: the transcript omits tool outputs ("condensed for size") and uses a table rather than inline `>>> [INTERVENTION]` markers; add the full raw export (or a documented excerpt policy) and inline markers before the 11/21 lock
-- Oversight case: yes — reviewer caught the missing full export/inline markers and recorded it as a D5 follow-up rather than waving it through
+- Oversight case: yes — the operator rejected job-level token hoisting (least privilege) and required ID-citing test docstrings; the D5 follow-up (full export/inline markers) is separately recorded above
 - Verdict: APPROVE (with the D5 follow-up above)
 
 ## RM-010 — PR #5: roster: add 60938585
@@ -248,5 +252,44 @@
 - Security: no secrets; no permission changes
 - Efficiency: reduces review ambiguity
 - Operational metadata: docs-only; no ai-use-log required
-- Oversight case: yes — reviewer checked the governance claims against real branch-protection behavior (the old CODEOWNERS comment overstated enforcement)
+- Oversight case: yes — reviewer verified the CODEOWNERS/AGENTS/PR-template claims against the actual branch protection (`required_approving_review_count: 1`, `require_code_owner_reviews: false` at that time) and flagged a non-blocking step-8 wording inconsistency (author merges vs reviewer gate)
+- Verdict: APPROVE
+
+## RM-012 — PR #30: chore(governance): per-domain CODEOWNERS rules (two owners each, no self-approval deadlock)
+
+- Reviewer(s): PM LIU Jianwei (non-author); author creator-xiyuan
+- Spec alignment: replaces the single `* @swordnew123` rule with per-domain owners (`*`, `/docs/req/`, `/docs/architecture/`, `/src/contentguard/policy/`, `/.github/workflows/`, `/scripts/`), each with a domain owner plus one fallback; enables `require_code_owner_reviews` on `main`. No requirement change.
+- Architecture alignment: matches the review process §1 domain split and the D7 safety-critical path; the file documents that CODEOWNERS resolves a file's owners by the last matching pattern, so the broad default rule stays first.
+- Code quality: n/a (config)
+- Test quality: n/a (config); `blocking-gates` green on `3373e3`
+- Security: least-privilege review ownership; no permission grant beyond the existing collaborators
+- Efficiency: n/a
+- Operational metadata: the root D2.1/D9 artifacts (`/architecture-blueprint.md`, `/Prompt.md`) were missing from the first head and were added after PM review. Merged at `d5ec877`.
+- Oversight case: yes — PM caught the two missing root patterns (issue #21's recommendation explicitly listed `architecture-blueprint.md`) and requested the two-line fix; the author added them and corrected the last-match wording.
+- Verdict: APPROVE
+
+## RM-013 — PR #15: docs(architecture): propose ADR-001, blueprint and module contracts
+
+- Reviewer(s): PM LIU Jianwei (non-author); author LI Shiyi; requirements/testing co-signs pending
+- Spec alignment: ADR-001 chooses the modular monolith with grounded advisory analysis and transactional policy authority; the blueprint restores the D2.1 system-boundaries, agent-workflow, permissions and verification-strategy sections; interface contracts define the module operations; the ADD process is documented. No registry change.
+- Architecture alignment: advisory/authoritative split, policy authority, RAG grounding, layered context, compaction/reinjection, fail-safe fallbacks, and INV-1..5 alignment verified against the blueprint.
+- Code quality: n/a (docs)
+- Test quality: n/a (docs); the acceptance-test list is handed to the test plans
+- Security: untrusted submitted/retrieved text, citation validation, no provider tools, server-authenticated moderator identity
+- Efficiency: 8,192 envelope / 6,144 input / 4,608 compaction / 20 s per-call cap; 20 s is a hard cap, not REQ-PER-001's p95; REQ-COS-001 provisional/not-claimed
+- Operational metadata: PM approved on 2026-11-16 with requirements/testing co-signs recorded as pending; PM updated the ADR/blueprint/contracts status lines at merge time because the author was unavailable, leaving the substantive content unchanged. Merged at `8747723`.
+- Oversight case: yes — PM verified items 1–9 of the `5683ac7` re-review, refused to approve while the ADR still said PROPOSED, and required the pending co-signs to be recorded rather than claimed complete.
+- Verdict: APPROVE (with requirements/testing co-signs pending)
+
+## RM-014 — PR #31: docs(review-memo): rule 6 — an approval is a judgement, not a click
+
+- Reviewer(s): PM LIU Jianwei (non-author); author creator-xiyuan
+- Spec alignment: adds rule 6 to the review process: state what was checked; do not approve incomplete work; per-role check surface for requirements/architecture/testing/governance/PM. No requirement change.
+- Architecture alignment: n/a (process docs)
+- Code quality: n/a (docs)
+- Test quality: docs-only; `blocking-gates` green on `d0768b9`
+- Security: n/a
+- Efficiency: n/a
+- Operational metadata: merged at `3bda2ed`; the rule applies to future memos and the `Oversight case:` line is now the norm.
+- Oversight case: yes — PM checked the diff scope (only `docs/review-memo.md` §Review process), confirmed the rule matches the cited PR #2 incident, and verified the existing RM ledger/numbering note was untouched.
 - Verdict: APPROVE
