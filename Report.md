@@ -7,20 +7,31 @@
 
 | Name | Student ID | Role(s) |
 |---|---|---|
-| TODO | TODO | Team lead / PM |
-| TODO | TODO | TODO |
-| TODO | TODO | TODO |
+| LIU Jianwei | 61022208 | Team lead / PM — report, review-memo sign-off, contribution log, demo video, slides |
+| HAN Mei | 60914643 | Requirements — D1 registry/schema, policy sources |
+| LI Shiyi | 60938585 | Architecture — D2 artifacts, D9 Prompt.md |
+| HUANG Hongwei | 60368210 | Governance & CI — D3 governance files, D7 blocking gates, README, ai-use-log |
+| Buna DA | pending | Testing — D4 verification governance, D8 test suites, bug-diary/debt-register |
+
+> DRAFT — Buna's student ID is pending; the final table is transcribed at submission.
+> Public roster IDs were accepted by the PM on 2026-11-15 (see `docs/contribution-log.md`
+> governance events).
 
 ## 2. Relative contributions
 
-Computed from man-hours / story points logged weekly in `docs/contribution-log.md`.
-Method: mean contribution = total / members; weight = individual total / mean (see
-requirement sheet D6 example). Final table goes here; the raw log stays in
-`docs/contribution-log.md`.
+Computed from productive man-hours logged **per phase** in `docs/contribution-log.md`
+(hours only; story points dropped — see the recording protocol there). Method: mean
+contribution = total / members; weight = individual total / mean (requirement sheet D6
+example). Final table goes here; the raw, append-only log and protocol stay in
+`docs/contribution-log.md`. Hours are aggregated at each phase close.
 
-| Member | S1 | S2 | S3 | S4 | S5 | Total | Weight |
-|---|---|---|---|---|---|---|---|
-| TODO | | | | | | | |
+| Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
+|---|---|---|---|---|---|---|---|---|
+| LIU Jianwei (61022208) | | pending | | | | | | |
+| HAN Mei (60914643) | | pending | | | | | | |
+| LI Shiyi (60938585) | | pending | | | | | | |
+| HUANG Hongwei (60368210) | | pending | | | | | | |
+| Buna DA (ID pending) | | pending | | | | | | |
 
 ## 3. Software engineering process and how we optimized it
 
