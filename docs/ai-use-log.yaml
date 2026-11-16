@@ -43,3 +43,23 @@ entries:
       only) and required an explicit permissions block + ID-citing test docstrings.
     pr: 7   # merged 2026-11-15 as 9cd38f7
 
+  - id: AI-002
+    date: 2026-11-17
+    agent: opencode
+    model: opencode/deepseek-v4.1-flash-free
+    operator: DA Buna (60105888)
+    session_transcript: transcripts/60105888-DA-Buna.md
+    scope: >-
+      scripts/build_evaluation_dataset.py,
+      test/eval/moderation_eval.jsonl, test/eval/README.md,
+      test/offline/test_evaluation_dataset.py
+    summary: >-
+      Built a deterministic, hash-pinned local dataset builder and a fixed
+      100-record moderation evaluation set (80 Jigsaw, 20 COLD; seed 5351).
+      Added provenance and label documentation plus 18 offline validation tests.
+      Preserved source-specific labels and verified deterministic regeneration.
+    human_interventions: 2
+    intervention_summary: >-
+      Operator approved the revised execution plan and requested a focused
+      Ruff E402 fix; the operator reviewed the resulting scope and validation.
+    pr: 36
