@@ -14,3 +14,18 @@
 
 > Discipline: every review memo or bug-diary entry that spots debt adds a row; rows
 > leave the register only via a PR that removes the debt (verdict APPROVE).
+
+## Progress notes
+
+- **2026-11-15 (RM-001, AI-001):** gate 1/4/6 PR-file fetch 401 fixed
+  (`scripts/pr_files.py` no longer sends an empty `Authorization` header;
+  `changed_files()` raises an actionable error; gates 1/4 got a per-step
+  `GITHUB_TOKEN`; workflow declares least-privilege `permissions`).
+  - TD-1: gate 4 is now reachable in CI; still **warn-only** → remains **open**.
+  - TD-2: gate 1 helper hardened for API failures; marker-only enforcement
+    unchanged → remains **open**.
+  - TD-3: `ci.yml` + `scripts/check_*.py` + `scripts/pr_files.py` regenerated/refined
+    through the OpenCode session (AI-001); remaining scaffold seed still to regenerate
+    → **partial**.
+  - TD-4: script hardening only; structural check **not** implemented → remains
+    **open**.

@@ -58,11 +58,13 @@ mypy scripts test                          # gate 2: type check
 
 ## GitHub repository
 
-https://github.com/swordnew123/contentguard (private; team collaborators invited
-separately). Branch protection on `main`: the CI check `blocking-gates` must pass
-before merge, and safety-critical paths additionally require human review with an
-accompanying architecture decision (§6) — machine-enforced via CODEOWNERS once
-domain owners onboard; review-process enforced until then.
+https://github.com/CS5351-Group10/contentguard (public; owned by the team org
+CS5351-Group10 — transferred from the PM's personal account on 2026-11-15 so
+members can hold repository-admin roles for CI governance). Branch protection on
+`main`: the CI check `blocking-gates` must pass before merge, and safety-critical
+paths additionally require human review with an accompanying architecture decision
+(§6) — machine-enforced via CODEOWNERS once domain owners onboard; review-process
+enforced until then.
 
 ## Blocking-gate design (§6)
 
