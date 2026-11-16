@@ -14,13 +14,16 @@
 3. **Requirement/invariant referencing:** every module and every public function
    references, in its docstring, the architecture decision (ADR-x) and the invariant or
    requirement ID it implements (traceability to the trace matrix).
-4. **Authority boundaries (from `architecture-blueprint.md` §5):**
+4. **Authority boundaries (from `architecture-blueprint.md` §Components and dependencies):**
    - `analysis/` (LLM, advisory) may call **no** enforcement API; its output is data.
    - `policy/` (authoritative, SAFETY-CRITICAL) is the only module allowed to decide
      and execute enforcement actions.
    - `escalation/`, `audit/`, `api/` orchestrate but never invent policy decisions.
-5. **Dependency direction:** `api → policy → analysis/escalation/audit`; no cycles;
-   `analysis` must not import `policy` internals (it receives nothing back).
+5. **Dependency direction:** `api → {analysis, policy}; policy → {escalation, audit}`;
+   no cycles. `analysis` must not import `policy` internals; `policy` must not depend
+   on the advisory analysis output (the API coordinates analysis then policy). Adapters
+   depend on read-only DTOs, not protected mutation internals. Aligned with
+   `architecture-blueprint.md` §Components and dependencies and ADR-001.
 6. **Frozen / human-owned paths** per `AGENTS.md` §4 — an agent PR touching them
    without a human co-author is rejected (CI structural check).
 7. **Safety-critical change rule:** any change under `src/contentguard/policy/**` or to
