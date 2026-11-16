@@ -29,7 +29,7 @@ CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking
 | `docs/team/` | Team roster cards (one per member) + first-PR exercise guide (feeds `Report.md` §1) | D6 |
 | `docs/debt-register.md` | AI-era technical debt tracker | D4 |
 | `docs/bug-diary.md` | Diary entry per significant bug | D4 |
-| `docs/contribution-log.md` | Working log of man-hours / story points (feeds the D6 contribution table) | D6 |
+| `docs/contribution-log.md` | Working log of man-hours per phase, hours only (feeds the D6 contribution table) | D6 |
 | `.opencode/` | Project-level OpenCode permission model + always-on behavioral rules | D3 |
 | `.agent/rules.md` | Project covenant (abstraction limits, negative tests, safety-critical change policy) | D3 |
 | `.github/workflows/ci.yml` | CI/CD pipeline implementing the six blocking gates | D4/D7 |
@@ -86,5 +86,5 @@ authoritative rules live in `docs/review-memo.md`).
 
 Live roster: `docs/team/` (members add themselves via PR; index in
 `docs/team/README.md`). The final table with names, student IDs, and relative
-contributions is transcribed into `Report.md` §1 at submission; man-hours evidence
+contributions is transcribed into `Report.md` §2 at submission; man-hours evidence
 lives in `docs/contribution-log.md`.

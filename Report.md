@@ -13,14 +13,15 @@
 
 ## 2. Relative contributions
 
-Computed from man-hours / story points logged weekly in `docs/contribution-log.md`.
-Method: mean contribution = total / members; weight = individual total / mean (see
-requirement sheet D6 example). Final table goes here; the raw log stays in
-`docs/contribution-log.md`.
+Computed from productive man-hours logged per phase (hours only; no story points) in
+`docs/contribution-log.md` — members report PR-natively per its recording protocol; the
+PM aggregates at every phase close. Method (requirement sheet D6): average contribution
+= 1.0; weight = individual total / mean total. Final table goes here; the raw,
+append-only log and the recording protocol live in `docs/contribution-log.md`.
 
-| Member | S1 | S2 | S3 | S4 | S5 | Total | Weight |
-|---|---|---|---|---|---|---|---|
-| TODO | | | | | | | |
+| Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
+|---|---|---|---|---|---|---|---|---|
+| TODO | | | | | | | | |
 
 ## 3. Software engineering process and how we optimized it
 
@@ -37,7 +38,7 @@ TBD — requirement volatility (registry change log), defect trends (from
 ## 5. Artifact co-evolution
 
 TBD — how requirements ↔ architecture ↔ code ↔ tests stayed consistent when anything
-changed (trace matrix updates, sprint-end registry revalidation).
+changed (trace matrix updates, phase-end registry revalidation).
 
 ## 6. What human oversight caught that the agent did not
 
