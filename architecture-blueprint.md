@@ -1,7 +1,8 @@
 # Architecture Blueprint (D2.1 / D2.2)
 
-> Status: PROPOSED — Shiyi authorized submitting this draft on 2026-11-16.
-> ADR acceptance, non-author/PM review and numeric-limit ratification remain pending.
+> Status: APPROVED (2026-11-16) — PM LIU Jianwei approved this D2.1/D2.2 blueprint
+> together with ADR-001; requirements/testing co-signs and the final PR #11 baseline
+> remain pending.
 > AI-assisted documentation; no implementation or test-execution evidence is claimed.
 
 ## Baseline and scope

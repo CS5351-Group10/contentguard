@@ -1,7 +1,7 @@
 # ADR-001 — Grounded advisory analysis with transactional policy authority
 
-> Status: PROPOSED — Shiyi authorized submitting this draft on 2026-11-16.
-> ADR acceptance, non-author/PM review and numeric-limit ratification remain pending.
+> Status: APPROVED — PM LIU Jianwei approved this ADR on 2026-11-16; the
+> requirements/testing co-signs remain pending (Mei PR #11 / Buna onboarding).
 > AI-assisted documentation; no implementation or test-execution evidence is claimed.
 
 ## Baseline and scope
@@ -29,7 +29,7 @@ Objections to that working scope remain open until 2026-11-17 09:00 HKT.
 
 
 Title: Modular monolith with grounded advisory analysis and transactional policy authority.
-Status: PROPOSED. Date: 2026-11-16. Owner: Shiyi LI. Human approval: pending.
+Status: APPROVED. Date: 2026-11-16. Owner: Shiyi LI. Human approval: PM LIU Jianwei, 2026-11-16; requirements/testing co-signs pending.
 
 ### Architectural design process (ADD)
 
@@ -74,9 +74,10 @@ measured; the context envelope is not a logical-request aggregate cap. See the
 
 PM owns the separate human docs change reconciling governance dependency arrows
 (in particular structural-constraints.md rule 5 and AGENTS.md references) after
-#15 merges. This PR does not alter those governance files. Keep this ADR PROPOSED
-until required fixes, CI and human ratifications/review actually complete; only then
-record APPROVED with the actual reviewer/date. No implementation is authorized now.
+#15 merges. This PR does not alter those governance files. PM approval is recorded
+on 2026-11-16 with the requirements/testing co-signs still pending; that approval
+does not authorize implementation by itself. Implementation still requires the
+approved test plan and the human-approved OpenCode execution plan.
 
 ### Decision and alternatives
 
@@ -143,11 +144,13 @@ duplicate request/lost acknowledgment; audit/queue rollback; competing stale rev
 requests; flag comparison preserving all invariants. A real provider test is separate
 from deterministic offline tests and records the actual model/config version.
 
-Approval conditions: PR #11 baseline reconciled; requirements/testing owners ratify
-limits and fallback contract; PM/non-author approval; CI green; governance owner
-aligns module contract references. No implementation before accepted ADR, test-plan
-approval and human-approved OpenCode execution plan. This document does not itself
-grant any of those approvals.
+Approval status (2026-11-16): PM/non-author approval and CI green are satisfied.
+Still outstanding and tracked: PR #11 baseline reconciliation, requirements/testing
+co-signs of the limits and fallback contract, and the governance-owner module-contract
+reference alignment (separate human docs PR). The PM approval is recorded with these
+as pending rather than claiming they are complete. No implementation before the
+test-plan approval and human-approved OpenCode execution plan; this document does not
+itself grant those approvals.
 
 Reopen ADR if retrieval cannot satisfy the build window, numeric limits fail measured
 workload, appeal is adopted, external enforcement is added, database contention is

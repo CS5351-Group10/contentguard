@@ -1,7 +1,8 @@
-# Module Interface Contracts — ADR-001 draft
+# Module Interface Contracts — ADR-001
 
-> Status: PROPOSED — Shiyi authorized submitting this draft on 2026-11-16.
-> ADR acceptance, non-author/PM review and numeric-limit ratification remain pending.
+> Status: APPROVED (2026-11-16) — PM LIU Jianwei approved these contracts together
+> with ADR-001; requirements/testing co-signs and the final PR #11 baseline remain
+> pending.
 > AI-assisted documentation; no implementation or test-execution evidence is claimed.
 
 Linked design: [ADR-001](adr/001-grounded-advisory-transactional-policy.md) and
