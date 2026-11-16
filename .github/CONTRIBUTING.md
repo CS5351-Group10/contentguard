@@ -1,7 +1,8 @@
 # Submitting a PR (member guide)
 
 Thin entry-point summary — the authoritative rules are `docs/review-memo.md`
-(§Review process, §PR & commit conventions); this file only points to them.
+(§Review process, §PR & commit conventions); this file points to them and records the
+issue-lifecycle SOP (§Issue lifecycle).
 Every change lands on `main` via PR (branch protection: 1 non-author approval
 + green `blocking-gates`; no direct pushes).
 
@@ -21,7 +22,7 @@ Every change lands on `main` via PR (branch protection: 1 non-author approval
    named in `docs/architecture/invariants.md`) additionally need the
    architecture owner's co-sign and a linked ADR.
 5. **PR body** — use the template; docs-only PRs write `n/a (docs-only)` under
-   gate 1 and `n/a (human-written docs)` under gate 6.
+   gate 1 and `n/a (no code/prompt change; note any AI-assisted drafting)` under gate 6.
 6. **Before merge** — the reviewer's memo lands in `docs/review-memo.md` (the
    PM records the verdict, inside this PR — not afterwards). Code/prompt PRs
    update `docs/ai-use-log.yaml` in the same PR (gate 6 blocks otherwise).
@@ -32,3 +33,34 @@ Every change lands on `main` via PR (branch protection: 1 non-author approval
 8. **Merge** — after approval the author merges (squash only; the head branch
    auto-deletes). Turnaround target is 24 h; a PR waiting longer is escalated
    at the daily stand-up (RSK-3).
+
+## Issue lifecycle (handoff / decision / test plan / deferred / completed)
+
+Issues are the audit trail for role handoffs, decisions, and gate 1 test plans. One issue
+per work item. Append new information as comments; do not edit or delete past comments.
+When closing, update the body's status/approval fields (or add a top status block) so the
+current state is visible.
+
+- **Handoff** (`handoff` label): close only when every checklist item is done and the
+  linked PRs are merged. The closing comment names the PRs/commits and any follow-up.
+- **Decision** (`decision` label): keep open through the stated objection window; close
+  with the accepted outcome and a link to the deciding comment. Reopen on objection.
+- **Test plan** (`test-plan` label, gate 1): close only when the implementing PR is merged
+  and the planned tests exist. The closing comment links the PR and the test path.
+  A `deferred` issue keeps this rule suspended until the deferral is lifted.
+- **Deferred** (`deferred` label): keep open with a link to the debt-register row, or close
+  as `NOT_PLANNED` with the same link. Never leave the status implicit.
+- **Completed/closed issue**: add a `## Resolution` section (what changed, evidence,
+  follow-ups) and close with the correct reason (`COMPLETED` / `NOT_PLANNED` / `DUPLICATE`).
+  Closed issues are retained as audit evidence (D4 review memos, D6 process-report inputs)
+  — never delete them.
+- **PR memos**: every PR still needs an RM memo before merge. A docs-only PR may carry the
+  memo as a reviewer/PM comment; the `docs/review-memo.md` ledger append follows in the next
+  docs PR (or the same PR if it already edits that file).
+- **Body hygiene**: if the original request or approval line is stale, update the body (or
+  add a top status block) before closing; do not rely on a comment alone.
+
+Every active issue has an assignee and one of the labels above. The PM and the Governance &
+CI owner maintain the label set; domain owners keep their issues current. Recent examples:
+#6 (closed test plan with a `## Resolution` section), #4 (deferred gate 7, linked to TD-9),
+#23 (decision with an explicit objection window).
