@@ -1,13 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "contentguard-requirements-schema-v2-proposed",
-  "title": "ContentGuard streamlined requirements registry schema (D1, proposed)",
-  "description": "Proposed streamlined schema. Does not require status or source; stores traceability and approval records separately.",
+  "$id": "contentguard-requirements-schema-v2",
+  "title": "ContentGuard requirements registry schema (D1, v2)",
+  "description": "Requirements registry v1.0: per-requirement lifecycle status, source provenance, MoSCoW rationale, separately maintained architecture/test traceability, and optional provisional flags for pending ratification.",
   "type": "object",
   "required": [
     "project",
     "version",
-    "requirements"
+    "requirements",
+    "moscow_tradeoff_note"
   ],
   "additionalProperties": false,
   "properties": {
@@ -25,6 +26,11 @@
       "items": {
         "$ref": "#/$defs/requirement"
       }
+    },
+    "moscow_tradeoff_note": {
+      "type": "string",
+      "minLength": 40,
+      "description": "Explicit MoSCoW MVP scope and deferrals, revisited at each requirements baseline change."
     }
   },
   "$defs": {
@@ -36,7 +42,9 @@
         "statement",
         "fit_criterion",
         "priority",
-        "verification"
+        "verification",
+        "status",
+        "source"
       ],
       "additionalProperties": false,
       "properties": {
@@ -113,11 +121,46 @@
         "fallback": {
           "type": "string",
           "minLength": 20,
-          "description": "Concrete operational action taken if violated (mandatory for invariants)."
+          "description": "Concrete operational action taken if violated (mandatory for invariants) — must be an action, not 'fix the bug'."
         },
         "zero_tolerance": {
           "type": "boolean",
           "description": "True for invariants: non-negotiable rules with zero-tolerance fit criteria."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "agreed",
+            "baselined",
+            "implemented",
+            "verified"
+          ],
+          "description": "Requirement lifecycle state; independent of MoSCoW priority."
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "origin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "origin": {
+              "type": "string",
+              "minLength": 3
+            },
+            "links": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "provisional": {
+          "type": "boolean",
+          "description": "True indicates a proposed numerical fit criterion or interface/fallback contract awaiting explicit Testing Lead/PM (and relevant ADR) ratification; it is not evidence of approval."
         }
       },
       "allOf": [
