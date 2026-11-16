@@ -258,7 +258,7 @@
 ## RM-012 — PR #30: chore(governance): per-domain CODEOWNERS rules (two owners each, no self-approval deadlock)
 
 - Reviewer(s): PM LIU Jianwei (non-author); author creator-xiyuan
-- Spec alignment: replaces the single `* @swordnew123` rule with per-domain owners (`*`, `/docs/req/`, `/docs/architecture/`, `/src/contentguard/policy/`, `/.github/workflows/`, `/scripts/`), each with a domain owner plus one fallback; enables `require_code_owner_reviews` on `main`. No requirement change.
+- Spec alignment: replaces the single `* @swordnew123` rule with per-domain owners (`*`, `/docs/req/`, `/docs/architecture/`, `/src/contentguard/policy/`, `/.github/workflows/`, `/scripts/`), each with a domain owner plus one fallback; supplies the rule set for the `require_code_owner_reviews` branch protection that was already enabled on `main`. No requirement change.
 - Architecture alignment: matches the review process §1 domain split and the D7 safety-critical path; the file documents that CODEOWNERS resolves a file's owners by the last matching pattern, so the broad default rule stays first.
 - Code quality: n/a (config)
 - Test quality: n/a (config); `blocking-gates` green on `3373e3`
