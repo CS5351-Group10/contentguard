@@ -77,8 +77,9 @@ src/
 
 Integration contracts between modules: `docs/architecture/interface-contracts.md`.
 Dependency direction: `api → {analysis, policy}; policy → {escalation, audit}`;
-`analysis` must not import `policy`; `policy` must not depend on the advisory analysis
-output. The API coordinates analysis then policy.
+`analysis` must not import `policy`; `policy` may consume validated advisory data that
+`api` passes as read-only input, but must not import analysis internals or delegate
+enforcement authority to the model output. The API coordinates analysis then policy.
 
 ## 6. Verification requirements (generated code must satisfy all)
 

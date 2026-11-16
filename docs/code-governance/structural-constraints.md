@@ -20,8 +20,9 @@
      and execute enforcement actions.
    - `escalation/`, `audit/`, `api/` orchestrate but never invent policy decisions.
 5. **Dependency direction:** `api → {analysis, policy}; policy → {escalation, audit}`;
-   no cycles. `analysis` must not import `policy` internals; `policy` must not depend
-   on the advisory analysis output (the API coordinates analysis then policy). Adapters
+   no cycles. `analysis` must not import `policy` internals. `policy` may consume the
+   validated advisory result that `api` passes as read-only data, but must not import
+   `analysis` internals or delegate enforcement authority to the model output. Adapters
    depend on read-only DTOs, not protected mutation internals. Aligned with
    `architecture-blueprint.md` §Components and dependencies and ADR-001.
 6. **Frozen / human-owned paths** per `AGENTS.md` §4 — an agent PR touching them
