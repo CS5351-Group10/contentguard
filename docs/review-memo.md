@@ -68,9 +68,10 @@
 
 ## Memos
 
-> RM-N = the Nth memo appended to this ledger, assigned at append time
-> (numbering decisions: issue #4). A dismissed "RM-003" review draft on
-> PR #5 predates this ledger's RM-003 and is void.
+> RM-N = the Nth memo in this ledger, ordered by the intended PR sequence.
+> RM-002/RM-003 were backfilled by PR #9 after RM-004 was drafted in PR #8;
+> they are placed before RM-004 so the ledger reads in PR order. A dismissed
+> "RM-003" review draft on PR #5 predates this ledger's RM-003 and is void.
 
 <!-- Append memos below, newest last. -->
 
@@ -115,4 +116,16 @@
 - Security: n/a
 - Efficiency: n/a
 - Operational metadata: governance-events row for the incident added in this PR (contribution-log.md)
+- Verdict: APPROVE
+
+## RM-004 — PR #8: docs(contribution-log): per-phase man-hours recording protocol (D6 evidence chain)
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI owner); PM authored the PR, so the domain verdict is the independent one (recorded by PM from the CR's approve on this PR)
+- Spec alignment: no requirement change; operationalizes the D6 recording method (per-phase cadence, same-day capture, hours-only, pre-agreed what-counts) — feeds `Report.md` §2 contribution weights
+- Architecture alignment: n/a (docs only; no module/ADR/invariant impact)
+- Code quality: n/a (docs)
+- Test quality: docs-only; blocking-gates green (both check runs SUCCESS on this head)
+- Security: n/a
+- Efficiency: n/a
+- Operational metadata: man-hours table re-keyed (Phase column, story points dropped); protocol set before the first logged entry — no historical hours rewritten
 - Verdict: APPROVE
