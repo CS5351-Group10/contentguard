@@ -43,3 +43,34 @@ entries:
       only) and required an explicit permissions block + ID-citing test docstrings.
     pr: pending
 
+  - id: AI-002
+    date: 2026-11-16
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-gate7.md
+    scope: >-
+      scripts/check_review_memo.py, scripts/pr_files.py,
+      test/offline/test_review_memo.py, .github/workflows/ci.yml,
+      docs/ai-use-log.yaml
+    summary: >-
+      Implemented Gate 7 (review-memo presence) per issue #4: a pure
+      find_memo(entries, author_login) detects a non-author review memo carrying
+      both an RM-\d{3} number and a Verdict enum line; a thin paginated fetch
+      layer reads review bodies + issue comments (PR body excluded). Extracted
+      the shared pagination into pr_files._paginate and added pull_reviews/
+      issue_comments. Added the Gate 7 step to the blocking-gates job with a
+      per-step GITHUB_TOKEN and added `issues: read` to the workflow permissions
+      (issue-comments endpoint needs it). Added offline tests covering issue #4's
+      edge-case table incl. the three negative cases and multi-page pagination.
+    human_interventions: 2
+    intervention_summary: >-
+      (1) Task brief pre-empted two failure modes: job-level GITHUB_TOKEN hoisting
+      (least privilege) and an author-written review memo. (2) Plan approval with
+      corrections: extract _paginate but keep changed_files signature + existing
+      test unchanged and add a pagination test; add `issues: read` permission
+      (issue-comments endpoint is Issues-scoped, not pull-requests); and do not
+      assert a specific RM number in the PR body (the PM posts the next non-member
+      review memo).
+    pr: pending
+

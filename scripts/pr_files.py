@@ -40,14 +40,15 @@ def _headers(token: str) -> dict[str, str]:
     return headers
 
 
-def changed_files(repo: str, number: int, token: str) -> list[str]:
-    """List all changed file paths of a pull request (paginated).
+def _paginate(base: str, token: str) -> list[dict]:
+    """Fetch every page (``per_page=100``) of a list endpoint as a merged list.
 
-    Raises RuntimeError with an actionable message on API failure so a gate fails
-    closed with a diagnosis instead of a bare traceback.
+    Shared by changed_files / pull_reviews / issue_comments so there is one place
+    for API access and one error style. Raises RuntimeError with an actionable
+    message on API failure so a gate fails closed with a diagnosis instead of a
+    bare traceback.
     """
-    base = f"https://api.github.com/repos/{repo}/pulls/{number}/files"
-    files: list[str] = []
+    items: list[dict] = []
     page = 1
     while True:
         url = f"{base}?per_page=100&page={page}"
@@ -70,10 +71,35 @@ def changed_files(repo: str, number: int, token: str) -> list[str]:
             raise RuntimeError(
                 f"GitHub API unreachable for {url}: {exc.reason}"
             ) from exc
-        files.extend(str(item["filename"]) for item in batch)
+        items.extend(batch)
         if len(batch) < 100:
-            return files
+            return items
         page += 1
+
+
+def changed_files(repo: str, number: int, token: str) -> list[str]:
+    """List all changed file paths of a pull request (paginated)."""
+    base = f"https://api.github.com/repos/{repo}/pulls/{number}/files"
+    return [str(item["filename"]) for item in _paginate(base, token)]
+
+
+def pull_reviews(repo: str, number: int, token: str) -> list[dict]:
+    """List all review objects of a pull request (paginated).
+
+    Gate 7 candidates: each review's ``user.login`` + ``body``.
+    """
+    base = f"https://api.github.com/repos/{repo}/pulls/{number}/reviews"
+    return _paginate(base, token)
+
+
+def issue_comments(repo: str, number: int, token: str) -> list[dict]:
+    """List all issue comments of a pull request (paginated).
+
+    Served by the Issues API, so a gate step calling this needs the ``issues: read``
+    workflow permission (``pull-requests: read`` alone returns 403 here).
+    """
+    base = f"https://api.github.com/repos/{repo}/issues/{number}/comments"
+    return _paginate(base, token)
 
 
 def changed_code_files(files: list[str]) -> list[str]:
