@@ -42,7 +42,7 @@ consistency and coordination cost; C3 is rejected because it removes the genuine
 component and RAG grounding required by the project. Reopen conditions are listed in
 ADR-001 ("Reopen ADR if...") and `option-ledger.md`.
 
-> Links: ADR-001 (PR #15; the file is `docs/architecture/adr/001-placeholder.md` until
-> the ADR is renamed) and the module interface contracts (added by PR #15 at
-> `docs/architecture/interface-contracts.md`; not present on `main` yet). Any future
-> benchmark result goes to `evaluation-logbook.md` and may change a score.
+> Links: ADR-001 (`docs/architecture/adr/001-grounded-advisory-transactional-policy.md`,
+> approved 2026-11-16) and the module interface contracts
+> (`docs/architecture/interface-contracts.md`). Any future benchmark result goes to
+> `evaluation-logbook.md` and may change a score.
