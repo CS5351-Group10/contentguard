@@ -22,7 +22,7 @@ Test-Plan-Approved: #<issue-number>
 - ai-use-log entry: AI-<NNN>
 - Transcript: transcripts/<student-id>-<student-name>.md
 
-<!-- Docs-only PRs: "n/a (human-written docs)" — gate 6 does not apply. -->
+<!-- Docs-only PRs: "n/a (no code/prompt change; note any AI-assisted drafting)" — gate 6 does not apply. -->
 
 ## Checklist
 
