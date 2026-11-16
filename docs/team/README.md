@@ -12,10 +12,10 @@
 | Main line (proposal §4.2) | Member | Card | GitHub |
 |---|---|---|---|
 | PM — Report, review-memo sign-off, contribution log, demo video, slides | LIU Jianwei (61022208) | [61022208-LIU-Jianwei.md](61022208-LIU-Jianwei.md) | @swordnew123 |
-| Requirements — D1 registry + req-schema + policy docs | — | pending | — |
-| Architecture — D2 artifacts (multi-round ADD) + D9 Prompt.md | — | pending | — |
-| Governance & CI — D3 + D7 gates + README + ai-use-log | creator-xiyuan | pending (card via first-PR exercise) | @creator-xiyuan |
-| Testing — D4 verification governance + D8 suites + bug-diary/debt-register | — | pending | — |
+| Requirements — D1 registry + req-schema + policy docs | HAN Mei (60914643) | pending (PR #11) | @Mei-github |
+| Architecture — D2 artifacts (multi-round ADD) + D9 Prompt.md | LI Shiyi (60938585) | [60938585-LI-Shiyi.md](60938585-LI-Shiyi.md) | @xiaolizi33 |
+| Governance & CI — D3 + D7 gates + README + ai-use-log | HUANG Hongwei (60368210) | [60368210-HUANG-Hongwei.md](60368210-HUANG-Hongwei.md) | @creator-xiyuan |
+| Testing — D4 verification governance + D8 suites + bug-diary/debt-register | Buna DA | pending onboarding | — |
 
 ## Add yourself (first PR exercise)
 
