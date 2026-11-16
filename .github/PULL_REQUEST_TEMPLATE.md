@@ -1,6 +1,9 @@
 <!--
 ContentGuard PR conventions (docs/review-memo.md): one logical change per PR.
 Title format: <type>(<scope>): <subject> — cite REQ/INV IDs in title or body.
+Reviewer: request the non-author owner of the matching main line
+(docs/team/README.md); unsure or owner still pending → @swordnew123 (PM).
+Member guide: .github/CONTRIBUTING.md.
 -->
 
 ## Requirement / invariant IDs
@@ -19,7 +22,7 @@ Test-Plan-Approved: #<issue-number>
 - ai-use-log entry: AI-<NNN>
 - Transcript: transcripts/<student-id>-<student-name>.md
 
-<!-- Docs-only PRs: "n/a (human-written docs)" — gate 6 does not apply. -->
+<!-- Docs-only PRs: "n/a (no code/prompt change; note any AI-assisted drafting)" — gate 6 does not apply. -->
 
 ## Checklist
 
