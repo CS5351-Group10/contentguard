@@ -1,7 +1,8 @@
 # Verification Constraints (D4)
 
-> The rules the verification agent (and human reviewers) apply. Three-tier verification:
-> **structural**, **regression**, **behavioral**.
+> The rules the verification agent (and human reviewers) apply. Four tiers of verification:
+> **static analysis & dependency (Tier 0)**, **structural (Tier 1)**, **regression
+> (Tier 2)**, **behavioral (Tier 3)**.
 
 ## Universal rules
 
@@ -15,9 +16,10 @@
    an issue opened from `.github/ISSUE_TEMPLATE/test-plan.md`, cited in the PR body as
    `Test-Plan-Approved: #<n>`. Gate 1 today only matches that marker; resolving the issue
    and comparing its approval time with the first implementation commit is **TD-2**.
-6. A PR that changes code or prompts updates `docs/ai-use-log.yaml` in the same PR
-   (CI gate 6). The entry names the session, the model, the scope, and the human
-   interventions — the transcript is the evidence behind it (D5).
+6. A PR that changes code, tests, scripts or prompts updates `docs/ai-use-log.yaml` in the
+   same PR (CI gate 6 — its path set is `src/`, `test/`, `prompts/`, `scripts/`). The entry
+   names the session, the model, the scope, and the human interventions — the transcript is
+   the evidence behind it (D5).
 
 ## Tier 0 — Static analysis and dependency (every commit / PR)
 
@@ -40,7 +42,6 @@
   (`docs/architecture/permission-model.md`).
 - Architectural fitness functions: call-graph check that enforcement API is reachable
   only from `src/contentguard/policy/` (INV-1) — **planned, TD-4**.
-- Lint + type-check clean (`ruff`, `mypy`).
 
 ## Tier 2 — Regression (every PR)
 
@@ -57,7 +58,8 @@
   already hand-rolled stdlib scripts with one error style, `promptfoo` would add a Node
   toolchain to a Python CI, and the paired `deepeval`/`ragas`-style frameworks pull model
   SDKs into the offline tier. What we need is small: load rows, compare verdicts, compute
-  per-slice rates, exit nonzero.
+  per-slice rates, exit nonzero. The runner is `scripts/**` code, so it gets written in an
+  OpenCode session like every other gate script — a docs PR does not get to slip it in.
 - **Replay, not live, in CI:** the runner replays **recorded** model outputs, so the gate is
   deterministic and needs no provider secret (a fork PR cannot even see one). `--live` is
   opt-in for local/nightly use and must not gate a merge until the live suite is stable.

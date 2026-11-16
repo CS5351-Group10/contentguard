@@ -8,8 +8,9 @@
    module name mirrors the element name. The **element set** is fixed by
    `architecture-blueprint.md` + ADR-001 — adding, renaming or splitting an element requires
    a new architecture decision, not a quiet new directory. No orphan modules: if an element
-   is removed, its module goes with it. (The current placeholder layout in `AGENTS.md` §5 is
-   a name sketch, not a licence to create directories ahead of the element.)
+   is removed, its module goes with it. (The module tree in `AGENTS.md` §5 points at
+   ADR-001 for the layout; that tree is a name sketch, not a licence to create directories
+   ahead of the element.)
 2. **Extend, never replace:** new work extends the existing baseline. Wholesale
    rewrites/replacements of existing modules are rejected in review; refactor in place
    through small PRs.
