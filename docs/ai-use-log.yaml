@@ -18,4 +18,28 @@
 #     pr: <PR number or "direct (human-only docs)">
 
 version: "0.1"
-entries: []
+entries:
+  - id: AI-001
+    date: 2026-11-15
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei.md
+    scope: >-
+      .github/workflows/ci.yml, scripts/pr_files.py,
+      scripts/check_test_approval.py, scripts/check_semantic_eval.py,
+      scripts/check_ai_use_log.py, test/offline/test_pr_files_headers.py,
+      docs/review-memo.md, docs/ai-use-log.yaml
+    summary: >-
+      Fixed the gate 1/4/6 GitHub API 401 defect: pr_files._headers() no longer
+      sends an empty "Authorization: Bearer " header, changed_files() raises an
+      actionable RuntimeError on 401/URL errors, gates 1/4 got a per-step
+      GITHUB_TOKEN env, and the workflow gained a least-privilege permissions block
+      (contents: read, pull-requests: read). Added offline tests for the helper.
+      Addresses TD-1..TD-4; supports REQ-INV-005 enforcement.
+    human_interventions: 2
+    intervention_summary: >-
+      Operator rejected job-level token hoisting (least privilege; per-step env
+      only) and required an explicit permissions block + ID-citing test docstrings.
+    pr: pending
+

@@ -27,7 +27,11 @@ def main() -> int:
 
     repo = str(pr["base"]["repo"]["full_name"])
     number = int(pr["number"])
-    files = changed_files(repo, number, os.environ.get("GITHUB_TOKEN", ""))
+    try:
+        files = changed_files(repo, number, os.environ.get("GITHUB_TOKEN", ""))
+    except RuntimeError as exc:
+        print(f"GATE 6 FAIL: could not list PR files — {exc}")
+        return 1
     code_changed = changed_code_files(files)
     log_updated = LOG_PATH in files
 

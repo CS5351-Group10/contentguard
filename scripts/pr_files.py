@@ -2,6 +2,7 @@
 
 import json
 import os
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -24,22 +25,51 @@ def pull_request(event: dict) -> dict | None:
 
 
 def _headers(token: str) -> dict[str, str]:
-    return {
-        "Authorization": f"Bearer {token}",
+    """Request headers; the Authorization header is sent only for a real token.
+
+    A blank token (GITHUB_TOKEN unset in the CI step) must yield an anonymous
+    request, not a malformed ``Authorization: Bearer `` header that the GitHub API
+    rejects with 401 (see docs/review-memo.md, gate 1/4 token-plumbing fix).
+    """
+    headers = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }
+    if token.strip():
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
 
 
 def changed_files(repo: str, number: int, token: str) -> list[str]:
-    """List all changed file paths of a pull request (paginated)."""
+    """List all changed file paths of a pull request (paginated).
+
+    Raises RuntimeError with an actionable message on API failure so a gate fails
+    closed with a diagnosis instead of a bare traceback.
+    """
     base = f"https://api.github.com/repos/{repo}/pulls/{number}/files"
     files: list[str] = []
     page = 1
     while True:
-        req = urllib.request.Request(f"{base}?per_page=100&page={page}", headers=_headers(token))
-        with urllib.request.urlopen(req) as resp:
-            batch = json.load(resp)
+        url = f"{base}?per_page=100&page={page}"
+        req = urllib.request.Request(url, headers=_headers(token))
+        try:
+            with urllib.request.urlopen(req) as resp:
+                batch = json.load(resp)
+        except urllib.error.HTTPError as exc:
+            if exc.code == 401:
+                raise RuntimeError(
+                    f"GitHub API returned 401 Unauthorized for {url}. The "
+                    "GITHUB_TOKEN for this step is missing or invalid; pass it via "
+                    "`env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` on the gate step "
+                    "in .github/workflows/ci.yml."
+                ) from exc
+            raise RuntimeError(
+                f"GitHub API error {exc.code} for {url}: {exc.reason}"
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(
+                f"GitHub API unreachable for {url}: {exc.reason}"
+            ) from exc
         files.extend(str(item["filename"]) for item in batch)
         if len(batch) < 100:
             return files
