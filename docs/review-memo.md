@@ -21,6 +21,22 @@
 4. PRs stay small (one feature/invariant slice); memos are written **before** merge.
 5. Review turnaround target: 24 h. A PR waiting longer is escalated at the daily
    stand-up (risk RSK-3).
+6. **An approval is a judgement, not a click.** Review from your own main-line role:
+   state what you actually checked and whether the change is *right*, not merely that it
+   exists. If it is wrong or incomplete, do not approve — record the concrete problems and
+   return CHANGES REQUIRED. A verdict with no check behind it is noise, and a four-minute
+   bare approve is treated as no review at all. What each role is expected to check:
+   - **Requirements owner:** requirement IDs, fit criteria, priority (MoSCoW) correctness,
+     traceability from each requirement to a component/test.
+   - **Architecture owner:** ADR conformance, module/authority boundaries, layered context
+     structure, token budget and compaction thresholds.
+   - **Testing owner:** negative test per invariant, threshold/eligibility of the gates,
+     offline-vs-live separation.
+   - **Governance & CI owner:** that the document's claims match machine behaviour —
+     branch protection, CODEOWNERS resolution, gate semantics — and that red-line
+     boundaries (agent-generated code, human-owned files) are respected.
+   - **PM:** spec alignment, cross-artifact consistency, and the contribution/process
+     record.
 
 ## Memo template (copy per PR)
 
