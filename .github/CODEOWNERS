@@ -1,9 +1,13 @@
-# Default: everything requires PM review (branch protection additionally requires
-# 1 approving review on every PR).
+# Auto-requests the PM as reviewer on every PR. Note: CODEOWNERS auto-requests
+# but does not *enforce* who approves — branch protection requires 1 non-author
+# approving review. Per-domain review duties live in docs/review-memo.md
+# §Review process (team proposal §4.2); member guide: .github/CONTRIBUTING.md.
 #
-# Domain co-signers (proposal §4.2) get added here as owners onboard:
-#   - Safety-critical paths — /src/contentguard/policy/** and files named in
-#     docs/architecture/invariants.md — require the architecture owner's co-sign
-#     (D7). Uncomment and fill the architecture owner's handle when known:
+# Phase 2 (once main-line owners onboard via roster PRs): add per-path owner
+# rules and set require_code_owner_reviews=true so domain review is
+# machine-enforced. Safety-critical paths — /src/contentguard/policy/** and
+# files named in docs/architecture/invariants.md — require the architecture
+# owner's co-sign (D7). Uncomment and fill the architecture owner's handle when
+# known:
 #     /src/contentguard/policy/     @<arch-owner>
 * @swordnew123

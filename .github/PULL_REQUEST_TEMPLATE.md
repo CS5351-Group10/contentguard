@@ -1,6 +1,9 @@
 <!--
 ContentGuard PR conventions (docs/review-memo.md): one logical change per PR.
 Title format: <type>(<scope>): <subject> — cite REQ/INV IDs in title or body.
+Reviewer: request the non-author owner of the matching main line
+(docs/team/README.md); unsure or owner still pending → @swordnew123 (PM).
+Member guide: .github/CONTRIBUTING.md.
 -->
 
 ## Requirement / invariant IDs
