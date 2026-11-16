@@ -1,23 +1,29 @@
 # Review ownership (project sheet §6, D7; team proposal §4.2 CR-assignment system).
 #
-# Each rule lists TWO owners — the domain owner plus one fallback — so a PR authored by the
-# domain owner is never deadlocked: GitHub forbids self-approval, and with
-# `require_code_owner_reviews` enabled an approval must come from a listed owner of *every*
-# matching rule.
+# HOW CODEOWNERS RESOLVES OWNERS: a changed file is owned by the **last matching pattern**,
+# not by the union of every pattern that matches. Order therefore matters — broad rules must
+# come first, specific rules after them, or the specific rule is shadowed.
+#
+# Each rule lists TWO owners — the domain owner plus one fallback — so that any rule stays
+# satisfiable when the domain owner is the PR author: GitHub forbids self-approval, and with
+# `require_code_owner_reviews` enabled the approval has to come from an owner of the file.
 #
 # Machine-enforced: branch protection on `main` has `require_code_owner_reviews: true`, so
 # these approvals are required in addition to the generic "1 non-author approving review".
 # Per-domain review duties and the memo format live in docs/review-memo.md; member guide:
 # .github/CONTRIBUTING.md.
 
-# Default: PM + governance & CI owner.
+# Default: PM + governance & CI owner. Must stay FIRST — every rule below overrides it.
 *                          @swordnew123 @creator-xiyuan
 
 # Requirements line (D1 registry + schema, policy sources).
 /docs/req/                 @Mei-github @creator-xiyuan
 
-# Architecture line (D2 artifacts, D9 Prompt.md).
+# Architecture line (D2 artifacts, D9 Prompt.md). D2.1 and D9 live at the repo root, so they
+# need their own patterns — /docs/architecture/ does not cover them.
 /docs/architecture/        @xiaolizi33 @swordnew123
+/architecture-blueprint.md @xiaolizi33 @swordnew123
+/Prompt.md                 @xiaolizi33 @swordnew123
 
 # Safety-critical: the authoritative policy kernel. An AI verdict only takes effect if this
 # code allows it, so changes here require the architecture owner's co-sign (D7).
