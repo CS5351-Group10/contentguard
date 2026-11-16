@@ -7,8 +7,10 @@ is made exclusively by a deterministic policy engine constrained by auditable in
 This advisory-vs-authoritative split is the safety-relevant boundary required by the
 CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking gates).
 
-> **Status:** governance bootstrap complete (2026-11-15); Phase ② in progress —
-> requirements final + evaluation set due 11-16 (see `docs/contribution-log.md`).
+> **Status:** governance bootstrap complete (2026-11-15); review pipeline operational —
+> first memo-gap incident recorded and backfilled (RM-002, 2026-11-16), Gate 7 enforcement
+> spec'd (issue #4); Phase ② in progress — requirements final + evaluation set due 11-16
+> (see `docs/contribution-log.md`).
 
 ## Repository organization
 
@@ -27,7 +29,7 @@ CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking
 | `docs/team/` | Team roster cards (one per member) + first-PR exercise guide (feeds `Report.md` §1) | D6 |
 | `docs/debt-register.md` | AI-era technical debt tracker | D4 |
 | `docs/bug-diary.md` | Diary entry per significant bug | D4 |
-| `docs/contribution-log.md` | Working log of man-hours / story points (feeds the D6 contribution table) | D6 |
+| `docs/contribution-log.md` | Working log of man-hours per phase, hours only (feeds the D6 contribution table) | D6 |
 | `.opencode/` | Project-level OpenCode permission model + always-on behavioral rules | D3 |
 | `.agent/rules.md` | Project covenant (abstraction limits, negative tests, safety-critical change policy) | D3 |
 | `.github/workflows/ci.yml` | CI/CD pipeline implementing the six blocking gates | D4/D7 |
@@ -66,6 +68,9 @@ paths additionally require human review with an accompanying architecture decisi
 (§6) — machine-enforced via CODEOWNERS once domain owners onboard; review-process
 enforced until then.
 
+Submitting a PR: member guide at `.github/CONTRIBUTING.md` (thin summary —
+authoritative rules live in `docs/review-memo.md`).
+
 ## Blocking-gate design (§6)
 
 | # | Gate | What it enforces | Where implemented | Status |
@@ -81,5 +86,5 @@ enforced until then.
 
 Live roster: `docs/team/` (members add themselves via PR; index in
 `docs/team/README.md`). The final table with names, student IDs, and relative
-contributions is transcribed into `Report.md` §1 at submission; man-hours evidence
+contributions is transcribed into `Report.md` §2 at submission; man-hours evidence
 lives in `docs/contribution-log.md`.
