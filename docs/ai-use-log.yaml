@@ -41,5 +41,5 @@ entries:
     intervention_summary: >-
       Operator rejected job-level token hoisting (least privilege; per-step env
       only) and required an explicit permissions block + ID-citing test docstrings.
-    pr: pending
+    pr: 7   # merged 2026-11-15 as 9cd38f7
 
