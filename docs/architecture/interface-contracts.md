@@ -4,7 +4,7 @@
 > ADR acceptance, non-author/PM review and numeric-limit ratification remain pending.
 > AI-assisted documentation; no implementation or test-execution evidence is claimed.
 
-Linked design: [ADR-001](adr/001-placeholder.md) and
+Linked design: [ADR-001](adr/001-grounded-advisory-transactional-policy.md) and
 [architecture blueprint](../../architecture-blueprint.md). Additional PR #11 IDs
 are provisional until that baseline merges.
 
@@ -72,6 +72,21 @@ link, no final outcome or committed audit claim); rejected/failed (4xx/503, no
 success claim). If reconciliation cannot prove a durable intent, report unavailable
 with the replay key rather than manufacturing a 202 recovery guarantee.
 
+### Timing and usage handoff
+
+Analysis receives attempt identity, pinned case revision and a monotonic deadline.
+The hard single-call ceiling is 20 seconds, not an end-to-end SLO. The proposed
+earlier 8-second intake-to-analysis cutoff remains pending co-sign; callers pass
+the remaining time so a provider call cannot extend that analysis window. Timeout
+returns typed failure, never an invented verdict. Late results cannot supersede a
+committed hold or current case revision; only policy can authorize a new transition.
+
+Per-attempt usage distinguishes provider-reported input/output from unknown. Context
+capacity (8,192 including reserve) is separate from the provisional <=4,000 combined
+logical-request usage target; the aggregate hard request budget is still open.
+No automatic retries until the aggregate budget/time/unknown-usage policy is approved.
+See [blueprint alignment](../../architecture-blueprint.md#provisional-latency-usage-and-evaluation-alignment).
+
 ### State, retries and transactions
 
 States: accepted intent → analyzing → hold/escalate/approve/reject. Hold/escalate may
@@ -96,9 +111,10 @@ model. If a response is lost, read durable state before taking further action.
 
 ### Session-3 handoff
 
-After approval, Shiyi's OpenCode session 3 implements only the approved analysis
+Proposed handoff, conditional on accepted ADR, approved tests and separate explicit
+human execution-plan approval: Shiyi's OpenCode session 3 implements only analysis
 subcomponents: retrieval interface, policy corpus format, context assembly,
 compaction/reinjection and bounded provider adapter. Coordinate with Mei's policy
-kernel interfaces and Buna's approved negative tests. Do not create policy module
+kernel interfaces and Buna's planned negative tests, subject to test-plan approval. Do not create policy module
 implementation or change CI in Shiyi's slice. Session transcript and ai-use-log must
 link the approved plan, test issue and actual implementation PR.
