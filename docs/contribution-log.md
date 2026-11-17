@@ -84,7 +84,7 @@ entry, so nothing below rewrites any recorded hours.
 | Member | Phase | Hours | What |
 |---|---|---|---|
 | LIU Jianwei | ① | 12.5 | 11-14 proposal authoring 3.5h + 11-15 repo kickoff/governance 9.0h; anchors: PR #8 man-hours comment |
-| LIU Jianwei | ② | 3.5 | 11-16 man-hours protocol + RM-002 backfill + CONTRIBUTING guide; anchors: PR #8/#9/#10 comments |
+| LIU Jianwei | ② | 3.5 | 11-16 man-hours protocol + RM-002 backfill + CONTRIBUTING guide (incl. 0.3h [borderline] session wrap-up); anchors: PR #8/#9/#10 comments |
 | LI Shiyi | ② | 5.0 | 11-16 architecture blueprint, ADR-001, module interface contracts; anchor: PR #15 body |
 | HUANG Hongwei | ② | 4.25 | 11-16 PR #8 re-review 2.0h + PR #17 domain review/debt register 2.0h + PR #30 review follow-up 0.25h; anchors: PR #8/#17/#30 comments |
 | HUANG Hongwei | ③ | 0.5 | 11-17 rebase + four review fixes to #33; anchor: PR #33 comment |
