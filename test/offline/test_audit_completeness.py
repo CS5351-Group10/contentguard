@@ -476,7 +476,7 @@ def test_final_case_cannot_be_rewritten(store: SqliteStore) -> None:
         expected_revision=final_case.revision,
         replay_key=ReplayKey(actor_id="submitter-1", idempotency_key="idem-final-2"),
     )
-    assert second.status is CommitStatus.FAILED
+    assert second.status is CommitStatus.CONFLICT
     assert _audit_count(store) == 1
 
 

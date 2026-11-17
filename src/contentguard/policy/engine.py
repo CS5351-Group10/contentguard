@@ -333,7 +333,9 @@ class PolicyEngine:
 
         if candidate is None:
             if isinstance(candidate_error, PolicyConflictError):
-                return _failed_result(case, f"cannot re-decide this case: {candidate_error}")
+                return _conflict_result(
+                    case, f"cannot re-decide this case: {candidate_error}"
+                )
             if isinstance(
                 candidate_error,
                 (InvalidReviewError, StaleReviewError, UnauthorizedReviewError),
