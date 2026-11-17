@@ -30,15 +30,15 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 | LIU Jianwei (61022208) | 12.5 | 3.5 | | | | | 16.0 | pending |
 | HAN Mei (60914643) | pending | pending | | | | | pending | pending |
 | LI Shiyi (60938585) | pending | 5.0 | | | | | 5.0 | pending |
-| HUANG Hongwei (60368210) | pending | 4.25 | 0.5 | | | | 4.75 | pending |
-| Buna DA (60105888) | pending | pending | 0.5 | | | | 0.5 | pending |
+| HUANG Hongwei (60368210) | pending | 4.25 | 1.0 | | | | 5.25 | pending |
+| Buna DA (60105888) | pending | pending | pending | | | | pending | pending |
 
-> Interim aggregation as of 2026-11-18 00:30 HKT from anchored entries in
+> Interim aggregation as of 2026-11-18 00:50 HKT from anchored entries in
 > `docs/contribution-log.md`; `pending` = no anchored phase-①/② report yet. Weights are
 > computed only after all first-batch entries land (deadline 2026-11-18 18:00 HKT,
 > issue #28). LIU's phase ① includes the 11-14 proposal-authoring backfill (3.5h) plus
-> the 11-15 kickoff (9.0h). Known phase-③ entries (HUANG #33, Buna #37) are included;
-> phase ③ is still in progress. See the Man-hours log for anchors.
+> the 11-15 kickoff (9.0h). Known phase-③ entries (HUANG #33/#37) are included; phase ③
+> is still in progress. See the Man-hours log for anchors.
 
 ## 3. Software engineering process and how we optimized it
 
