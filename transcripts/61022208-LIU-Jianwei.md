@@ -199,10 +199,11 @@ git diff --check → clean
 - This transcript was committed by the PM together with the S1 PR; the agent itself did
   not run `git commit` or `git push` (the checkpoint commits were made by the PM/Claude
   Code after each green checkpoint).
-- The AI-use entry was added to `docs/ai-use-log.yaml` by the PM (gate 6). The ID was
-  `AI-002` on the current `main` base; it must be renumbered if PR #11 or another AI-use
-  entry merges first.
-- The PR cites `Test-Plan-Approved: #25`, pins `d47e106`, states that gate 5 is not
-  claimed green while #11 is unmerged, and requests `@xiaolizi33` co-sign for
-  `src/contentguard/policy/**`.
+- The AI-use entry was added to `docs/ai-use-log.yaml` by the PM (gate 6). The ID is
+  `AI-007`: PR #11 currently carries AI-002/AI-006, so AI-007 is the next free across
+  the combined log; this avoids a duplicate AI-002 when #11 merges.
+- The PR cites `Test-Plan-Approved: #25`, pins the registry content revision `d47e106`
+  (PR #11 head `355c654` has an identical `docs/req/requirements.yaml`), states that
+  gate 5 is not claimed green while #11 is unmerged, and requests `@xiaolizi33` co-sign
+  for `src/contentguard/policy/**`.
 - No secrets, raw tokens, or absolute personal paths are included in this transcript.

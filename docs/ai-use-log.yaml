@@ -43,7 +43,7 @@ entries:
       only) and required an explicit permissions block + ID-citing test docstrings.
     pr: 7   # merged 2026-11-15 as 9cd38f7
 
-  - id: AI-002
+  - id: AI-007
     date: 2026-11-18
     agent: opencode
     model: cityu-deepseek/CS5351/DeepSeek-V4-Flash
