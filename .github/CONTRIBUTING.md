@@ -24,15 +24,19 @@ Every change lands on `main` via PR (branch protection: 1 non-author approval
 5. **PR body** — use the template; docs-only PRs write `n/a (docs-only)` under
    gate 1 and `n/a (no code/prompt change; note any AI-assisted drafting)` under gate 6.
 6. **Before merge** — the reviewer's memo lands in `docs/review-memo.md` (the
-   PM records the verdict, inside this PR — not afterwards). Code/prompt PRs
-   update `docs/ai-use-log.yaml` in the same PR (gate 6 blocks otherwise).
+   PM records the verdict, inside this PR — not afterwards; for a PM-authored PR
+   the independent reviewer records it and the PM countersigns if available).
+   Code/prompt PRs update `docs/ai-use-log.yaml` in the same PR (gate 6 blocks
+   otherwise).
 7. **Keep the PR current** — branch off latest `main`; when CI says the branch
    is behind, click **Update branch**. Review feedback: push fixes to the same
    branch — they join the same PR, no new PR needed. Push once, when done:
    every push dismisses stale approvals and forces a re-review.
-8. **Merge** — after approval the author merges (squash only; the head branch
-   auto-deletes). Turnaround target is 24 h; a PR waiting longer is escalated
-   at the daily stand-up (RSK-3).
+8. **Merge** — the **author** merges once (a) a non-author approval from a
+   matching CODEOWNER stands, (b) `blocking-gates` is green, and (c) the review
+   verdict is recorded in the PR (step 6). Squash only; the head branch
+   auto-deletes. The PM is the memo gate, not a merge gate. Turnaround target is
+   24 h; a PR waiting longer is escalated at the daily stand-up (RSK-3).
 
 ## Issue lifecycle (handoff / decision / test plan / deferred / completed)
 
