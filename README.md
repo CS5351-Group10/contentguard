@@ -85,6 +85,6 @@ authoritative rules live in `docs/review-memo.md`).
 ## Team
 
 Live roster: `docs/team/` (members add themselves via PR; index in
-`docs/team/README.md`). The final table with names, student IDs, and relative
-contributions is transcribed into `Report.md` §2 at submission; man-hours evidence
-lives in `docs/contribution-log.md`.
+`docs/team/README.md`). Names and student IDs are transcribed into `Report.md` §1
+(roster), and the relative-contribution table into §2, at submission; man-hours
+evidence lives in `docs/contribution-log.md`.
