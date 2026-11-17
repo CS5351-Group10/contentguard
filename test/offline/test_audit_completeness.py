@@ -928,3 +928,56 @@ def test_review_replay_is_idempotent(store: SqliteStore) -> None:
     )
     assert conflict.status is CommitStatus.CONFLICT
     assert _audit_count(store) == 1
+
+
+@pytest.mark.parametrize("stale_field", ["revision", "content_hash"])
+def test_stale_review_replay_returns_conflict_not_exception(
+    store: SqliteStore, stale_field: str
+) -> None:
+    """Verifies REQ-INV-004 (replay ordering): reusing a replay key with stale review
+    evidence (wrong expected revision / content hash) after a valid review commit returns a
+    controlled CONFLICT — never a propagated ``StaleReviewError`` — with exactly one audit
+    row. Guards the replay retry block against the review-error family (which subclasses
+    ``PolicyError``, not ``PolicyKernelError``)."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=snapshot,
+        status=CaseStatus.HELD,
+    )
+    _seed_reviewable_case(
+        store, case, snapshot=snapshot, queue_outcome="hold", reason_id="RULE-REVIEW"
+    )
+    engine = PolicyEngine(snapshot)
+    key = ReplayKey(actor_id="moderator-1", idempotency_key="idem-review-stale-replay")
+
+    first = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=_review(outcome=Outcome.APPROVE, case=case, snapshot=snapshot),
+        expected_revision=case.revision,
+        replay_key=key,
+    )
+    assert first.status is CommitStatus.COMMITTED
+
+    if stale_field == "revision":
+        stale = _review(
+            outcome=Outcome.APPROVE, case=case, snapshot=snapshot, revision=99
+        )
+    else:
+        stale = _review(
+            outcome=Outcome.APPROVE, case=case, snapshot=snapshot, content_hash="c" * 64
+        )
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=stale,
+        expected_revision=case.revision,
+        replay_key=key,
+    )
+    assert result.status is CommitStatus.CONFLICT
+    assert _audit_count(store) == 1

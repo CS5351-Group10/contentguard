@@ -306,7 +306,13 @@ class PolicyEngine:
                     advisory=advisory,
                     review=review,
                 )
-            except PolicyKernelError:
+            except (
+                PolicyConflictError,
+                PolicyKernelError,
+                InvalidReviewError,
+                StaleReviewError,
+                UnauthorizedReviewError,
+            ):
                 candidate = None
             candidate_error = None
 
