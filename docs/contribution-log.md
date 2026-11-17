@@ -90,10 +90,11 @@ entry, so nothing below rewrites any recorded hours.
 | HUANG Hongwei | ③ | 1.0 | 11-17 #33 rebase/review fixes 0.5h + #37 data-governance answers 0.5h; anchors: PR #33/#37 comments |
 
 > Aggregated by the PM on 2026-11-18 00:50 HKT from anchored, member-reported entries.
-> Not yet reported: HAN Mei (no anchored phase ①/② entry), HUANG Hongwei phase ①,
-> LI Shiyi phase ①, Buna DA phases ①/②/③ (onboarding 11-17; no anchored entry).
-> First-batch deadline: 2026-11-18 18:00 HKT (issue #28). No end-of-phase estimates are
-> inserted here.
+> LIU's 16.0h covers the #8/#9/#10 report through early 11/16; later phase-②/③ PM work
+> (docs PRs #16/#17/#29, reviews) is not yet in the log. Not yet reported: HAN Mei (no
+> anchored phase ①/② entry), HUANG Hongwei phase ①, LI Shiyi phase ①, Buna DA phases
+> ①/②/③ (onboarding 11-17; no anchored entry). First-batch deadline: 2026-11-18 18:00
+> HKT (issue #28). No end-of-phase estimates are inserted here.
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
