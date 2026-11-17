@@ -13,6 +13,8 @@ disposition is deferred to the routing slice. The persistence/commit path
 
 from __future__ import annotations
 
+import json
+from dataclasses import replace
 from datetime import UTC, datetime
 
 from .contracts import (
@@ -21,9 +23,13 @@ from .contracts import (
     AdvisoryResult,
     AnalysisFailure,
     CaseSnapshot,
+    CaseStatus,
+    CommitResult,
+    CommitStatus,
     FailureCode,
     Outcome,
     PolicyDecision,
+    ReplayKey,
     ReviewRequest,
     Severity,
     Verdict,
@@ -32,6 +38,7 @@ from .contracts import (
     effective_severity,
     is_frozen_dto,
 )
+from .enforcement import _AUTHORITY_TOKEN, EnforcementAuthority, _payload_hash
 from .errors import (
     InvalidReviewError,
     PolicyConflictError,
@@ -45,15 +52,12 @@ from .snapshot import (
     PREFILTER_HIGH_REASON_ID,
     PolicyRule,
     PolicySnapshot,
+    SnapshotStore,
 )
+from .store import SqliteStore
 
-_AUTHORITY_TOKEN = "contentguard.policy.engine.authority"
 _MODERATOR_ROLE = "moderator"
 _POLICY_ACTOR = "policy"
-
-
-def _is_engine_token(token: str | None) -> bool:
-    return token == _AUTHORITY_TOKEN
 
 
 class PolicyEngine:
@@ -160,6 +164,157 @@ class PolicyEngine:
             actor_ids=_actor_ids(model_id=model_id),
             decided_at=decided_at,
         )
+
+    def evaluate_and_commit(
+        self,
+        *,
+        store: SqliteStore,
+        case: CaseSnapshot,
+        content_text: str,
+        advisory: AdvisoryResult | AnalysisFailure | None = None,
+        review: ReviewRequest | None = None,
+        expected_revision: int,
+        replay_key: ReplayKey,
+    ) -> CommitResult:
+        """Evaluate against the case row's pinned snapshot and commit atomically.
+
+        Loads the case row and its **pinned** snapshot first (not ``self.snapshot`` if a
+        newer snapshot is globally active), reconstructs the row case, and evaluates the
+        candidate with ``PolicyEngine(pinned)``. A replay is recognised by comparing the
+        candidate's payload hash to the stored replay payload **before** the revision/
+        status precondition, so a same-key/same-payload retry after a policy activation
+        (or after the case revision advanced) returns the stored result rather than a
+        spurious CONFLICT. A same-key/different-payload retry is a CONFLICT. The human-
+        review transition (step 7) is not part of this slice; a review is passed through
+        to ``evaluate`` which rejects it.
+        """
+        with store.read_connection() as conn:
+            row = conn.execute(
+                "SELECT revision, status, content_hash, policy_snapshot_id, "
+                "policy_snapshot_digest, advisory_verdict, advisory_severity, "
+                "advisory_model_id, advisory_model_version, analysis_failure_code "
+                "FROM cases WHERE case_id = ?",
+                (case.case_id,),
+            ).fetchone()
+            if row is None:
+                return _conflict_result(case, "case not found")
+            try:
+                pinned = SnapshotStore.load(conn, str(row[3]))
+            except PolicyKernelError as exc:
+                return _failed_result(case, f"pinned snapshot unavailable: {exc}")
+            replay = conn.execute(
+                "SELECT payload_hash, result_json FROM commits "
+                "WHERE replay_actor = ? AND replay_key = ?",
+                (replay_key.actor_id, replay_key.idempotency_key),
+            ).fetchone()
+
+        (
+            revision,
+            status,
+            row_content_hash,
+            snap_id,
+            snap_digest,
+            adv_verdict,
+            adv_severity,
+            adv_model_id,
+            adv_model_version,
+            failure_code,
+        ) = row
+
+        row_case = CaseSnapshot(
+            case_id=case.case_id,
+            revision=expected_revision,
+            status=CaseStatus(status),
+            content_hash=str(row_content_hash),
+            policy_snapshot_id=str(snap_id),
+            policy_snapshot_digest=str(snap_digest),
+            advisory_verdict=Verdict(adv_verdict) if adv_verdict is not None else None,
+            advisory_severity=(
+                Severity(adv_severity) if adv_severity is not None else None
+            ),
+            advisory_model_id=None if adv_model_id is None else str(adv_model_id),
+            advisory_model_version=(
+                None if adv_model_version is None else str(adv_model_version)
+            ),
+            analysis_failure_code=(
+                FailureCode(failure_code) if failure_code is not None else None
+            ),
+        )
+
+        pinned_engine = PolicyEngine(pinned)
+        try:
+            candidate = pinned_engine.evaluate(
+                case=row_case,
+                content_text=content_text,
+                advisory=advisory,
+                review=review,
+            )
+        except (PolicyConflictError, PolicyKernelError) as exc:
+            candidate = None
+            candidate_error: Exception | None = exc
+        else:
+            candidate_error = None
+
+        # Replay check before the revision/status precondition. The stored payload was
+        # evaluated under the snapshot pinned at first commit; the candidate here uses the
+        # same pinned snapshot, so a legitimate retry yields an identical payload hash
+        # even if a newer snapshot is globally active.
+        #
+        # A first commit advances the case out of its intake status (revision +1, status
+        # e.g. ``approved``). Re-evaluating that final row would trip the final-state guard
+        # even though ``evaluate`` is deterministic and the payload hash does not include
+        # ``status``/``revision``-derived status. When a replay row exists we therefore
+        # reconstruct the candidate from the row's immutable evidence under a neutral
+        # non-final status; the decision fields (which the payload hash covers) are
+        # unchanged because the normal/failure/high-severity outcomes derive from the
+        # advisory evidence, pre-filter, and pinned rules — never from ``status``.
+        if replay is not None and candidate is None:
+            replay_case = replace(row_case, status=CaseStatus.ANALYZING)
+            try:
+                candidate = pinned_engine.evaluate(
+                    case=replay_case,
+                    content_text=content_text,
+                    advisory=advisory,
+                    review=review,
+                )
+            except PolicyKernelError:
+                candidate = None
+            candidate_error = None
+
+        if replay is not None:
+            stored_payload_hash, stored_result_json = replay
+            if candidate is not None and _payload_hash(candidate) == stored_payload_hash:
+                return _commit_result_from_json(str(stored_result_json))
+            return _conflict_result(case, "replay key reused with a different payload")
+
+        # Not a replay: the caller's expected view must match the stored row.
+        if (
+            int(revision) != expected_revision
+            or row_content_hash != case.content_hash
+            or snap_id != case.policy_snapshot_id
+            or snap_digest != case.policy_snapshot_digest
+        ):
+            return _conflict_result(case, "case revision/snapshot/hash mismatch")
+
+        if candidate is None:
+            if isinstance(candidate_error, PolicyConflictError):
+                return _failed_result(case, f"cannot re-decide this case: {candidate_error}")
+            if isinstance(
+                candidate_error,
+                (InvalidReviewError, StaleReviewError, UnauthorizedReviewError),
+            ):
+                return _failed_result(case, f"review rejected: {candidate_error}")
+            return _failed_result(case, f"policy error: {candidate_error}")
+
+        authority = EnforcementAuthority(store)
+        try:
+            return authority.commit(
+                candidate,
+                expected_revision=expected_revision,
+                replay_key=replay_key,
+            )
+        except PolicyKernelError as exc:
+            return _failed_result(case, f"commit rejected: {exc}")
 
     # --- rule matching -----------------------------------------------------
 
@@ -330,6 +485,37 @@ def _actor_ids(*, model_id: str | None) -> tuple[str, ...]:
     if model_id:
         actors.append(f"ai:{model_id}")
     return tuple(actors)
+
+
+def _conflict_result(case: CaseSnapshot, message: str) -> CommitResult:
+    return CommitResult(
+        status=CommitStatus.CONFLICT,
+        decision_id="",
+        audit_id=None,
+        case_revision=None,
+        message=message,
+    )
+
+
+def _failed_result(case: CaseSnapshot, message: str) -> CommitResult:
+    return CommitResult(
+        status=CommitStatus.FAILED,
+        decision_id="",
+        audit_id=None,
+        case_revision=None,
+        message=message,
+    )
+
+
+def _commit_result_from_json(raw: str) -> CommitResult:
+    data = json.loads(raw)
+    return CommitResult(
+        status=CommitStatus(str(data["status"])),
+        decision_id=str(data["decision_id"]),
+        audit_id=data["audit_id"],
+        case_revision=data["case_revision"],
+        message=str(data["message"]),
+    )
 
 
 def _validate_case_snapshot(case: CaseSnapshot, snapshot: PolicySnapshot) -> None:

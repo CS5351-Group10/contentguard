@@ -445,7 +445,7 @@ class PolicyDecision:
     requires_human_review: bool
     actor_ids: tuple[str, ...]
     decided_at: datetime
-    _authority_token: str | None = None
+    _authority_token: object | None = None
 
     def __post_init__(self) -> None:
         _require_nonempty(self.decision_id, "decision_id")

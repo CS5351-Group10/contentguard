@@ -15,11 +15,14 @@ reason id can never be unresolved (REQ-FUN-004).
 
 from __future__ import annotations
 
+import json
+import sqlite3
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any
 
-from .contracts import Outcome, Severity, Verdict, digest_of
+from .contracts import Outcome, Severity, Verdict, canonical_json, digest_of
 from .errors import PolicyKernelError
 
 HIGH_SEVERITY_REASON_ID = "RULE-HIGH-SEVERITY"
@@ -180,6 +183,10 @@ class PolicySnapshot:
             builtin_reasons=builtins,
         )
 
+    def to_dict(self) -> dict[str, Any]:
+        """Serialise the digest payload (used to persist the append-only document)."""
+        return self._digest_payload()
+
 
 def _rule_from_dict(raw: Mapping[str, Any]) -> PolicyRule:
     condition_raw = raw.get("condition", {})
@@ -210,6 +217,71 @@ def _reason_from_dict(raw: Mapping[str, Any]) -> ReasonEntry:
     return ReasonEntry(reason_id=str(raw["reason_id"]), reason_text=str(raw["reason_text"]))
 
 
+class SnapshotStore:
+    """Append-only snapshot activation/load within a caller-owned transaction (INV-004).
+
+    ``activate`` inserts the new snapshot document and flips the previous active row's
+    metadata flag; the document, digest and revision are never mutated. ``load`` and
+    ``load_active`` reconstruct immutable ``PolicySnapshot`` objects from the stored
+    document. A snapshot store performs no commit of its own — the caller's transaction
+    owns the boundary.
+    """
+
+    @staticmethod
+    def activate(conn: sqlite3.Connection, snapshot: PolicySnapshot) -> None:
+        document_json = canonical_json(snapshot.to_dict())
+        existing = conn.execute(
+            "SELECT digest, document_json FROM policy_snapshots WHERE snapshot_id = ?",
+            (snapshot.snapshot_id,),
+        ).fetchone()
+        if existing is not None:
+            if existing[0] != snapshot.digest or existing[1] != document_json:
+                raise PolicyKernelError(
+                    f"snapshot {snapshot.snapshot_id!r} exists with different content"
+                )
+            # Idempotent reactivation of an identical snapshot: just ensure it is active.
+            conn.execute("UPDATE policy_snapshots SET active = 0 WHERE active = 1")
+            conn.execute(
+                "UPDATE policy_snapshots SET active = 1 WHERE snapshot_id = ?",
+                (snapshot.snapshot_id,),
+            )
+            return
+        conn.execute("UPDATE policy_snapshots SET active = 0 WHERE active = 1")
+        conn.execute(
+            """
+            INSERT INTO policy_snapshots
+                (snapshot_id, revision, digest, document_json, active, activated_at)
+            VALUES (?, ?, ?, ?, 1, ?)
+            """,
+            (
+                snapshot.snapshot_id,
+                snapshot.revision,
+                snapshot.digest,
+                document_json,
+                datetime.now(UTC).isoformat(),
+            ),
+        )
+
+    @staticmethod
+    def load(conn: sqlite3.Connection, snapshot_id: str) -> PolicySnapshot:
+        row = conn.execute(
+            "SELECT document_json FROM policy_snapshots WHERE snapshot_id = ?",
+            (snapshot_id,),
+        ).fetchone()
+        if row is None:
+            raise PolicyKernelError(f"pinned snapshot {snapshot_id!r} not found")
+        return PolicySnapshot.from_dict(json.loads(row[0]))
+
+    @staticmethod
+    def load_active(conn: sqlite3.Connection) -> PolicySnapshot:
+        row = conn.execute(
+            "SELECT document_json FROM policy_snapshots WHERE active = 1"
+        ).fetchone()
+        if row is None:
+            raise PolicyKernelError("no active policy snapshot")
+        return PolicySnapshot.from_dict(json.loads(row[0]))
+
+
 __all__ = [
     "HIGH_SEVERITY_REASON_ID",
     "HUMAN_REVIEW_REASON_ID",
@@ -220,4 +292,5 @@ __all__ = [
     "PolicySnapshot",
     "ReasonEntry",
     "RuleCondition",
+    "SnapshotStore",
 ]
