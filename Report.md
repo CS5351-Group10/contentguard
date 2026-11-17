@@ -34,7 +34,7 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 | Buna DA (60105888) | pending | pending | pending | | | | pending | pending |
 
 > Interim aggregation as of 2026-11-18 00:50 HKT from anchored entries in
-> `docs/contribution-log.md`; `pending` = no anchored phase-①/② report yet. Weights are
+> `docs/contribution-log.md`; `pending` = no anchored first-batch report yet. Weights are
 > computed only after all first-batch entries land (deadline 2026-11-18 18:00 HKT,
 > issue #28). LIU's phase ① includes the 11-14 proposal-authoring backfill (3.5h) plus
 > the 11-15 kickoff (9.0h). LIU's 16.0h covers the anchored #8/#9/#10 report through
