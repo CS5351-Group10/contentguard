@@ -613,8 +613,7 @@ requirements:
   title: Validate the registry
   statement: The registry shall pass validation against the repository requirement schema before 
     merge.
-  fit_criterion: The unchanged gate 3 validator accepts the candidate registry and rejects a 
-    disposable fixture missing a required invariant fallback.
+  fit_criterion: The updated Gate 3 validator validates the requirements registry against the JSON Schema, accepts valid registry data, and rejects invalid entries including duplicate IDs, missing required fields, invalid lifecycle statuses, and invariant violations.
   priority: must
   status: baselined
   changed_date: '2026-11-16'
