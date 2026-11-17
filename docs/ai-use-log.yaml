@@ -43,3 +43,26 @@ entries:
       only) and required an explicit permissions block + ID-citing test docstrings.
     pr: 7   # merged 2026-11-15 as 9cd38f7
 
+  - id: AI-002
+    date: 2026-11-16
+    agent: opencode
+    model: Big Pickle
+    operator: HAN Mei (60914643)
+    session_transcript: transcripts/60914643-HAN-Mei.md
+    scope: "scripts/validate_requirements.py"
+    summary: >-
+      Enhanced the requirements validator for REQ-GOV-003.
+      Added duplicate ID detection, ID/type consistency checks,
+      invariant safety-field checks, improved schema error reporting,
+      and failure exit handling. Schema Gate 3 passed for
+      31 requirements; temporary fixture tests passed 10/10.
+      Session: ses_e1fa17e9dffeD1bxtEnItAbngB.
+    human_interventions: 3
+    intervention_summary: >-
+      Approved the implementation plan before code changes.
+      Separately authorized the verification stage.
+      Redirected the agent to classify the traceability-matrix
+      failure as an unresolved architecture dependency,
+      not a validator defect.
+    pr: 11
+
