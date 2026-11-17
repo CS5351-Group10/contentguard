@@ -26,7 +26,10 @@ from conftest import (
 from contentguard.audit.contracts import AuditRecord
 from contentguard.audit.errors import AuditConflictError, AuditValidationError
 from contentguard.audit.repository import AuditRepository
+from contentguard.escalation.contracts import QueueEntry
+from contentguard.escalation.repository import QueueRepository
 from contentguard.policy.contracts import (
+    ActorRef,
     AdvisoryResult,
     AnalysisFailure,
     CaseSnapshot,
@@ -35,11 +38,16 @@ from contentguard.policy.contracts import (
     FailureCode,
     Outcome,
     ReplayKey,
+    ReviewRequest,
     Severity,
     Verdict,
 )
 from contentguard.policy.engine import PolicyEngine
-from contentguard.policy.errors import ForbiddenAuthorityError
+from contentguard.policy.errors import (
+    ForbiddenAuthorityError,
+    StaleReviewError,
+    UnauthorizedReviewError,
+)
 from contentguard.policy.snapshot import PolicySnapshot
 from contentguard.policy.store import SqliteStore
 
@@ -587,3 +595,336 @@ def _valid_audit_mapping() -> dict[str, object]:
         "actor_ids": ("policy", "ai:model-x"),
         "decided_at": "2026-11-18T00:00:00+00:00",
     }
+
+
+# --- Slice C (CP4): human-reviewed decisions & queue resolution -------------------
+
+
+def _review(
+    *,
+    outcome: Outcome,
+    case: CaseSnapshot,
+    snapshot: PolicySnapshot,
+    reviewer_role: str = "moderator",
+    rationale: str = "manual moderator decision",
+    case_id: str | None = None,
+    revision: int | None = None,
+    content_hash: str | None = None,
+) -> ReviewRequest:
+    return ReviewRequest(
+        reviewer=ActorRef(actor_id="moderator-1", role=reviewer_role),
+        case_id=case_id if case_id is not None else case.case_id,
+        expected_revision=revision if revision is not None else case.revision,
+        requested_outcome=outcome,
+        rationale=rationale,
+        policy_snapshot_id=snapshot.snapshot_id,
+        policy_snapshot_digest=snapshot.digest,
+        content_hash=content_hash if content_hash is not None else case.content_hash,
+    )
+
+
+def _seed_reviewable_case(
+    store: SqliteStore,
+    case: CaseSnapshot,
+    *,
+    snapshot: PolicySnapshot,
+    queue_outcome: str,
+    reason_id: str,
+) -> None:
+    """Activate the snapshot, insert the held/escalated case row, and enqueue it."""
+    with store.transaction() as conn:
+        existing = conn.execute(
+            "SELECT 1 FROM policy_snapshots WHERE snapshot_id = ?", (snapshot.snapshot_id,)
+        ).fetchone()
+        if existing is None:
+            store.activate_snapshot(conn, snapshot)
+    with store.transaction() as conn:
+        conn.execute(
+            "INSERT INTO cases (case_id, revision, status, content_hash, "
+            "policy_snapshot_id, policy_snapshot_digest, content_text, advisory_verdict, "
+            "advisory_severity, advisory_model_id, advisory_model_version, "
+            "analysis_failure_code, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                case.case_id, case.revision, case.status.value, case.content_hash,
+                case.policy_snapshot_id, case.policy_snapshot_digest, "seed",
+                case.advisory_verdict.value if case.advisory_verdict else None,
+                case.advisory_severity.value if case.advisory_severity else None,
+                case.advisory_model_id, case.advisory_model_version,
+                case.analysis_failure_code.value if case.analysis_failure_code else None,
+                "2026-11-18T00:00:00+00:00",
+            ),
+        )
+        QueueRepository.enqueue(
+            conn,
+            QueueEntry(
+                case_id=case.case_id,
+                case_revision=case.revision,
+                outcome=queue_outcome,
+                reason_id=reason_id,
+                enqueued_at="2026-11-18T00:00:00+00:00",
+            ),
+        )
+
+
+def test_human_reviewed_decision_one_audit(store: SqliteStore) -> None:
+    """Verifies REQ-INV-004: a human-reviewed decision writes exactly one audit row with
+    reason ``RULE-HUMAN-REVIEW`` and actors ``policy`` + ``ai:<model>`` + ``reviewer:<id>``
+    and resolves the queue entry."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=snapshot,
+        status=CaseStatus.HELD,
+    )
+    _seed_reviewable_case(
+        store, case, snapshot=snapshot, queue_outcome="hold", reason_id="RULE-REVIEW"
+    )
+    engine = PolicyEngine(snapshot)
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=_review(outcome=Outcome.APPROVE, case=case, snapshot=snapshot),
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-hr-1"),
+    )
+    assert result.status is CommitStatus.COMMITTED
+    assert result.audit_id is not None
+    assert _audit_count(store) == 1
+    with store.read_connection() as conn:
+        record = AuditRepository.read(conn, result.audit_id)
+        unresolved = QueueRepository.count(conn)
+    assert record.outcome == Outcome.APPROVE.value
+    assert record.policy_reason_id == "RULE-HUMAN-REVIEW"
+    assert "policy" in record.actor_ids
+    assert "ai:model-x" in record.actor_ids
+    assert "reviewer:moderator-1" in record.actor_ids
+    assert unresolved == 0
+
+
+def test_analysis_failure_review_can_finalize(store: SqliteStore) -> None:
+    """Verifies REQ-INV-004: a typed-failure held case can be finalized by a current
+    authorized review; the audit row keeps ``ai_verdict=None`` and the failure code, and
+    carries a ``reviewer:<id>`` actor with no ``ai:`` actor."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=None,
+        snapshot=snapshot,
+        status=CaseStatus.HELD,
+        analysis_failure_code=FailureCode.TIMEOUT,
+    )
+    _seed_reviewable_case(
+        store,
+        case,
+        snapshot=snapshot,
+        queue_outcome="hold",
+        reason_id="FB-ANALYSIS-TIMEOUT",
+    )
+    engine = PolicyEngine(snapshot)
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=_review(outcome=Outcome.REJECT, case=case, snapshot=snapshot),
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-fail-review"),
+    )
+    assert result.status is CommitStatus.COMMITTED
+    assert result.audit_id is not None
+    with store.read_connection() as conn:
+        record = AuditRepository.read(conn, result.audit_id)
+        unresolved = QueueRepository.count(conn)
+    assert record.outcome == Outcome.REJECT.value
+    assert record.ai_verdict is None
+    assert record.analysis_failure_code == FailureCode.TIMEOUT.value
+    assert "reviewer:moderator-1" in record.actor_ids
+    assert not any(a.startswith("ai:") for a in record.actor_ids)
+    assert unresolved == 0
+
+
+def _held_reviewable(store: SqliteStore) -> tuple[PolicySnapshot, CaseSnapshot]:
+    """Seed a HELD case (and its queue entry) for review-rejection tests."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=snapshot,
+        status=CaseStatus.HELD,
+    )
+    _seed_reviewable_case(
+        store, case, snapshot=snapshot, queue_outcome="hold", reason_id="RULE-REVIEW"
+    )
+    return snapshot, case
+
+
+@pytest.mark.parametrize("stale_field", ["case_id", "revision", "content_hash"])
+def test_stale_review_cannot_finalize(store: SqliteStore, stale_field: str) -> None:
+    """Verifies REQ-INV-003/004 (negative): a stale review (wrong case id / revision /
+    content hash) is rejected with ``StaleReviewError``; through the commit path it
+    returns FAILED with no state change."""
+    snapshot, case = _held_reviewable(store)
+    engine = PolicyEngine(snapshot)
+    if stale_field == "case_id":
+        stale = _review(
+            outcome=Outcome.APPROVE, case=case, snapshot=snapshot, case_id="case-other"
+        )
+    elif stale_field == "revision":
+        stale = _review(
+            outcome=Outcome.APPROVE, case=case, snapshot=snapshot, revision=99
+        )
+    else:
+        stale = _review(
+            outcome=Outcome.APPROVE, case=case, snapshot=snapshot, content_hash="c" * 64
+        )
+    with pytest.raises(StaleReviewError):
+        engine.evaluate(case=case, content_text="benign text", review=stale)
+
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=stale,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-stale"),
+    )
+    assert result.status is CommitStatus.FAILED
+    assert _audit_count(store) == 0
+    _rev, status = _case_row(store, case.case_id)
+    assert status == CaseStatus.HELD.value
+
+
+@pytest.mark.parametrize(
+    "reviewer_role,rationale",
+    [("submitter", "ok decision")],
+)
+def test_unauthorized_review_cannot_finalize(
+    store: SqliteStore, reviewer_role: str, rationale: str
+) -> None:
+    """Verifies REQ-INV-003/004 (negative): a non-moderator review is rejected with
+    ``UnauthorizedReviewError``; through commit it returns FAILED with no state change.
+
+    An empty rationale is rejected earlier by ``ReviewRequest`` construction (the contract
+    is stricter than the engine), so only the role check reaches the engine here."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=snapshot,
+        status=CaseStatus.HELD,
+    )
+    _seed_reviewable_case(
+        store, case, snapshot=snapshot, queue_outcome="hold", reason_id="RULE-REVIEW"
+    )
+    engine = PolicyEngine(snapshot)
+    bad = _review(
+        outcome=Outcome.APPROVE,
+        case=case,
+        snapshot=snapshot,
+        reviewer_role=reviewer_role,
+        rationale=rationale,
+    )
+    with pytest.raises(UnauthorizedReviewError):
+        engine.evaluate(case=case, content_text="benign text", review=bad)
+
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=bad,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-unauth"),
+    )
+    assert result.status is CommitStatus.FAILED
+    assert _audit_count(store) == 0
+    _rev, status = _case_row(store, case.case_id)
+    assert status == CaseStatus.HELD.value
+
+
+def test_old_case_review_uses_pinned_snapshot(store: SqliteStore) -> None:
+    """Verifies REQ-INV-003/004: after activating snapshot v2, a review of a case pinned to
+    v1 loads v1 via ``SnapshotStore.load`` and commits with the v1 reason and snapshot
+    identifiers — it does not fail because v2 is globally active."""
+    v1 = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=v1,
+        status=CaseStatus.HELD,
+    )
+    _seed_reviewable_case(
+        store, case, snapshot=v1, queue_outcome="hold", reason_id="RULE-REVIEW"
+    )
+    with store.transaction() as conn:
+        store.activate_snapshot(conn, make_snapshot_v2())
+    engine = PolicyEngine(make_snapshot_v2())
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=_review(outcome=Outcome.APPROVE, case=case, snapshot=v1),
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-old"),
+    )
+    assert result.status is CommitStatus.COMMITTED
+    assert result.audit_id is not None
+    with store.read_connection() as conn:
+        record = AuditRepository.read(conn, result.audit_id)
+    assert record.policy_snapshot_id == v1.snapshot_id
+    assert record.policy_snapshot_digest == v1.digest
+    assert record.policy_reason_id == "RULE-HUMAN-REVIEW"
+    assert _audit_count(store) == 1
+
+
+def test_review_replay_is_idempotent(store: SqliteStore) -> None:
+    """Verifies REQ-INV-004: repeating a review commit (same replay key + same review)
+    returns the same audit id and exactly one audit row; a different review under the same
+    replay key is a CONFLICT."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=snapshot,
+        status=CaseStatus.HELD,
+    )
+    _seed_reviewable_case(
+        store, case, snapshot=snapshot, queue_outcome="hold", reason_id="RULE-REVIEW"
+    )
+    engine = PolicyEngine(snapshot)
+    key = ReplayKey(actor_id="moderator-1", idempotency_key="idem-review-replay")
+    review = _review(outcome=Outcome.APPROVE, case=case, snapshot=snapshot)
+
+    first = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=review,
+        expected_revision=case.revision,
+        replay_key=key,
+    )
+    retry = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=review,
+        expected_revision=case.revision,
+        replay_key=key,
+    )
+    assert first.status is CommitStatus.COMMITTED
+    assert retry.status is CommitStatus.COMMITTED
+    assert retry.audit_id == first.audit_id
+    assert _audit_count(store) == 1
+
+    conflict = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=_review(outcome=Outcome.REJECT, case=case, snapshot=snapshot),
+        expected_revision=case.revision,
+        replay_key=key,
+    )
+    assert conflict.status is CommitStatus.CONFLICT
+    assert _audit_count(store) == 1

@@ -49,6 +49,7 @@ from .errors import (
 from .prefilter import DeterministicPrefilter
 from .snapshot import (
     HIGH_SEVERITY_REASON_ID,
+    HUMAN_REVIEW_REASON_ID,
     PREFILTER_HIGH_REASON_ID,
     PolicyRule,
     PolicySnapshot,
@@ -101,8 +102,10 @@ class PolicyEngine:
 
         decided_at = decided_at or datetime.now(UTC)
 
-        # Step 4: analysis failure (never a review in this slice).
-        if failure_code is not None:
+        # Step 4: analysis failure (never a review in this slice). A held typed-failure
+        # case reaches its disposition through step 7 (the review), so step 4 only applies
+        # to the non-review path.
+        if failure_code is not None and review is None:
             return self._build_failure_decision(
                 case=case,
                 failure_code=failure_code,
@@ -111,17 +114,34 @@ class PolicyEngine:
                 model_id=model_id,
             )
 
-        # Step 5: effective severity via explicit rank (never string ordering).
-        # After step 4 (no failure code) the advisory evidence is a full verdict tuple.
+        # Step 5: effective severity via explicit rank (never string ordering). A typed
+        # failure has no advisory severity; only the prefilter may contribute one.
+        prefilter_severity = Severity.HIGH if prefilter.high_severity else None
+        eff_severity = effective_severity(advisory_severity, prefilter_severity)
+
+        # Step 7: a current authorized review of a HELD/ESCALATED case is the only path to
+        # a final disposition. Regardless of why the case was held or escalated (high
+        # severity, typed failure, or a normal hold), the reviewed APPROVE/REJECT is
+        # evaluated against the pinned rules with the mandatory REJECT floor winning.
+        if review is not None:
+            return self._build_review_decision(
+                case=case,
+                review=review,
+                verdict=verdict,
+                advisory_severity=advisory_severity,
+                model_id=model_id,
+                model_version=model_version,
+                failure_code=failure_code,
+                eff_severity=eff_severity,
+                prefilter_labels=prefilter.labels,
+                decided_at=decided_at,
+            )
+
+        # Step 6: high severity escalates before any allow rule can finalise.
         assert verdict is not None
         assert advisory_severity is not None
         assert model_id is not None
         assert model_version is not None
-        prefilter_severity = Severity.HIGH if prefilter.high_severity else None
-        eff_severity = effective_severity(advisory_severity, prefilter_severity)
-        assert eff_severity is not None  # a verdict always carries a severity
-
-        # Step 6: high severity escalates before any allow rule can finalise.
         if eff_severity is Severity.HIGH:
             return self._build_high_severity_decision(
                 case=case,
@@ -133,15 +153,7 @@ class PolicyEngine:
                 decided_at=decided_at,
             )
 
-        # Step 7 (review transition) is deferred to the routing slice. Reaching here
-        # with a review is a held/escalated case; that cannot be finalised yet.
-        if review is not None:
-            raise InvalidReviewError(
-                "human-review transition is implemented in the routing slice"
-            )
-
         # Step 8: mandatory-reject floor, else first matching rule, else fallback.
-        assert verdict is not None and advisory_severity is not None
         matched = self._matching_rules(
             verdict=verdict,
             severity=advisory_severity,
@@ -249,7 +261,13 @@ class PolicyEngine:
                 advisory=advisory,
                 review=review,
             )
-        except (PolicyConflictError, PolicyKernelError) as exc:
+        except (
+            PolicyConflictError,
+            PolicyKernelError,
+            InvalidReviewError,
+            StaleReviewError,
+            UnauthorizedReviewError,
+        ) as exc:
             candidate = None
             candidate_error: Exception | None = exc
         else:
@@ -268,8 +286,19 @@ class PolicyEngine:
         # non-final status; the decision fields (which the payload hash covers) are
         # unchanged because the normal/failure/high-severity outcomes derive from the
         # advisory evidence, pre-filter, and pinned rules — never from ``status``.
+        #
+        # A review is the exception: step 7 only runs for a HELD/ESCALATED case, so the
+        # neutral substitution would raise InvalidReviewError (not a PolicyKernelError) and
+        # misclassify a legitimate review replay. A reviewed case commits to a final status,
+        # but the pre-review status is recoverable: a reviewed decision is REJECT (floor or
+        # reviewed) or APPROVE, and a reviewable row was HELD or ESCALATED. Re-evaluate
+        # under ESCALATED (a reviewable, non-final status) so step 7 runs; the reviewed
+        # outcome and its payload hash do not depend on HELD-vs-ESCALATED.
         if replay is not None and candidate is None:
-            replay_case = replace(row_case, status=CaseStatus.ANALYZING)
+            neutral_status = (
+                CaseStatus.ESCALATED if review is not None else CaseStatus.ANALYZING
+            )
+            replay_case = replace(row_case, status=neutral_status)
             try:
                 candidate = pinned_engine.evaluate(
                     case=replay_case,
@@ -321,17 +350,17 @@ class PolicyEngine:
     def _matching_rules(
         self,
         *,
-        verdict: Verdict,
-        severity: Severity,
+        verdict: Verdict | None,
+        severity: Severity | None,
         prefilter_labels: tuple[str, ...],
     ) -> list[PolicyRule]:
         labels = set(prefilter_labels)
         matched: list[PolicyRule] = []
         for rule in self._snapshot.rules:
             cond = rule.condition
-            if cond.verdicts and verdict not in cond.verdicts:
+            if cond.verdicts and (verdict is None or verdict not in cond.verdicts):
                 continue
-            if cond.severities and severity not in cond.severities:
+            if cond.severities and (severity is None or severity not in cond.severities):
                 continue
             if cond.prefilter_labels and not (set(cond.prefilter_labels) & labels):
                 continue
@@ -413,6 +442,63 @@ class PolicyEngine:
             decided_at=decided_at,
         )
 
+    def _build_review_decision(
+        self,
+        *,
+        case: CaseSnapshot,
+        review: ReviewRequest,
+        verdict: Verdict | None,
+        advisory_severity: Severity | None,
+        model_id: str | None,
+        model_version: str | None,
+        failure_code: FailureCode | None,
+        eff_severity: Severity | None,
+        prefilter_labels: tuple[str, ...],
+        decided_at: datetime,
+    ) -> PolicyDecision:
+        """Apply an authorized review (S1 plan §3.5 step 7).
+
+        Collect all matching rules; the first matching ``REJECT`` is a mandatory floor that
+        overrides the review. Otherwise the reviewed APPROVE/REJECT applies with reason
+        ``RULE-HUMAN-REVIEW``. The reviewer enters ``actor_ids``; a pinned AI model enters
+        ``ai:<model_id>`` only when a verdict exists (a typed-failure case has none).
+        """
+        matched = self._matching_rules(
+            verdict=verdict,
+            severity=eff_severity,
+            prefilter_labels=prefilter_labels,
+        )
+        reject_rule = next(
+            (rule for rule in matched if rule.outcome is Outcome.REJECT), None
+        )
+        if reject_rule is not None:
+            outcome = Outcome.REJECT
+            reason_id = reject_rule.rule_id
+            reason_text = reject_rule.reason_text
+        else:
+            outcome = review.requested_outcome
+            reason_id = HUMAN_REVIEW_REASON_ID
+            reason_text = self._snapshot.reason_text(HUMAN_REVIEW_REASON_ID)
+
+        return _assemble(
+            case=case,
+            outcome=outcome,
+            reason_id=reason_id,
+            reason_text=reason_text,
+            severity=eff_severity,
+            advisory_verdict=verdict,
+            advisory_severity=advisory_severity,
+            advisory_model_id=model_id if verdict is not None else None,
+            advisory_model_version=model_version if verdict is not None else None,
+            analysis_failure_code=failure_code,
+            requires_human_review=False,
+            actor_ids=_actor_ids(
+                model_id=model_id if verdict is not None else None,
+                reviewer_id=review.reviewer.actor_id,
+            ),
+            decided_at=decided_at,
+        )
+
 
 # --- free helpers ----------------------------------------------------------
 
@@ -480,10 +566,12 @@ def _assemble(
     )
 
 
-def _actor_ids(*, model_id: str | None) -> tuple[str, ...]:
+def _actor_ids(*, model_id: str | None, reviewer_id: str | None = None) -> tuple[str, ...]:
     actors = [_POLICY_ACTOR]
     if model_id:
         actors.append(f"ai:{model_id}")
+    if reviewer_id:
+        actors.append(f"reviewer:{reviewer_id}")
     return tuple(actors)
 
 
