@@ -1,20 +1,21 @@
 # Trace Matrix (D2.4)
 
 > Every requirement → its enforcing component → its test/evidence → its runtime monitor.
+>
 > Kept in lockstep with `docs/req/requirements.yaml` (CI smoke test checks IDs appear here).
-> 
+
 The table below maps all 31 requirements in the v1.0 registry. A test file or evidence item marked `TBD (Sx)` is **planned, not yet implemented or verified**. It must not be counted as passing evidence.
 
 - **S1:** Policy kernel and audit (11/17).
 - **S2:** Intake and queue (11/18).
 - **S3:** RAG and analysis (11/18–19).
 - **S4:** CI and governance (11/19).
-- **S5:** Evaluation and revision (11/20)
+- **S5:** Evaluation and revision (11/20).
 
 | Req ID | Type | Enforcing component | Test / evidence | Runtime monitor |
 |---|---|---|---|---|
 | REQ-INV-001 | invariant | policy engine + module boundary | `test/offline/test_invariants.py` — structural call-graph + forged-action negative test `TBD (S1)` | CI structural check (TD-4) |
-| REQ-INV-002 | invariant | escalation queue + policy default rule | `test/offline/test_failsafe_hold.py` — provider error/timeout/malformed/invalid-enum fixtures `TBD (S1)` | queue depth + audit anomaly alert |
+| REQ-INV-002 | invariant | escalation queue + policy default rule | S2: `test/offline/test_failsafe_hold.py` and `test/offline/test_transaction_replay.py` — durable queue persistence/replay and provider failure handling; S3: `test/offline/test_analysis_contract.py` — typed failure contract `TBD (S2/S3)` | queue depth + audit anomaly alert |
 | REQ-INV-003 | invariant | policy routing rules | `test/offline/test_escalation_routing.py` — severity × policy matrix `TBD (S1)` | daily audit reconciliation |
 | REQ-INV-004 | invariant | audit subsystem | `test/offline/test_audit_completeness.py` — exactly one record per decision + write-failure rollback `TBD (S1)` | audit write-path health |
 | REQ-INV-005 | invariant | CI gate 4 | `.github/workflows/ci.yml` gate 4 + replay in `test/eval/` `TBD (S4)` | gate 4 on prompt/model PRs |
@@ -24,7 +25,7 @@ The table below maps all 31 requirements in the v1.0 registry. A test file or ev
 | REQ-FUN-004 | functional | policy engine + audit | `test/offline/test_policy_justification.py` — rule/fallback id + old decision retrieval after policy change `TBD (S1)` | decision reason in audit |
 | REQ-FUN-005 | functional | analysis retrieval | `test/offline/test_retrieval_grounding.py` — authentic/forged/stale/conflicting/injection/no-match `TBD (S3)` | grounding failure metric |
 | REQ-FUN-006 | functional | none (wont; ADR extension seam) | Scope decision in registry + ADR seam `TBD (S5)` | n/a (deferred) |
-| REQ-FUN-007 | functional | demo harness / feature flags | `test/offline/test_demo_flags.py` — comparable baseline/enhanced runs `TBD (S5)` | flag configuration audit |
+| REQ-FUN-007 | functional | demo harness / feature flags | `test/offline/test_demo_flags.py` — comparable baseline/enhanced runs, conditional on S5 capacity under Issue #23 `TBD (S5)` | flag configuration audit |
 | REQ-SEC-001 | security | analysis context boundary | `test/offline/test_untrusted_inputs.py` — direct/indirect injection + forged citations `TBD (S3)` | schema/injection failure counter |
 | REQ-SEC-002 | security | API intake validation | `test/offline/test_intake_validation.py` — malformed/missing/unsupported + boundary `TBD (S2)` | 4xx rate |
 | REQ-SEC-003 | security | API auth + policy review | `test/offline/test_moderator_auth.py` — authorized/unauthorized/stale/mandatory-rule `TBD (S2)` | 401/403 audit |
@@ -32,9 +33,9 @@ The table below maps all 31 requirements in the v1.0 registry. A test file or ev
 | REQ-SEC-005 | security | release/zip scan | release checklist + secret scan `TBD (S4)` | SEC-005 release gate |
 | REQ-QUA-001 | quality | policy engine | `test/offline/test_policy_determinism.py` — repeat/reorder fixed fixtures `TBD (S1)` | n/a |
 | REQ-QUA-002 | quality | policy + DB transaction | `test/offline/test_transaction_replay.py` — opposite actions, duplicate delivery, lost ack `TBD (S2)` | conflict/duplicate metric |
-| REQ-QUA-003 | quality | eval harness | `test/eval/` report + `evaluation-logbook.md` `TBD (S5)` | eval dashboard |
-| REQ-PER-001 | performance | metrics/log | benchmark ≥100 requests `TBD (S5)` | p50/p95 latency |
-| REQ-COS-001 | cost | provider usage accounting | `test/offline/test_usage_accounting.py` + benchmark `TBD (S3)` | token usage counter |
+| REQ-QUA-003 | quality | eval harness | Partial evaluation evidence: `test/eval/` report + `evaluation-logbook.md`; full evaluation deferred under Issue #23 `TBD (S5)` | eval dashboard |
+| REQ-PER-001 | performance | metrics/log | Full benchmark (≥100 requests) deferred under Issue #23; performance measurement remains limited to available logging evidence `TBD (S5)` | p50/p95 latency |
+| REQ-COS-001 | cost | provider usage accounting + analysis context budget | `test/offline/test_usage_accounting.py` + `test/offline/test_context_budget.py` — usage accounting and context-budget checks; aggregate logical-request budget remains OPEN and separate from the 8192-token envelope; full benchmark deferred under Issue #23 | token usage counter |
 | REQ-GOV-001 | governance | ai-use-log + transcripts | `docs/ai-use-log.yaml` + `transcripts/` + review | gate 6 + review memo |
 | REQ-GOV-002 | governance | gate 1 | `scripts/check_test_approval.py` + test-plan issues | gate 1 |
 | REQ-GOV-003 | governance | gate 3 | `scripts/validate_requirements.py` + validator tests | gate 3 |
@@ -45,6 +46,4 @@ The table below maps all 31 requirements in the v1.0 registry. A test file or ev
 | REQ-GOV-008 | governance | gate 6 | `scripts/check_ai_use_log.py` | gate 6 |
 | REQ-GOV-009 | governance | branch protection | `blocking-gates` required check | settings audit |
 
-
-> Rows marked TBD are filled as code lands; the matrix is updated in the same PR that
-> implements the requirement (co-evolution evidence for Report.md §5).
+> Rows marked TBD are filled as code lands; the matrix is updated in the same PR that implements the requirement (co-evolution evidence for Report.md §5).
