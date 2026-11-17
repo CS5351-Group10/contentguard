@@ -30,7 +30,7 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 | LIU Jianwei (61022208) | 12.5 | 3.5 | | | | | 16.0 | pending |
 | HAN Mei (60914643) | pending | pending | | | | | pending | pending |
 | LI Shiyi (60938585) | pending | 5.0 | | | | | 5.0 | pending |
-| HUANG Hongwei (60368210) | pending | 2.25 | | | | | 2.25 | pending |
+| HUANG Hongwei (60368210) | pending | 4.25 | 0.5 | | | | 4.75 | pending |
 | Buna DA (60105888) | pending | pending | 0.5 | | | | 0.5 | pending |
 
 > Interim aggregation as of 2026-11-18 00:30 HKT from anchored entries in
