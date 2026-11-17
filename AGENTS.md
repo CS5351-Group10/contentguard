@@ -61,8 +61,9 @@ every path explicitly whitelisted).
 
 ## 5. Module organization
 
-To be fixed by ADR-001. Placeholder module layout (names must match architectural
-elements one-to-one):
+ADR-001 (`docs/architecture/adr/001-grounded-advisory-transactional-policy.md`,
+approved 2026-11-16) fixes the module layout. Names must match architectural elements
+one-to-one:
 
 ```
 src/
@@ -74,8 +75,11 @@ src/
     api/            # service interface
 ```
 
-Integration contracts between modules: TBD at ADR-001 (interface signatures and data
-contracts will be listed here once approved).
+Integration contracts between modules: `docs/architecture/interface-contracts.md`.
+Dependency direction: `api → {analysis, policy}; policy → {escalation, audit}`;
+`analysis` must not import `policy`; `policy` may consume validated advisory data that
+`api` passes as read-only input, but must not import analysis internals or delegate
+enforcement authority to the model output. The API coordinates analysis then policy.
 
 ## 6. Verification requirements (generated code must satisfy all)
 
