@@ -72,5 +72,5 @@ entries:
       authority token; required pinned-snapshot replay; required the full review path
       (normal hold too); required the structural checker to prove a failing fixture;
       accepted only after independent full verification.
-    pr: pending
+    pr: 41
 
