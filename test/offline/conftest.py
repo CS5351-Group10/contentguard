@@ -27,11 +27,13 @@ from contentguard.policy.contracts import (
     AdvisoryResult,
     CaseSnapshot,
     CaseStatus,
+    FailureCode,
     RequestContext,
     Severity,
     Usage,
     Verdict,
 )
+from contentguard.policy.snapshot import PolicySnapshot
 
 FIXED_TIME = datetime(2026, 11, 18, 12, 0, 0, tzinfo=UTC)
 
@@ -86,24 +88,45 @@ def make_case(
     revision: int = 1,
     status: CaseStatus = CaseStatus.ANALYZING,
     advisory: AdvisoryResult | None = None,
+    snapshot: PolicySnapshot | None = None,
+    analysis_failure_code: FailureCode | None = None,
 ) -> CaseSnapshot:
-    """Build a case snapshot pinned to v1, optionally carrying the advisory evidence."""
+    """Build a case snapshot pinned to a snapshot (v1 by default).
+
+    When ``snapshot`` is omitted, the case is pinned to ``make_snapshot()``'s real digest
+    so ``PolicyEngine`` accepts it. ``analysis_failure_code`` (a ``FailureCode``) pins a
+    typed-failure case instead of advisory evidence.
+    """
+    if snapshot is None:
+        snapshot = make_snapshot()
+    snapshot_id = snapshot.snapshot_id
+    snapshot_digest = snapshot.digest
+    if analysis_failure_code is not None:
+        return CaseSnapshot(
+            case_id=case_id,
+            revision=revision,
+            status=status,
+            content_hash=CONTENT_HASH,
+            policy_snapshot_id=snapshot_id,
+            policy_snapshot_digest=snapshot_digest,
+            analysis_failure_code=analysis_failure_code,
+        )
     if advisory is None:
         return CaseSnapshot(
             case_id=case_id,
             revision=revision,
             status=status,
             content_hash=CONTENT_HASH,
-            policy_snapshot_id=SNAPSHOT_ID_V1,
-            policy_snapshot_digest=SNAPSHOT_DIGEST_V1,
+            policy_snapshot_id=snapshot_id,
+            policy_snapshot_digest=snapshot_digest,
         )
     return CaseSnapshot(
         case_id=case_id,
         revision=revision,
         status=status,
         content_hash=CONTENT_HASH,
-        policy_snapshot_id=SNAPSHOT_ID_V1,
-        policy_snapshot_digest=SNAPSHOT_DIGEST_V1,
+        policy_snapshot_id=snapshot_id,
+        policy_snapshot_digest=snapshot_digest,
         advisory_verdict=advisory.verdict,
         advisory_severity=advisory.severity,
         advisory_model_id=advisory.model_id,
@@ -121,3 +144,152 @@ def case_analyzing(advisory_medium: AdvisoryResult) -> CaseSnapshot:
 def fixed_now() -> Iterator[datetime]:
     """A fixed UTC timestamp for deterministic ``decided_at`` assertions."""
     yield FIXED_TIME
+
+
+def _snapshot_dict(
+    *,
+    snapshot_id: str,
+    revision: int,
+    rules: list[dict[str, object]],
+    fallback_id: str = "FB-DEFAULT-HOLD",
+    fallback_outcome: str = "hold",
+    high_severity_terms: tuple[str, ...] = ("dangerous", "threat"),
+    missing_builtin: str | None = None,
+) -> dict[str, object]:
+    """Assemble a ``PolicySnapshot.from_dict`` payload.
+
+    ``missing_builtin`` drops one required built-in reason id so a negative test can
+    prove that a catalog missing a built-in id is rejected.
+    """
+    builtin_ids = [
+        "RULE-HIGH-SEVERITY",
+        "RULE-PREFILTER-HIGH",
+        "RULE-HUMAN-REVIEW",
+        "FB-ANALYSIS-PROVIDER_UNAVAILABLE",
+        "FB-ANALYSIS-TIMEOUT",
+        "FB-ANALYSIS-INVALID_RESPONSE",
+        "FB-ANALYSIS-GROUNDING_UNAVAILABLE",
+        "FB-ANALYSIS-CONTEXT_OVERFLOW",
+    ]
+    if missing_builtin is not None:
+        builtin_ids = [b for b in builtin_ids if b != missing_builtin]
+    builtin_reasons = [
+        {"reason_id": rid, "reason_text": f"builtin {rid}"} for rid in builtin_ids
+    ]
+    return {
+        "snapshot_id": snapshot_id,
+        "revision": revision,
+        "rules": rules,
+        "fallback": {
+            "fallback_id": fallback_id,
+            "outcome": fallback_outcome,
+            "reason_text": "No approved rule matched; held for human review.",
+        },
+        "high_severity_terms": list(high_severity_terms),
+        "builtin_reasons": builtin_reasons,
+    }
+
+
+_BASE_ALLOW_RULE: dict[str, object] = {
+    "rule_id": "RULE-ALLOW-LOW",
+    "condition": {"verdicts": ["allow"], "severities": ["low"], "prefilter_labels": []},
+    "outcome": "approve",
+    "reason_text": "Allowed: low severity, clean advisory.",
+}
+
+_REVIEW_RULE: dict[str, object] = {
+    "rule_id": "RULE-REVIEW",
+    "condition": {"verdicts": ["review"], "severities": ["medium"], "prefilter_labels": []},
+    "outcome": "hold",
+    "reason_text": "Review advisory: held.",
+}
+
+_REJECT_RULE: dict[str, object] = {
+    "rule_id": "RULE-REJECT-VIOLATE",
+    "condition": {"verdicts": ["violate"], "severities": ["low", "medium"], "prefilter_labels": []},
+    "outcome": "reject",
+    "reason_text": "Violating content rejected.",
+}
+
+
+def make_snapshot(*, missing_builtin: str | None = None) -> PolicySnapshot:
+    """Build policy snapshot v1 via ``PolicySnapshot.from_dict``.
+
+    Lazy import keeps the CP1 smoke tests passing before ``snapshot.py`` exists; the new
+    Slice-A tests fail red until it is implemented.
+    """
+    
+
+    return PolicySnapshot.from_dict(
+        _snapshot_dict(
+            snapshot_id=SNAPSHOT_ID_V1,
+            revision=1,
+            rules=[_BASE_ALLOW_RULE, _REVIEW_RULE, _REJECT_RULE],
+            missing_builtin=missing_builtin,
+        )
+    )
+
+
+def make_snapshot_v2() -> PolicySnapshot:
+    """Build policy snapshot v2 with a different id and reason text for the same rule."""
+    
+
+    allow_v2 = dict(_BASE_ALLOW_RULE)
+    allow_v2["reason_text"] = "Allowed (v2): low severity, clean advisory."
+    return PolicySnapshot.from_dict(
+        _snapshot_dict(
+            snapshot_id="POL-SNAP-V2",
+            revision=2,
+            rules=[allow_v2, _REVIEW_RULE, _REJECT_RULE],
+        )
+    )
+
+
+def make_snapshot_no_allow() -> PolicySnapshot:
+    """Build a snapshot with no allow rule, so an allow advisory hits the fallback."""
+    
+
+    return PolicySnapshot.from_dict(
+        _snapshot_dict(
+            snapshot_id=SNAPSHOT_ID_V1,
+            revision=1,
+            rules=[_REVIEW_RULE, _REJECT_RULE],
+        )
+    )
+
+
+def make_snapshot_with_reject_rule() -> PolicySnapshot:
+    """Build a snapshot whose allow rule is preceded by a mandatory reject floor."""
+    
+
+    return PolicySnapshot.from_dict(
+        _snapshot_dict(
+            snapshot_id=SNAPSHOT_ID_V1,
+            revision=1,
+            rules=[_BASE_ALLOW_RULE, _REJECT_RULE],
+        )
+    )
+
+
+@pytest.fixture()
+def snapshot_v1() -> PolicySnapshot:
+    """The default v1 policy snapshot (allow-low, review, reject-violate rules)."""
+    return make_snapshot()
+
+
+@pytest.fixture()
+def snapshot_v2() -> PolicySnapshot:
+    """The v2 policy snapshot (same rule ids, different reason text/id)."""
+    return make_snapshot_v2()
+
+
+@pytest.fixture()
+def snapshot_no_allow() -> PolicySnapshot:
+    """A v1 snapshot with no allow rule (allow advisory falls through to fallback)."""
+    return make_snapshot_no_allow()
+
+
+@pytest.fixture()
+def snapshot_with_reject_rule() -> PolicySnapshot:
+    """A v1 snapshot with an allow rule and a matching reject rule (floor check)."""
+    return make_snapshot_with_reject_rule()

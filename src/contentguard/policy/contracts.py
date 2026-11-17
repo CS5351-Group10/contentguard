@@ -553,6 +553,50 @@ def canonical_json(payload: Mapping[str, Any]) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
+def decision_payload_from_fields(
+    *,
+    case_id: str,
+    case_revision: int,
+    content_hash: str,
+    policy_snapshot_id: str,
+    policy_snapshot_digest: str,
+    advisory_verdict: Verdict | None,
+    advisory_severity: Severity | None,
+    advisory_model_id: str | None,
+    advisory_model_version: str | None,
+    analysis_failure_code: FailureCode | None,
+    outcome: Outcome,
+    reason_id: str,
+    requires_human_review: bool,
+    actor_ids: tuple[str, ...],
+) -> dict[str, Any]:
+    """Canonical decision identity tuple assembled from raw fields (QUA-001).
+
+    Kept in sync with :func:`decision_payload`; used by the engine on pre-construction
+    field values so ``decision_id`` is filled before the frozen DTO is built.
+    """
+    return {
+        "case_id": case_id,
+        "case_revision": case_revision,
+        "content_hash": content_hash,
+        "policy_snapshot_id": policy_snapshot_id,
+        "policy_snapshot_digest": policy_snapshot_digest,
+        "advisory_verdict": advisory_verdict.value if advisory_verdict is not None else None,
+        "advisory_severity": (
+            advisory_severity.value if advisory_severity is not None else None
+        ),
+        "advisory_model_id": advisory_model_id,
+        "advisory_model_version": advisory_model_version,
+        "analysis_failure_code": (
+            analysis_failure_code.value if analysis_failure_code is not None else None
+        ),
+        "outcome": outcome.value,
+        "reason_id": reason_id,
+        "requires_human_review": requires_human_review,
+        "actor_ids": sorted(actor_ids),
+    }
+
+
 def digest_of(payload: Mapping[str, Any]) -> str:
     """Return the sha256 hex digest of :func:`canonical_json` for ``payload``."""
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
@@ -597,6 +641,7 @@ __all__ = [
     "bind_decision_id",
     "canonical_json",
     "decision_payload",
+    "decision_payload_from_fields",
     "digest_of",
     "effective_severity",
     "is_frozen_dto",
