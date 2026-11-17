@@ -31,12 +31,12 @@ entries:
       scripts/check_ai_use_log.py, test/offline/test_pr_files_headers.py,
       docs/review-memo.md, docs/ai-use-log.yaml
     summary: >-
-      Developed and enhanced the Gate 3 requirements validator
-      for REQ-GOV-003. Added duplicate ID detection, ID/type
-      consistency checks, invariant safety-field validation,
-      improved schema error reporting, and failure exit handling.
-      Performed preliminary verification using temporary fixtures.
-      Session: ses_e1fa17e9dffeD1bxtEnItAbngB.
+      Fixed the gate 1/4/6 GitHub API 401 defect: pr_files._headers() no longer
+      sends an empty "Authorization: Bearer " header, changed_files() raises an
+      actionable RuntimeError on 401/URL errors, gates 1/4 got a per-step
+      GITHUB_TOKEN env, and the workflow gained a least-privilege permissions block
+      (contents: read, pull-requests: read). Added offline tests for the helper.
+      Addresses TD-1..TD-4; supports REQ-INV-005 enforcement.
     human_interventions: 2
     intervention_summary: >-
       Operator rejected job-level token hoisting (least privilege; per-step env
@@ -51,11 +51,11 @@ entries:
     session_transcript: transcripts/60914643-HAN-Mei-AI-002.md
     scope: "scripts/validate_requirements.py"
     summary: >-
-      Enhanced the requirements validator for REQ-GOV-003.
-      Added duplicate ID detection, ID/type consistency checks,
-      invariant safety-field checks, improved schema error reporting,
-      and failure exit handling. Schema Gate 3 passed for
-      31 requirements; temporary fixture tests passed 10/10.
+      Developed and enhanced the Gate 3 requirements validator
+      for REQ-GOV-003. Added duplicate ID detection, ID/type
+      consistency checks, invariant safety-field validation,
+      improved schema error reporting, and failure exit handling.
+      Performed preliminary verification using temporary fixtures.
       Session: ses_e1fa17e9dffeD1bxtEnItAbngB.
     human_interventions: 3
     intervention_summary: >-
@@ -66,7 +66,7 @@ entries:
       not a validator defect.
     pr: 11
 
-    - id: AI-006
+  - id: AI-006
     date: 2026-11-17
     agent: opencode
     model: Big Pickle
