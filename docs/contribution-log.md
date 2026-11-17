@@ -83,7 +83,16 @@ entry, so nothing below rewrites any recorded hours.
 
 | Member | Phase | Hours | What |
 |---|---|---|---|
-| — | — | — | — |
+| LIU Jianwei | ① | 12.5 | 11-14 proposal authoring 3.5h + 11-15 repo kickoff/governance 9.0h; anchors: PR #8 man-hours comment |
+| LIU Jianwei | ② | 3.5 | 11-16 man-hours protocol + RM-002 backfill + CONTRIBUTING guide; anchors: PR #8/#9/#10 comments |
+| LI Shiyi | ② | 5.0 | 11-16 architecture blueprint, ADR-001, module interface contracts; anchor: PR #15 body |
+| HUANG Hongwei | ② | 2.25 | 11-16 PR #8 re-review 2.0h + PR #30 review follow-up 0.25h; anchors: PR #8/#30 comments |
+| Buna DA | ③ | 0.5 | 11-17 #37 data-governance answers; anchor: PR #37 comment |
+
+> Aggregated by the PM on 2026-11-18 00:30 HKT from anchored, member-reported entries.
+> Not yet reported for phase ①/②: HAN Mei (no anchored entry), HUANG Hongwei phase ①,
+> LI Shiyi phase ①, Buna DA phase ①/② (onboarding 11-17). First-batch deadline:
+> 2026-11-18 18:00 HKT (issue #28). No end-of-phase estimates are inserted here.
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
