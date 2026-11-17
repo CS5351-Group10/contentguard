@@ -29,8 +29,11 @@
    Docs-only PR: **no test-plan marker needed** — gate 1 passes docs-only changes
    automatically; gates 2 (lint/type), 3 (schema) and 5 (regression) run as usual.
 5. PM reviews (the reviewer's memo lands in `docs/review-memo.md` with the next RM
-   number), approves, merges, and logs ~0.5 h in `docs/contribution-log.md`.
+   number), approves, and logs ~0.5 h in `docs/contribution-log.md`; once
+   `blocking-gates` is green and the verdict is recorded, **you (the author) merge**
+   with squash.
 
-Final names + student IDs + contributions are transcribed into `Report.md` §2 at
-submission; man-hours evidence lives in `docs/contribution-log.md`. No emails in
+Final names + student IDs are transcribed into `Report.md` §1 (roster), and the
+relative-contribution table into §2, at submission; man-hours evidence lives in
+`docs/contribution-log.md`. No emails in
 this directory — the submitted zip carries no PII beyond what D6 requires.
