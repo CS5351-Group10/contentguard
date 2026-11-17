@@ -45,6 +45,7 @@ from contentguard.policy.contracts import (
 from contentguard.policy.engine import PolicyEngine
 from contentguard.policy.errors import (
     ForbiddenAuthorityError,
+    InvalidReviewError,
     StaleReviewError,
     UnauthorizedReviewError,
 )
@@ -758,11 +759,13 @@ def _held_reviewable(store: SqliteStore) -> tuple[PolicySnapshot, CaseSnapshot]:
     return snapshot, case
 
 
-@pytest.mark.parametrize("stale_field", ["case_id", "revision", "content_hash"])
+@pytest.mark.parametrize(
+    "stale_field", ["case_id", "revision", "content_hash", "snapshot"]
+)
 def test_stale_review_cannot_finalize(store: SqliteStore, stale_field: str) -> None:
     """Verifies REQ-INV-003/004 (negative): a stale review (wrong case id / revision /
-    content hash) is rejected with ``StaleReviewError``; through the commit path it
-    returns FAILED with no state change."""
+    content hash / snapshot id+digest) is rejected with ``StaleReviewError``; through the
+    commit path it returns CONFLICT with no state change."""
     snapshot, case = _held_reviewable(store)
     engine = PolicyEngine(snapshot)
     if stale_field == "case_id":
@@ -773,9 +776,15 @@ def test_stale_review_cannot_finalize(store: SqliteStore, stale_field: str) -> N
         stale = _review(
             outcome=Outcome.APPROVE, case=case, snapshot=snapshot, revision=99
         )
-    else:
+    elif stale_field == "content_hash":
         stale = _review(
             outcome=Outcome.APPROVE, case=case, snapshot=snapshot, content_hash="c" * 64
+        )
+    else:
+        # A review built against the newer v2 snapshot carries a different snapshot
+        # id/digest than the case (pinned to v1) → stale.
+        stale = _review(
+            outcome=Outcome.APPROVE, case=case, snapshot=make_snapshot_v2()
         )
     with pytest.raises(StaleReviewError):
         engine.evaluate(case=case, content_text="benign text", review=stale)
@@ -789,10 +798,73 @@ def test_stale_review_cannot_finalize(store: SqliteStore, stale_field: str) -> N
         expected_revision=case.revision,
         replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-stale"),
     )
-    assert result.status is CommitStatus.FAILED
+    assert result.status is CommitStatus.CONFLICT
     assert _audit_count(store) == 0
     _rev, status = _case_row(store, case.case_id)
     assert status == CaseStatus.HELD.value
+
+
+def test_review_on_non_reviewable_case_conflicts(store: SqliteStore) -> None:
+    """Verifies REQ-INV-003/004 (negative): a review of an ANALYZING (non-reviewable) case
+    raises ``InvalidReviewError``; through the commit path it returns CONFLICT with no
+    audit row and no state change."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=snapshot,
+        status=CaseStatus.ANALYZING,
+    )
+    _seed_case(store, case)
+    engine = PolicyEngine(snapshot)
+    review = _review(outcome=Outcome.APPROVE, case=case, snapshot=snapshot)
+
+    with pytest.raises(InvalidReviewError):
+        engine.evaluate(case=case, content_text="benign text", review=review)
+
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=review,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-invalid"),
+    )
+    assert result.status is CommitStatus.CONFLICT
+    assert _audit_count(store) == 0
+    revision, status = _case_row(store, case.case_id)
+    assert revision == case.revision
+    assert status == CaseStatus.ANALYZING.value
+
+
+def test_held_case_without_review_conflicts(store: SqliteStore) -> None:
+    """Verifies REQ-INV-003/004 (negative): a HELD case with no review returns CONFLICT; the
+    revision does not advance and no new queue row is added."""
+    snapshot = make_snapshot()
+    case = make_case(
+        advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM),
+        snapshot=snapshot,
+        status=CaseStatus.HELD,
+    )
+    _seed_case(store, case)
+    assert _queue_rows(store) == []
+    engine = PolicyEngine(snapshot)
+
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        review=None,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="submitter-1", idempotency_key="idem-held"),
+    )
+    assert result.status is CommitStatus.CONFLICT
+    revision, status = _case_row(store, case.case_id)
+    assert revision == case.revision
+    assert status == CaseStatus.HELD.value
+    assert _queue_rows(store) == []
+    assert _audit_count(store) == 0
 
 
 @pytest.mark.parametrize(
@@ -981,3 +1053,191 @@ def test_stale_review_replay_returns_conflict_not_exception(
     )
     assert result.status is CommitStatus.CONFLICT
     assert _audit_count(store) == 1
+
+
+# --- P1/P2 coverage: contract consistency, authority binding/validation, failures ----
+
+from contentguard.policy.enforcement import EnforcementAuthority
+
+
+def _make_case_snapshot(**overrides: object) -> CaseSnapshot:
+    """Build a CaseSnapshot pinned to the v1 snapshot, applying field overrides."""
+    snapshot = make_snapshot()
+    fields: dict[str, object] = {
+        "case_id": "case-1",
+        "revision": 1,
+        "status": CaseStatus.ANALYZING,
+        "content_hash": CONTENT_HASH,
+        "policy_snapshot_id": snapshot.snapshot_id,
+        "policy_snapshot_digest": snapshot.digest,
+    }
+    fields.update(overrides)
+    return CaseSnapshot(**fields)  # type: ignore[arg-type]
+
+
+def test_case_snapshot_advisory_consistency() -> None:
+    """Verifies REQ-INV-004: ``CaseSnapshot`` enforces its advisory cross-field rule.
+
+    A verdict without severity/model/version, a verdict plus a failure code, or a failure
+    code plus advisory fields is rejected at construction, so ``Severity.RANK[None]`` is
+    unreachable."""
+    # (a) a verdict with no severity/model/version.
+    with pytest.raises(ValueError):
+        _make_case_snapshot(advisory_verdict=Verdict.ALLOW)
+
+    # (b) a verdict together with a failure code.
+    with pytest.raises(ValueError):
+        _make_case_snapshot(
+            advisory_verdict=Verdict.ALLOW,
+            advisory_severity=Severity.LOW,
+            advisory_model_id="model-x",
+            advisory_model_version="2026-11",
+            analysis_failure_code=FailureCode.TIMEOUT,
+        )
+
+    # (c) a failure code together with advisory fields.
+    with pytest.raises(ValueError):
+        _make_case_snapshot(
+            advisory_severity=Severity.LOW,
+            advisory_model_id="model-x",
+            advisory_model_version="2026-11",
+            analysis_failure_code=FailureCode.TIMEOUT,
+        )
+
+
+def test_reviewed_decision_without_reviewer_actor_rejected(store: SqliteStore) -> None:
+    """Verifies REQ-INV-004 (negative): a RULE-HUMAN-REVIEW audit record without a
+    ``reviewer:<id>`` actor is rejected — directly by ``from_mapping`` and through the
+    commit path (FAILED, no state/audit change)."""
+    # Part A: from_mapping rejects a human-review record lacking a reviewer actor.
+    mapping = _valid_audit_mapping()
+    mapping["policy_reason_id"] = "RULE-HUMAN-REVIEW"
+    mapping["actor_ids"] = ("policy", "ai:model-x")  # no reviewer:<id>
+    with pytest.raises(AuditValidationError):
+        AuditRecord.from_mapping(mapping)
+
+    # Part B: the same rejection through EnforcementAuthority.commit -> FAILED + rollback.
+    case = make_case(advisory=_advisory(verdict=Verdict.ALLOW, severity=Severity.LOW))
+    _seed_case(store, case)
+    engine = PolicyEngine(make_snapshot())
+    decision = engine.evaluate(case=case, content_text="benign text")
+
+    def bad_factory(_d: object) -> dict[str, object]:
+        return {
+            **_valid_audit_mapping(),
+            "decision_id": decision.decision_id,
+            "case_id": decision.case_id,
+            "case_revision": decision.case_revision,
+            "content_hash": decision.content_hash,
+            "policy_snapshot_id": decision.policy_snapshot_id,
+            "policy_snapshot_digest": decision.policy_snapshot_digest,
+            "policy_reason_id": "RULE-HUMAN-REVIEW",
+            "actor_ids": ("policy", "ai:model-x"),
+        }
+
+    authority = EnforcementAuthority(store, audit_record_factory=bad_factory)
+    result = authority.commit(
+        decision,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="submitter-1", idempotency_key="idem-no-reviewer"),
+    )
+    assert result.status is CommitStatus.FAILED
+    revision, status = _case_row(store, case.case_id)
+    assert revision == case.revision
+    assert status == case.status.value
+    assert _queue_rows(store) == []
+    assert _audit_count(store) == 0
+
+
+def test_policy_error_reports_failure_without_partial_state(store: SqliteStore) -> None:
+    """Verifies REQ-INV-004 / R-4: a controlled policy error (no advisory evidence and no
+    typed failure) returns FAILED and leaves case, queue and audit unchanged."""
+    case = make_case(advisory=None, status=CaseStatus.ANALYZING)
+    _seed_case(store, case)
+    engine = PolicyEngine(make_snapshot())
+    result = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=None,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="submitter-1", idempotency_key="idem-policy-err"),
+    )
+    assert result.status is CommitStatus.FAILED
+    revision, status = _case_row(store, case.case_id)
+    assert revision == case.revision
+    assert status == CaseStatus.ANALYZING.value
+    assert _queue_rows(store) == []
+    assert _audit_count(store) == 0
+
+
+@pytest.mark.parametrize(
+    "column,mutated_value",
+    [
+        ("content_hash", "c" * 64),
+        ("revision", 99),
+        ("policy_snapshot_id", "POL-SNAP-OTHER"),
+        ("policy_snapshot_digest", "f" * 64),
+    ],
+)
+def test_authority_commit_binds_stored_row(
+    store: SqliteStore, column: str, mutated_value: object
+) -> None:
+    """Verifies REQ-INV-004 (negative): after a valid decision is minted, mutating a single
+    stored case-row binding column (content hash / revision / snapshot id / snapshot
+    digest) makes a direct ``EnforcementAuthority.commit`` a CONFLICT with no case
+    revision/status change and no audit row — the authority re-binds the decision to the
+    row."""
+    case = make_case(advisory=_advisory(verdict=Verdict.ALLOW, severity=Severity.LOW))
+    _seed_case(store, case)
+    engine = PolicyEngine(make_snapshot())
+    decision = engine.evaluate(case=case, content_text="benign text")
+
+    with store.transaction() as conn:
+        conn.execute(
+            f"UPDATE cases SET {column} = ? WHERE case_id = ?",
+            (mutated_value, case.case_id),
+        )
+    # Snapshot the row state after the deliberate mutation; the CONFLICT commit must not
+    # change it further.
+    mutated_revision, mutated_status = _case_row(store, case.case_id)
+
+    authority = EnforcementAuthority(store)
+    result = authority.commit(
+        decision,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="submitter-1", idempotency_key="idem-row-bind"),
+    )
+    assert result.status is CommitStatus.CONFLICT
+    revision, status = _case_row(store, case.case_id)
+    assert revision == mutated_revision
+    assert status == mutated_status
+    assert _audit_count(store) == 0
+
+
+def test_audit_validation_failure_through_commit(store: SqliteStore) -> None:
+    """Verifies REQ-INV-004 (negative): an audit record missing a required field makes the
+    whole commit FAILED, rolling back case/queue/audit (no partial state)."""
+    case = make_case(advisory=_advisory(verdict=Verdict.ALLOW, severity=Severity.LOW))
+    _seed_case(store, case)
+    engine = PolicyEngine(make_snapshot())
+    decision = engine.evaluate(case=case, content_text="benign text")
+
+    def missing_field_factory(_d: object) -> dict[str, object]:
+        mapping = _valid_audit_mapping()
+        mapping["decision_id"] = decision.decision_id
+        del mapping["decided_at"]  # drop a required field
+        return mapping
+
+    authority = EnforcementAuthority(store, audit_record_factory=missing_field_factory)
+    result = authority.commit(
+        decision,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="submitter-1", idempotency_key="idem-audit-schema"),
+    )
+    assert result.status is CommitStatus.FAILED
+    revision, status = _case_row(store, case.case_id)
+    assert revision == case.revision
+    assert status == case.status.value
+    assert _queue_rows(store) == []
+    assert _audit_count(store) == 0

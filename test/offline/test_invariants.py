@@ -196,8 +196,21 @@ def test_forbidden_call_structural(tmp_path: Path) -> None:
     violations = find_enforcement_violations(tmp_path)
     assert violations, "the checker failed to flag the deliberate violation fixture"
     joined = "\n".join(violations)
-    assert _ENFORCEMENT_MODULE in joined
-    assert _AUTHORITY_SYMBOL in joined
+
+    # Each of the seven fixture forms must be independently detected.
+    required_forms = {
+        "module import": f"import {_ENFORCEMENT_MODULE}",
+        "aliased module / attribute access": f".{_AUTHORITY_SYMBOL}",
+        "from policy import enforcement": f"from {_POLICY_MODULE} import enforcement",
+        "from enforcement import X": f"from {_ENFORCEMENT_MODULE} import",
+        "re-export EnforcementAuthority": (
+            f"from {_POLICY_MODULE} import {_AUTHORITY_SYMBOL}"
+        ),
+        "literal __import__": f"__import__('{_ENFORCEMENT_MODULE}')",
+        "literal import_module": f"import_module('{_ENFORCEMENT_MODULE}')",
+    }
+    missing = [name for name, marker in required_forms.items() if marker not in joined]
+    assert not missing, f"checker missed fixture forms: {missing}\nviolations:\n{joined}"
 
 
 def _imported_policy_modules(file_rel: Path, tree: ast.AST) -> set[str]:

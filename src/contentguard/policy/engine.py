@@ -172,7 +172,7 @@ class PolicyEngine:
             advisory_model_id=model_id,
             advisory_model_version=model_version,
             analysis_failure_code=None,
-            requires_human_review=False,
+            requires_human_review=outcome in (Outcome.HOLD, Outcome.ESCALATE),
             actor_ids=_actor_ids(model_id=model_id),
             decided_at=decided_at,
         )
@@ -332,14 +332,14 @@ class PolicyEngine:
             return _conflict_result(case, "case revision/snapshot/hash mismatch")
 
         if candidate is None:
-            if isinstance(candidate_error, PolicyConflictError):
+            if isinstance(
+                candidate_error,
+                (PolicyConflictError, InvalidReviewError, StaleReviewError),
+            ):
                 return _conflict_result(
                     case, f"cannot re-decide this case: {candidate_error}"
                 )
-            if isinstance(
-                candidate_error,
-                (InvalidReviewError, StaleReviewError, UnauthorizedReviewError),
-            ):
+            if isinstance(candidate_error, UnauthorizedReviewError):
                 return _failed_result(case, f"review rejected: {candidate_error}")
             return _failed_result(case, f"policy error: {candidate_error}")
 

@@ -73,6 +73,20 @@ def test_fallback_id_when_no_rule_matches(snapshot_no_allow: PolicySnapshot) -> 
     assert decision.outcome == Outcome.HOLD
     assert decision.reason_id == "FB-DEFAULT-HOLD"
     assert decision.reason_text == _reason_text_by_fallback(snapshot_no_allow)
+    assert decision.requires_human_review is True
+
+
+def test_rule_hold_requires_human_review(snapshot_v1: PolicySnapshot) -> None:
+    """Verifies REQ-FUN-004: a HOLD resolved by a matched rule (RULE-REVIEW) also sets
+    ``requires_human_review=True`` — every non-final normal-path outcome requires review."""
+    engine = PolicyEngine(snapshot_v1)
+    decision = engine.evaluate(
+        case=make_case(advisory=_advisory(verdict=Verdict.REVIEW, severity=Severity.MEDIUM)),
+        content_text="benign",
+    )
+    assert decision.outcome == Outcome.HOLD
+    assert decision.reason_id == "RULE-REVIEW"
+    assert decision.requires_human_review is True
 
 
 def test_decision_carries_pinned_snapshot_ids(snapshot_v1: PolicySnapshot) -> None:
