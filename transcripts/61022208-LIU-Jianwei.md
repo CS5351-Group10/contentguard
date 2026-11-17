@@ -18,7 +18,8 @@
   1 context compaction
 - **Outcome:** S1 code branch `s1-policy-kernel-audit`, five checkpoint commits
   `42a30b2` (CP1) → `a6f816e` (CP2) → `e25b46c` (CP3) → `f2ea0fb` (CP4) → `af4ec2e` (CP5),
-  plus `bb2da62` (AI-007) and `49c58f5` (stale-review replay fix). CP6 verification was
+  plus `bb2da62` (AI-007), `49c58f5` (stale-review replay fix) and `f689815`
+  (state-conflict status alignment). CP6 verification was
   green at 95 tests; the post-review fix added two stale-replay tests. **97 offline tests
   pass**, ruff clean, both mypy checks clean, gate 3 PASS. No docs/transcript/ai-use-log
   commit by the agent.
@@ -36,6 +37,7 @@
 | 7 | CP5 | **Require a detectable structural violation** | Required the AST checker to cover module imports, `from contentguard.policy import enforcement`, attribute accesses, literal `importlib`/`__import__` strings and the re-export bypass; the fixture must make the test fail | INV-001's fit criterion requires a negative fixture that demonstrably fails the structural check, not just a passing scan. |
 | 8 | CP6 | **Accept only after independent verification** | Re-ran `pytest`, ruff, both mypy commands, gate 3 and `git diff --check`; accepted only after 95 passed and all checks clean | The agent's own report is not evidence; the PM/verifier reruns the commands. |
 | 9 | Post-CP6 review | **Require a controlled replay error** | Required the replay retry block to catch the review-error family (`InvalidReviewError`, `StaleReviewError`, `UnauthorizedReviewError`) and added parametrized stale-review replay tests | These errors subclass `PolicyError`, not `PolicyKernelError`; without the fix a stale/unauthorized review replay could propagate instead of returning a controlled `CONFLICT`. |
+| 10 | Post-CP6 review | **Align conflict status** | Required `PolicyConflictError` (final state / held without review) to return `CommitResult.CONFLICT`, not `FAILED`; updated the final-state test | `FAILED` is for definitive persistence/validation failure; state conflicts are 409-class per the interface contract. |
 
 **Process note (honest):** the first CP0 attempt hung before creating a session and was
 terminated after ~6 minutes; a shorter retry (same plan) succeeded. The session later
@@ -197,6 +199,17 @@ S2-owned intake/concurrency boundary.
 **Agent:** added the review-error family to the retry catch; added two parametrized
 `test_stale_review_replay_returns_conflict_not_exception` cases; 97 passed; ruff and both
 mypy checks clean. The fix is committed as `49c58f5`.
+
+### Human — post-CP6 semantic consistency
+
+> A `PolicyConflictError` from the final-state / held-without-review checks is a state
+> conflict, but `evaluate_and_commit` mapped it to `CommitResult.FAILED`. Map it to
+> `CommitResult.CONFLICT`; keep persistence/validation failures as `FAILED`, and update
+> the final-state test.
+
+**Agent:** changed the `candidate_error` branch for `PolicyConflictError` to
+`_conflict_result`; `test_final_case_cannot_be_rewritten` now asserts `CONFLICT`. 97
+passed; ruff and both mypy checks clean. The fix is committed as `f689815`.
 
 ## Final verification (independent, after the session)
 
