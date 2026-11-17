@@ -37,7 +37,8 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 > `docs/contribution-log.md`; `pending` = no anchored phase-①/② report yet. Weights are
 > computed only after all first-batch entries land (deadline 2026-11-18 18:00 HKT,
 > issue #28). LIU's phase ① includes the 11-14 proposal-authoring backfill (3.5h) plus
-> the 11-15 kickoff (9.0h); see the Man-hours log for anchors.
+> the 11-15 kickoff (9.0h). Known phase-③ entries (HUANG #33, Buna #37) are included;
+> phase ③ is still in progress. See the Man-hours log for anchors.
 
 ## 3. Software engineering process and how we optimized it
 
