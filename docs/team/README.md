@@ -33,6 +33,7 @@
    `blocking-gates` is green and the verdict is recorded, **you (the author) merge**
    with squash.
 
-Final names + student IDs + contributions are transcribed into `Report.md` §2 at
-submission; man-hours evidence lives in `docs/contribution-log.md`. No emails in
+Final names + student IDs are transcribed into `Report.md` §1 (roster), and the
+relative-contribution table into §2, at submission; man-hours evidence lives in
+`docs/contribution-log.md`. No emails in
 this directory — the submitted zip carries no PII beyond what D6 requires.
