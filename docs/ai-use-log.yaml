@@ -62,18 +62,21 @@ entries:
       mandatory-REJECT floor, high-severity escalation, human-review transition with
       reviewer attribution, atomic case/queue/audit commit in one SQLite transaction,
       exactly one audit record per committed decision, replay-safe commit and a
-      test-side AST boundary checker. 89 new offline tests (97 total); ruff, both mypy
+      test-side AST boundary checker. 101 new offline tests (109 total); ruff, both mypy
       commands and gate 3 clean. Step 7 review path covers normal holds, high-severity
       and typed-failure cases; pinned-snapshot review/replay after activation is tested;
       stale-review replay returns a controlled CONFLICT; final-state/held-without-review
-      state conflicts return CONFLICT rather than FAILED.
-    human_interventions: 10
+      state conflicts return CONFLICT rather than FAILED; normal HOLD/ESCALATE decisions
+      set requires_human_review=True.
+    human_interventions: 11
     intervention_summary: >-
       Delegated plan approval with scope correction; rejected a typing shortcut; detected
       and reverted an unauthorized docs/ai-use-log write; rejected a forgeable string
       authority token; required pinned-snapshot replay; required the full review path
       (normal hold too); required the structural checker to prove a failing fixture;
       accepted only after independent full verification; required controlled
-      stale-review replay errors; required state-conflict status alignment.
+      stale-review replay errors; required state-conflict status alignment; required the
+      P1 review semantics/coverage fixes (requires_human_review, Invalid/Stale review
+      CONFLICT mapping, missing negative tests).
     pr: 41
 

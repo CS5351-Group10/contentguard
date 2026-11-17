@@ -13,16 +13,16 @@
 - **Agent:** OpenCode 1.18.29 · **Model:** `cityu-deepseek/CS5351/DeepSeek-V4-Flash`
 - **Session:** `ses_e155eb529ffeGWBMBggUVvqRPs`
 - **Working directory:** `<repo>` (`7.Semester A/CS5351 Software Engineering/contentguard`)
-- **Started / ended:** 2026-11-18 01:50:01 → 03:27:03 (HKT)
-- **Tokens:** 475,160 in / 131,365 out · **Messages:** 326 assistant, 326 tool calls,
+- **Started / ended:** 2026-11-18 01:50:01 → 03:40:59 (HKT)
+- **Tokens:** 683,495 in / 153,532 out · **Messages:** 383 assistant, 384 tool calls,
   1 context compaction
 - **Outcome:** S1 code branch `s1-policy-kernel-audit`, five checkpoint commits
   `42a30b2` (CP1) → `a6f816e` (CP2) → `e25b46c` (CP3) → `f2ea0fb` (CP4) → `af4ec2e` (CP5),
-  plus `bb2da62` (AI-007), `49c58f5` (stale-review replay fix) and `f689815`
-  (state-conflict status alignment). CP6 verification was
-  green at 95 tests; the post-review fix added two stale-replay tests. **97 offline tests
-  pass**, ruff clean, both mypy checks clean, gate 3 PASS. No docs/transcript/ai-use-log
-  commit by the agent.
+  plus `bb2da62` (AI-007), `49c58f5` (stale-review replay fix), `f689815`
+  (state-conflict status alignment) and `afe390b` (review semantics + negative-test
+  gaps). CP6 verification was green at 95 tests; the post-review fixes added 14 tests
+  (stale replay + P1 coverage). **109 offline tests pass**, ruff clean, both mypy checks
+  clean, gate 3 PASS. No docs/transcript/ai-use-log commit by the agent.
 
 ## Annotated interventions
 
@@ -38,6 +38,7 @@
 | 8 | CP6 | **Accept only after independent verification** | Re-ran `pytest`, ruff, both mypy commands, gate 3 and `git diff --check`; accepted only after 95 passed and all checks clean | The agent's own report is not evidence; the PM/verifier reruns the commands. |
 | 9 | Post-CP6 review | **Require a controlled replay error** | Required the replay retry block to catch the review-error family (`InvalidReviewError`, `StaleReviewError`, `UnauthorizedReviewError`) and added parametrized stale-review replay tests | These errors subclass `PolicyError`, not `PolicyKernelError`; without the fix a stale/unauthorized review replay could propagate instead of returning a controlled `CONFLICT`. |
 | 10 | Post-CP6 review | **Align conflict status** | Required `PolicyConflictError` (final state / held without review) to return `CommitResult.CONFLICT`, not `FAILED`; updated the final-state test | `FAILED` is for definitive persistence/validation failure; state conflicts are 409-class per the interface contract. |
+| 11 | Post-CP6 review | **Close P1 semantic/coverage gaps** | Required normal HOLD/ESCALATE decisions to set `requires_human_review=True`; mapped `InvalidReviewError`/`StaleReviewError` to `CONFLICT`; added the missing advisory cross-field, reviewer-actor, policy-error, authority-binding, audit-validation and per-form structural tests | The independent review found P1 untested guards and a metadata bug: a normal hold could be enqueued while claiming no human review was required; stale reviews were indistinguishable from persistence failures; several negative branches were asserted only in prose. |
 
 **Process note (honest):** the first CP0 attempt hung before creating a session and was
 terminated after ~6 minutes; a shorter retry (same plan) succeeded. The session later
@@ -211,10 +212,25 @@ mypy checks clean. The fix is committed as `49c58f5`.
 `_conflict_result`; `test_final_case_cannot_be_rewritten` now asserts `CONFLICT`. 97
 passed; ruff and both mypy checks clean. The fix is committed as `f689815`.
 
+### Human — post-CP6 P1 review fixes
+
+> The independent review found P1 gaps: normal-path HOLD/ESCALATE decisions claimed
+> `requires_human_review=False`; stale/invalid reviews were returned as `FAILED` rather
+> than `CONFLICT`; and several planned negative tests were missing. Fix the metadata and
+> status mapping, then add the missing advisory cross-field, reviewer-actor, policy-error,
+> authority-binding, audit-validation, stale-snapshot and per-form structural tests.
+
+**Agent:** set `requires_human_review=True` for normal HOLD/ESCALATE; mapped
+`InvalidReviewError`/`StaleReviewError` to `CONFLICT` while keeping
+`UnauthorizedReviewError` `FAILED`; added the missing negative tests (including direct
+`EnforcementAuthority.commit` binding over content hash/revision/snapshot id/digest and
+audit-validation rollback). 109 passed; ruff and both mypy checks clean. The fix is
+committed as `afe390b`.
+
 ## Final verification (independent, after the session)
 
 ```
-.venv/Scripts/python.exe -m pytest test/offline -v   → 97 passed
+.venv/Scripts/python.exe -m pytest test/offline -v   → 109 passed
 .venv/Scripts/ruff.exe check src scripts test        → All checks passed!
 .venv/Scripts/python.exe -m mypy --ignore-missing-imports scripts test     → Success: 13 files
 .venv/Scripts/python.exe -m mypy --ignore-missing-imports src scripts test → Success: 29 files
