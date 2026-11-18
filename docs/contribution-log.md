@@ -96,7 +96,7 @@ entry, so nothing below rewrites any recorded hours.
 > anchored phase ①/② entry), HUANG Hongwei phase ①, LI Shiyi phase ①, Buna DA phases
 > ①/②/③ (onboarding 11-17; no anchored entry). First-batch deadline: 2026-11-18 18:00
 > HKT (issue #28). No end-of-phase estimates are inserted here.
-> Aggregated by the PM on 2026-11-19 02:30 HKT: LIU Jianwei phase-③ backfill row (11/17 2.5h + 11/18 8.5h = 11.0h) appended per rule 6 (≤48h, anchored, member-authorized net-hours estimate; spans from GitHub activity timestamps; supervised S1 session 01:50–03:40 per `transcripts/61022208-LIU-Jianwei.md`). First-batch deadline was extended to 2026-11-19 12:00 HKT per issue #28. Still not reported: HAN Mei (phase ①/②), Buna DA (phase ①/②), LI Shiyi phase ①, HUANG Hongwei phase ①.
+> Aggregated by the PM on 2026-11-19 02:30 HKT: LIU Jianwei phase-③ backfill row (11/17 2.5h + 11/18 8.5h = 11.0h) appended per rule 6 (≤48h, anchored, member-authorized net-hours estimate; spans from GitHub activity timestamps; supervised S1 session 01:50–03:40 per `transcripts/61022208-LIU-Jianwei.md`). First-batch deadline was extended to 2026-11-19 12:00 HKT per issue #28. Still not reported: HAN Mei (phase ①/②), Buna DA (phases ①/②/③), LI Shiyi phase ①, HUANG Hongwei phase ①.
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
