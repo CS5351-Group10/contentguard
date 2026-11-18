@@ -39,6 +39,15 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 The team treated the repository, not the chat log, as the source of truth. The phase plan was agreed at kickoff (① kickoff on 11/15, ② planning and foundation on 11/16, ③ build sessions on 11/17–20, ④ refinement and evaluation on 11/20–21 with the evidence lock at 11/21 23:59, ⑤ final sprint on 11/22–24, ⑥ delivery and presentation on 11/25–30) and recorded in `docs/contribution-log.md`. The D1–D9 artifacts, the six blocking gates and the review-memo ledger were treated as the operating system of the project rather than as documentation produced after the fact.
 
+| Phase | Dates | Focus | Current evidence |
+|---|---|---|---|
+| ① Kickoff | 11/15 | topic vote, roles, repository, branch protection, AI-use log | repository transferred; protection verified; AI-001 |
+| ② Planning and foundation | 11/16 | requirements baseline, ADR/blueprint, governance drafts, schema gate | #11 registry; ADR-001 (#15); bug/debt registers (#17) |
+| ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 in PR #41 (pending merge); gate-2 work in #45 (in review) |
+| ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | S4/S5 harness and benchmark planned (TD-1) |
+| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report draft #44; Huang + PM S1 transcripts complete |
+| ⑥ Deliver and present | 11/25–30 | zip + video, slides to TA, presentation | pending |
+
 Three constraints shaped the work:
 
 1. **The requirement registry is the scope authority.** Work that is not traceable to a registry ID is either a governance artifact or out of scope; the registry itself is validated in CI (gate 3).
@@ -115,6 +124,14 @@ The full S5 "architecture revision after a measured defect" event is still plann
 
 The registry moved from a scaffold with eight traceable IDs to a 31-requirement v1.0 baseline in PR #11. The change was not a one-line edit: it added the schema, the validator, 12 collected validator tests, a 31-row trace matrix and the roster card for the requirements owner. The smoke test made the drift visible — BUG-002 records the exact failure, 23 registry IDs absent from the matrix — and the fix kept the coverage assertion as a permanent check. During the same review, REQ-GOV-003's fit criterion was rewritten from a narrow "unchanged gate 3 validator accepts" statement to a broader validation list (duplicate IDs, missing fields, lifecycle statuses, invariant violations); the PR body and tests were reviewed against the new wording rather than the old one.
 
+| Change | Downstream artifact | Control | Evidence |
+|---|---|---|---|
+| Registry expanded from 8 to 31 IDs | schema, validator tests, 31-row trace matrix | gate 3 + smoke coverage assertion | #11; BUG-002 |
+| REQ-GOV-003 fit criterion rewritten during review | validator tests, PR body | review memo + gate 1 plan | #11 review 2026-11-17T09:09Z |
+| ADR-001 context values provisional | blueprint, evaluation logbook, S3 test plan | explicit "provisional/not measured" labels | ADR-001; #43 |
+| Corpus maintenance proposal (#37) | fixed evaluation set, INV-5 evidence | ADR addendum + separate execution plan | #37; ADR PR #46 (in review) |
+| Prompt v1.0 regeneration (#45) | analysis prompt contract | gate 4 (warn-only) + review | PR #45 (in review) |
+
 Volatility is therefore not treated as a failure by itself. The quality question is whether each change carries its downstream artifacts. The evidence shows both a positive and a negative example: #11 eventually carried the registry, schema, validator tests and matrix together, while BUG-002 is the recorded cost of the period before that alignment. The trace matrix still contains 23 `TBD` markers across S1–S5, and the project reports them as planned rather than as passing evidence.
 
 ### 4.2 Defects and review findings
@@ -168,6 +185,15 @@ Architecture decisions also move with requirements. ADR-001's advisory/authorita
 ### 5.2 Requirements ↔ tests
 
 The test suite carries requirement IDs in docstrings, and gate 3 validates the registry the tests target. The S1 branch's offline suite directly cites eight REQ IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001); the remaining requirements are mapped in the trace matrix to planned or later-stage evidence rather than being claimed as covered by tests that do not exist yet. The #24 plan and its 12 collected validator tests are the clearest example of tests-before-code: the test file was required before the PR could pass gate 1, and the empty-file incident in #11 showed that the process needs a collection-count check as well as a marker (issue #38).
+
+| Layer | Evidence | Status |
+|---|---|---|
+| Registry | 31 requirements | merged in #11 |
+| Trace matrix | 31 rows; 23 `TBD` markers across S1–S5 | merged; planned cells are not passing evidence |
+| Direct REQ IDs cited in the offline suite | 8 IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001) | S1 branch + #11 |
+| Validator tests | 12 collected | merged in #11 |
+| S1 tests | 109 collected | open PR #41 |
+| Full offline suite | 121 passed on `b410daf` | S1 branch after #11 merge |
 
 The S1 branch adds 109 tests across five modules plus shared fixtures. Their names are deliberately requirement-shaped: `test_enforcement_only_from_policy`, `test_high_severity_always_escalates`, `test_one_record_per_decision`, `test_audit_write_failure_rolls_back`, `test_replay_one_audit_record`, `test_rule_or_fallback_id`, and the structural `test_forbidden_call_structural`. The plan's ten named cases are present, with additional negative and rollback coverage. The tests are not yet merged; they are evidence in PR #41, not on `main`.
 
