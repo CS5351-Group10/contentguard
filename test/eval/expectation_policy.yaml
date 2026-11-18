@@ -1,0 +1,84 @@
+# Expectation policy for the fixed evaluation corpus (gate 4 replay).
+#
+# HUMAN-AUTHORED POLICY — not generated, not model-derived. It maps the corpus's NATIVE
+# labels (which the corpus deliberately keeps unmapped; see `test/eval/README.md`
+# §Label semantics) onto the dispositions gate 4 scores against:
+#
+#   expected_verdict ∈ {allow, block, escalate}
+#   expected_severity ∈ {normal, high}
+#
+# `scripts/eval_runner.py` derives `expected_verdict` / `expected_severity` / `slice` from these
+# rules and echoes them per row, so a failing row can be argued with from the gate log. The
+# corpus file is never rewritten with derived fields.
+#
+# Matching contract: rules are evaluated **in order, first match wins** — the broad Jigsaw rules
+# would otherwise overlap (a `severe_toxic` row is also `toxic`). A row that matches NO rule is a
+# hard failure of the gate; uncovered data is never skipped silently. The runner echoes the
+# matched rule id per row so the derivation is auditable. `slice` is the corpus's own
+# `selection_stratum`, unchanged.
+#
+# Provenance of the label meanings (do not edit without re-reading them):
+#   - Jigsaw: six independent binary labels. The corpus README defines the high-risk reporting
+#     slice as `severe_toxic OR threat OR identity_hate`.
+#   - COLD test split: `fine-grained-label` 0 = safe (other-non-offensive), 1 = attack
+#     individual, 2 = attack group, 3 = safe (anti-bias); binary `label` = 1 iff fine-grained
+#     is 1 or 2.
+
+version: 1
+match: first_match
+
+# Policy decisions worth arguing with (kept next to the rules on purpose):
+#   * Jigsaw `identity_hate` is treated as HIGH severity, not merely as "offensive". The corpus
+#     README already groups it with the high-risk slice, and a hate-speech auto-allow is the
+#     failure the zero-escape threshold exists to prevent.
+#   * COLD `fine-grained-label = 2` (attack group) is HIGH, `= 1` (attack individual) is normal.
+#     Group-targeted abuse is the identity-bias risk this set was built to measure; if the
+#     testing owner prefers a flatter mapping, change this file — not the corpus.
+rules:
+  - id: jigsaw-high-risk
+    when:
+      label_scheme: jigsaw-six-independent-binary-v1
+      any_of:
+        - {severe_toxic: 1}
+        - {threat: 1}
+        - {identity_hate: 1}
+    expected_verdict: block
+    expected_severity: high
+
+  - id: jigsaw-offensive
+    when:
+      label_scheme: jigsaw-six-independent-binary-v1
+      any_of:
+        - {toxic: 1}
+        - {obscene: 1}
+        - {insult: 1}
+    expected_verdict: block
+    expected_severity: normal
+
+  - id: jigsaw-clean
+    when:
+      label_scheme: jigsaw-six-independent-binary-v1
+      all_zero: [toxic, severe_toxic, threat, identity_hate, obscene, insult]
+    expected_verdict: allow
+    expected_severity: normal
+
+  - id: cold-attack-group
+    when:
+      label_scheme: cold-test-binary-plus-finegrained-v1
+      labels: {label: 1, fine-grained-label: 2}
+    expected_verdict: block
+    expected_severity: high
+
+  - id: cold-attack-individual
+    when:
+      label_scheme: cold-test-binary-plus-finegrained-v1
+      labels: {label: 1, fine-grained-label: 1}
+    expected_verdict: block
+    expected_severity: normal
+
+  - id: cold-safe
+    when:
+      label_scheme: cold-test-binary-plus-finegrained-v1
+      labels: {label: 0}
+    expected_verdict: allow
+    expected_severity: normal
