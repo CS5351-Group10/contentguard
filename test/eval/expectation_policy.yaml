@@ -27,6 +27,13 @@
 version: 1
 match: first_match
 
+# Confirmation of record: the testing owner (@davina-cs, corpus author) agreed to this mapping on
+# 2026-11-18 — "COLD group attacks are high severity, COLD individual attacks are normal severity,
+# and Jigsaw identity_hate is high severity", explicitly scoped to this file only ("it does not
+# alter the corpus's native labels or approve a runtime policy"). PR #37 comment 2026-11-18T04:45Z.
+# Conditional attached to that confirmation: if the finalized #37 corpus changes selection, the
+# coverage counts in this file's provenance note must be re-run on the new head.
+#
 # Policy decisions worth arguing with (kept next to the rules on purpose):
 #   * Jigsaw `identity_hate` is treated as HIGH severity, not merely as "offensive". The corpus
 #     README already groups it with the high-risk slice, and a hate-speech auto-allow is the
