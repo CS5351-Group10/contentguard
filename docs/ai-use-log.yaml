@@ -43,6 +43,57 @@ entries:
       only) and required an explicit permissions block + ID-citing test docstrings.
     pr: 7   # merged 2026-11-15 as 9cd38f7
 
+  - id: AI-002
+    date: 2026-11-16
+    agent: opencode
+    model: Big Pickle
+    operator: HAN Mei (60914643)
+    session_transcript: transcripts/60914643-HAN-Mei-AI-002.md
+    scope: "scripts/validate_requirements.py"
+    summary: >-
+      Developed and enhanced the Gate 3 requirements validator
+      for REQ-GOV-003. Added duplicate ID detection, ID/type
+      consistency checks, invariant safety-field validation,
+      improved schema error reporting, and failure exit handling.
+      Performed preliminary verification using temporary fixtures.
+      Session: ses_e1fa17e9dffeD1bxtEnItAbngB.
+    human_interventions: 3
+    intervention_summary: >-
+      Approved the implementation plan before code changes.
+      Separately authorized the verification stage.
+      Redirected the agent to classify the traceability-matrix
+      failure as an unresolved architecture dependency,
+      not a validator defect.
+    pr: 11
+
+  - id: AI-006
+    date: 2026-11-17
+    agent: opencode
+    model: Big Pickle
+    operator: HAN Mei (60914643)
+    session_transcript: transcripts/60914643-HAN-Mei-AI-006.md
+    scope: >-
+      test/offline/test_validate_requirements.py,
+      test/offline/test-gate3-report.md
+    summary: >-
+      Following the Testing Lead's review of the test plan in
+      Issue #24, developed the permanent Gate 3 pytest suite
+      for the existing requirements validator. Added ten named
+      test functions covering REQ-GOV-003 and REQ-GOV-004,
+      using isolated temporary fixtures. Executed 12 targeted
+      test items and the complete offline regression suite
+      (20 items), with all tests passing. Also consolidated
+      Gate 3 verification evidence.
+      Session: ses_e170e175cffeErOe3BcXI8zqed.
+    human_interventions: 5
+    intervention_summary: >-
+      Approved implementation after initial inspection;
+      specified and refined the ten approved test cases;
+      authorized targeted testing; authorized full offline
+      regression and validator verification; requested
+      consolidated evidence and transcript export.
+    pr: 11
+
   - id: AI-007
     date: 2026-11-18
     agent: opencode
@@ -79,4 +130,3 @@ entries:
       P1 review semantics/coverage fixes (requires_human_review, Invalid/Stale review
       CONFLICT mapping, missing negative tests).
     pr: 41
-
