@@ -32,7 +32,7 @@ MANIFEST = ROOT / "requirements.txt"
 PROMPTS_DIR = ROOT / "prompts"
 PYTEST_INI = ROOT / "pytest.ini"
 
-CI_TOOLCHAIN = ("pytest", "ruff", "mypy", "pyyaml", "jsonschema")
+CI_TOOLCHAIN = ("pytest", "ruff", "mypy", "pyyaml", "jsonschema", "types-PyYAML")
 
 
 def _load_deps() -> ModuleType:

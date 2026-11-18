@@ -26,7 +26,10 @@ MANIFEST = ROOT / "requirements.txt"
 
 # The toolchain the workflow needs; keep in lockstep with requirements.txt. pyyaml is the
 # distribution name for the ``yaml`` import (jsonschema likewise imports as ``jsonschema``).
-REQUIRED_DISTS = ("pytest", "ruff", "mypy", "pyyaml", "jsonschema")
+# types-PyYAML is required because gate 2b (mypy) fails on an unannotated ``yaml`` import;
+# the first CI run failed precisely on those missing stubs, so a check that ignored their
+# removal would be guarding the wrong set.
+REQUIRED_DISTS = ("pytest", "ruff", "mypy", "pyyaml", "jsonschema", "types-PyYAML")
 
 _REQUIREMENT_RE = re.compile(r"^\s*([A-Za-z0-9_.-]+)\s*(\[[^\]]*\])?\s*([<>=!~].*)?$")
 

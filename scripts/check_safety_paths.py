@@ -11,6 +11,16 @@ against interface-contracts.md, API-surface diffing, and the INV-1 structural ca
 fitness function — DO NOT EXIST YET and are written below solely as TODO(TD-4) markers.
 They must never be step placeholders that print PASS without inspecting anything.
 
+The policy-test half of issue #42's safety tier (running the policy tests when a policy
+path is touched) is currently NOT a scoped step here, because ``test/offline/`` has no
+policy/audit tests on this branch — they arrive with PR #41. A conditional
+``test_policy_*`` step would fail for the wrong reason (no tests to collect). That half is
+covered for now by gate 5's full offline suite, which runs on every PR and would include
+the policy tests as soon as they land. When the safety tier triggers, this gate prints a
+line saying so, so a reader of the log sees the substitution rather than an omission.
+TODO(TD-4, after PR #41): once the policy/audit tests exist, add a scoped step that runs
+just them when a policy path is touched, instead of relying on the whole suite.
+
 ``SAFETY_PATHS`` is an explicit reviewed constant, not a runtime parse of invariants.md
 (a gate whose behaviour depends on prose regexes drifts silently). The drift guard lives
 in test/offline/test_gate2_safety.py: if invariants.md names a new path, that test fails
@@ -95,6 +105,11 @@ def main(argv: list[str] | None = None) -> int:
     if not hits:
         print("GATE 2 SAFETY PASS: no safety-relevant path in this PR")
         return 0
+
+    print(
+        "GATE 2 SAFETY NOTICE: safety path touched — gate 5 will run the full offline "
+        "suite (this gate does not yet run a scoped policy-test step; see TODO TD-4)."
+    )
 
     body = pr.get("body") or ""
     if not has_decision_reference(body):

@@ -2,12 +2,13 @@
 #
 # This file is the single source of truth: .github/workflows/ci.yml installs from it
 # (`pip install -r requirements.txt`), so the workflow and the manifest cannot drift.
-# Ranges match the unpinned toolchain the CI job installed before this manifest existed.
+# The manifest records a compatible floor, not the exact set CI happened to install.
+# Observed versions: pytest 8.4.2-9.2.0, mypy 1.20.2-2.4.1 (the ranges span both ends).
 # pyyaml/jsonschema are the distribution names for the `yaml`/`jsonschema` imports used
 # by scripts/validate_requirements.py.
-pytest>=8,<9
+pytest>=8,<10
 ruff>=0.6,<1
-mypy>=1.11,<2
+mypy>=1.11,<3
 pyyaml>=6,<7
 jsonschema>=4,<5
 

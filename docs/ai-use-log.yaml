@@ -91,7 +91,7 @@ entries:
       specified and refined the ten approved test cases;
       authorized targeted testing; authorized full offline
       regression and validator verification; requested
-       consolidated evidence and transcript export.
+      consolidated evidence and transcript export.
     pr: 11
 
   - id: AI-008
@@ -114,12 +114,15 @@ entries:
       pip-check + manifest step, and a path-conditional safety tier requiring an ADR/invariant
       reference on policy/eval PRs (contract/API/call-graph checks left as TODO(TD-4)).
       Supports REQ-GOV-005/006; prompts change makes gate 4 applicable (warn-only, TD-1).
-    human_interventions: 4
+    human_interventions: 2
     intervention_summary: >-
-      Corrected the ai-use-log ID to AI-008 (AI-007 held by open PR #41); required the
-      safety-path constant + drift test instead of parsing invariants.md prose; required a
-      single dependency source (CI installs from requirements.txt); authorised the
-      propose-in-PR debt-register progress note and the two-file test split.
+      (1) Task brief: fixed scope to issue #42, forbade weakening assertions or adding a
+      check that cannot fail, and required TODO(TD-4) markers for work that does not exist
+      yet. (2) Plan approval with four decisions: use AI-008 (AI-007 held by PR #41);
+      allow the debt-register progress note without closing any status; replace runtime
+      parsing of invariants.md with an explicit SAFETY_PATHS constant + drift test; make
+      requirements.txt the single source CI installs from. Count matches the transcript
+      (2 human messages, 2 annotated interventions).
     pr: 45   # opened 2026-11-18 from issue #42
 
 

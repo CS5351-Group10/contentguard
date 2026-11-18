@@ -121,6 +121,30 @@ def test_safety_tier_no_pr_context_skips(
     assert "SKIP" in capsys.readouterr().out.upper()
 
 
+def test_safety_tier_reports_gate5_substitution(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Verifies: TD-4 (partial) — a triggered safety PR logs that gate 5 runs the full suite.
+
+    The policy-test half of issue #42's safety tier is substituted by gate 5 (full offline
+    suite) until the policy/audit tests exist (PR #41). The substitution must be visible in
+    the log, not a silent omission, so a reader does not assume a missing check.
+    """
+    for body in (
+        "No reference here.",  # fails the ADR requirement but still triggers the tier
+        "Implements authority per ADR-001 and REQ-INV-001.",  # passes
+    ):
+        exit_code, output = _run(
+            monkeypatch,
+            capsys,
+            files=["src/contentguard/policy/rules.py"],
+            body=body,
+        )
+        assert exit_code in (0, 1)
+        assert "gate 5" in output.lower()
+        assert "full offline suite" in output.lower()
+
+
 _BACKTICKED_PATH = re.compile(r"`([A-Za-z0-9_./-]+\.[A-Za-z0-9]+)`")
 _KNOWN_EXTENSIONS = (".md", ".py", ".yaml", ".yml", ".json", ".jsonl", ".toml", ".txt")
 
