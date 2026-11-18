@@ -120,6 +120,6 @@ entries:
       safety-path constant + drift test instead of parsing invariants.md prose; required a
       single dependency source (CI installs from requirements.txt); authorised the
       propose-in-PR debt-register progress note and the two-file test split.
-    pr: pending   # issue #42; replace with the PR number when the PR is opened
+    pr: 45   # opened 2026-11-18 from issue #42
 
 

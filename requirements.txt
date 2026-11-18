@@ -10,3 +10,10 @@ ruff>=0.6,<1
 mypy>=1.11,<2
 pyyaml>=6,<7
 jsonschema>=4,<5
+
+# Type stubs for pyyaml. Declared here because gate 2b (`mypy`) reports
+# `import-untyped` for an installed-but-unannotated `yaml` on current mypy, and
+# `--ignore-missing-imports` does not cover that error class. Without this line the
+# manifest would be an invisible source of CI failure (TD-8).
+types-PyYAML>=6,<7
+
