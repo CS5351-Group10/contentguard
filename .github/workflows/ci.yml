@@ -4,6 +4,8 @@
 #   - require status check "blocking-gates" to pass before merge;
 #   - safety-critical paths (src/contentguard/policy/**, invariant-named files)
 #     additionally require human review with an architecture decision (CODEOWNERS/review rule).
+#
+# The job name "blocking-gates" is depended on by branch protection — do not rename it.
 
 name: CI
 
@@ -25,8 +27,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
-        run: pip install pytest ruff mypy pyyaml jsonschema
+      # Single source of truth for the toolchain (TD-8): the manifest is what CI reads.
+      - name: Install dependencies (from requirements.txt)
+        run: pip install -r requirements.txt
 
       # ---------------- Gate 2 — static analysis (every commit) ----------------
       - name: "Gate 2a — lint (ruff)"
@@ -34,6 +37,20 @@ jobs:
 
       - name: "Gate 2b — type check (mypy)"
         run: mypy --ignore-missing-imports scripts test
+
+      # Gate 2, dependency tier (TD-8): manifest declares the toolchain + pip check.
+      - name: "Gate 2c — dependency manifest and pip check"
+        run: python scripts/check_dependencies.py
+
+      # Gate 2, safety-path tier (partial TD-4): a PR touching a safety path must cite an
+      # ADR/invariant. Contract diff, API-surface diff and the structural call-graph check
+      # are NOT implemented yet (TODO(TD-4) in scripts/check_safety_paths.py) — they are
+      # deliberately absent here rather than present as PASS-without-checking steps.
+      - name: "Gate 2d — safety-path tier (ADR/invariant reference)"
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/check_safety_paths.py
 
       # ---------------- Gate 3 — schema (registry validity) --------------------
       - name: "Gate 3 — requirements registry validates against its JSON schema"

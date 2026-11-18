@@ -1,0 +1,12 @@
+# Declared toolchain for CI gate 2 and local development (TD-8).
+#
+# This file is the single source of truth: .github/workflows/ci.yml installs from it
+# (`pip install -r requirements.txt`), so the workflow and the manifest cannot drift.
+# Ranges match the unpinned toolchain the CI job installed before this manifest existed.
+# pyyaml/jsonschema are the distribution names for the `yaml`/`jsonschema` imports used
+# by scripts/validate_requirements.py.
+pytest>=8,<9
+ruff>=0.6,<1
+mypy>=1.11,<2
+pyyaml>=6,<7
+jsonschema>=4,<5

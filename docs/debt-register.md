@@ -39,3 +39,14 @@
   list); trace-matrix rows prepared for PR #11. Local checks green: gate 3, pytest
   offline, ruff, mypy. TD-1..TD-4 remain open with S4 pay-down dates; TD-5..TD-9 added
   for build-phase tracking (TD-9 records the gate-7 deferral per issue #4).
+- **2026-11-18 (issue #42, AI-008):** TD-3 scaffold seed regenerated through an OpenCode
+  session — `test/offline/test_smoke.py` (31-ID trace coverage preserved, added a negative
+  vacuity test), `prompts/prompt_v1.0.yaml` (ADR-001 advisory contract; `prompt_v1.1.yaml`
+  still reserved), `pytest.ini` (`testpaths = test/offline`) and `src/README.md` (module
+  layout + authority boundary). TD-8: `requirements.txt` is now the single toolchain source
+  (`ci.yml` installs from it) with a gate-2 `pip check` + manifest step
+  (`scripts/check_dependencies.py`). TD-4 (partial): path-conditional safety tier
+  (`scripts/check_safety_paths.py`) requires an ADR/invariant reference on policy/eval PRs;
+  contract diff, API-surface diff and the structural call-graph check remain TODO(TD-4).
+  Statuses leave the register only on the follow-up merge-and-verify PR, so TD-3/TD-4/TD-8
+  stay **partial/open** here.

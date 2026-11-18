@@ -91,6 +91,35 @@ entries:
       specified and refined the ten approved test cases;
       authorized targeted testing; authorized full offline
       regression and validator verification; requested
-      consolidated evidence and transcript export.
+       consolidated evidence and transcript export.
     pr: 11
+
+  - id: AI-008
+    date: 2026-11-18
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-td3.md
+    scope: >-
+      test/offline/test_smoke.py, test/offline/test_governance_scaffold.py,
+      test/offline/test_gate2_safety.py, prompts/prompt_v1.0.yaml, pytest.ini,
+      src/README.md, requirements.txt, scripts/check_dependencies.py,
+      scripts/check_safety_paths.py, .github/workflows/ci.yml,
+      docs/debt-register.md, docs/ai-use-log.yaml
+    summary: >-
+      TD-3 scaffold regeneration (test_smoke keeps the 31-ID trace-matrix coverage asset;
+      prompt_v1.0 rewritten to the ADR-001 advisory contract; pytest.ini scopes the offline
+      tier; src/README describes the module layout + authority boundary) plus TD-8 / partial
+      TD-4: added requirements.txt as the single toolchain source CI installs from, a gate-2
+      pip-check + manifest step, and a path-conditional safety tier requiring an ADR/invariant
+      reference on policy/eval PRs (contract/API/call-graph checks left as TODO(TD-4)).
+      Supports REQ-GOV-005/006; prompts change makes gate 4 applicable (warn-only, TD-1).
+    human_interventions: 4
+    intervention_summary: >-
+      Corrected the ai-use-log ID to AI-008 (AI-007 held by open PR #41); required the
+      safety-path constant + drift test instead of parsing invariants.md prose; required a
+      single dependency source (CI installs from requirements.txt); authorised the
+      propose-in-PR debt-register progress note and the two-file test split.
+    pr: pending   # issue #42; replace with the PR number when the PR is opened
+
 
