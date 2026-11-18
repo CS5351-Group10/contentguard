@@ -11,11 +11,11 @@
 | HAN Mei | 60914643 | Requirements — D1 registry/schema, policy sources |
 | LI Shiyi | 60938585 | Architecture — D2 artifacts, D9 Prompt.md |
 | HUANG Hongwei | 60368210 | Governance & CI — D3 governance files, D7 blocking gates, README, ai-use-log |
-| Buna DA | pending | Testing — D4 verification governance, D8 test suites, bug-diary/debt-register |
+| Buna DA | 60105888 | Testing — D4 verification governance, D8 test suites, bug-diary/debt-register |
 
-> DRAFT — Buna's student ID is pending; the final table is transcribed at submission.
-> Public roster IDs were accepted by the PM on 2026-11-15 (see `docs/contribution-log.md`
-> governance events).
+> DRAFT — roster cards live in `docs/team/`; the final table is transcribed and
+> rechecked at submission. Public roster IDs were accepted by the PM on 2026-11-15 (see
+> `docs/contribution-log.md` governance events).
 
 ## 2. Relative contributions
 
@@ -27,11 +27,20 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
-| LIU Jianwei (61022208) | | pending | | | | | | |
-| HAN Mei (60914643) | | pending | | | | | | |
-| LI Shiyi (60938585) | | pending | | | | | | |
-| HUANG Hongwei (60368210) | | pending | | | | | | |
-| Buna DA (ID pending) | | pending | | | | | | |
+| LIU Jianwei (61022208) | 12.5 | 3.5 | | | | | 16.0 | pending |
+| HAN Mei (60914643) | pending | pending | | | | | pending | pending |
+| LI Shiyi (60938585) | pending | 5.0 | | | | | 5.0 | pending |
+| HUANG Hongwei (60368210) | pending | 4.25 | 1.0 | | | | 5.25 | pending |
+| Buna DA (60105888) | pending | pending | pending | | | | pending | pending |
+
+> Interim aggregation as of 2026-11-18 00:50 HKT from anchored entries in
+> `docs/contribution-log.md`; `pending` = no anchored first-batch report yet. Weights are
+> computed only after all first-batch entries land (deadline 2026-11-18 18:00 HKT,
+> issue #28). LIU's phase ① includes the 11-14 proposal-authoring backfill (3.5h) plus
+> the 11-15 kickoff (9.0h). LIU's 16.0h covers the anchored #8/#9/#10 report through
+> early 11/16; later phase-②/③ PM work is not yet in the log. Known phase-③ entries
+> (HUANG #33/#37) are included; phase ③ is still in progress. See the Man-hours log for
+> anchors.
 
 ## 3. Software engineering process and how we optimized it
 
