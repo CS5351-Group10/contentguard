@@ -326,3 +326,71 @@ entries:
       the code lacks (state it as a known limitation). Count matches the transcript.
     pr: 61   # opened 2026-11-19 from issue #58
 
+  - id: AI-010
+    date: 2026-11-19
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-gate4-strict.md
+    scope: >-
+      .github/workflows/ci.yml, scripts/check_semantic_eval.py,
+      scripts/record_replay.py, test/offline/test_gate4_enforcement.py,
+      docs/ai-use-log.yaml
+    summary: >-
+      TD-1 enforcement: flipped CI gate 4 to blocking (--strict) now that the corpus (#37)
+      and the replay harness (#47) are on main. Under --strict a prompt/model change with no
+      replay artifact fails with an actionable message naming the fix (commit a replay at
+      test/eval/replay/<tag>.jsonl, converted with scripts/record_replay.py); the gate still
+      never defaults to a shipped fixture. Hardened check_semantic_eval.py's no-replay branch
+      and its module docstring; the warn-only (non-strict) path is unchanged. Added
+      scripts/record_replay.py: a PURE converter/validator (--from <responses.jsonl> --out
+      <replay.jsonl>) that validates eval_id/verdict per row, rejects unknown/duplicate ids,
+      refuses an artifact that leaves any corpus eval_id uncovered, and opens no network
+      connection (no provider SDK, no credential env, no --live mode). Added
+      test/offline/test_gate4_enforcement.py (9 tests): strict+no-replay fails naming the
+      artifact, strict+bad replay fails naming the safety-escape threshold (regression
+      guard), strict+good replay passes, non-strict keeps the warn behaviour, docs-only PR
+      unaffected, plus four converter tests including a socket-blocking proof it never
+      touches the network. Job name "blocking-gates" and per-step env are unchanged. Supports
+      REQ-INV-005; closes TD-1. Session: OpenCode gate-4 strict session, 2026-11-19.
+    human_interventions: 3
+    intervention_summary: >-
+      (1) Task brief: fixed the deliverables, forbade touching the human-owned corpus artifacts
+      and the Tier-3 docs, and required the two strict demos in the PR body. (2) Plan approval
+      with three corrections: drop the live-recording design (make record_replay.py a pure
+      converter/validator with no provider SDK/credentials/network and no --live mode), do not
+      modify test/eval/README.md (recording instructions live in the script docstring/--help),
+      and label the bad-replay test as an already-passing regression guard rather than
+      tests-first. (3) Proceed authorization for the approved plan.
+    pr: 57   # opened 2026-11-19 from issue #26
+
+  - id: AI-010
+    date: 2026-11-18
+    agent: opencode
+    model: opencode/big-pickle
+    operator: LI Shiyi (60938585)
+    session_transcript: transcripts/60938585-LI-Shiyi.md
+    scope: >-
+      src/contentguard/analysis/**, src/contentguard/__init__.py,
+      test/offline/conftest.py, test/offline/fakes/**,
+      test/offline/fixtures/analysis/**, test/offline/test_analysis_*.py,
+      test/offline/test_context_*.py, test/offline/test_retrieval_grounding.py,
+      test/offline/test_codex_review_fixes.py
+    summary: >-
+      Session ses_e1351be96ffeMljTs8j9txX6om implemented the offline S3
+      advisory slice under test plan #43 and the S1 interface confirmation.
+      Includes synthetic snapshot authorization, retrieval/provenance and citation
+      validation, context assembly/compaction/reinjection, bounded provider port
+      and typed failures. Independent offline verification: 188 passed; ruff,
+      mypy with MYPYPATH=src and 31-requirement validation passed.
+      Real provider, runtime snapshot, semantic replay and S1/S2 integration
+      acceptance remain pending. Codex relayed requests and technical checks
+      under Shiyi's direction; those redirects are not counted as human actions.
+    human_interventions: 4
+    intervention_summary: >-
+      Shiyi required recorded OpenCode work, requested plan review before approval,
+      explicitly authorized the offline build, and later instructed continuation.
+      Transcript distinguishes these supervising-conversation instructions from
+      automated orchestration. Stubs preceded behavioral tests; functional fixes
+      followed recorded RED runs. A mypy.ini write was blocked; no config changed.
+    pr: pending

@@ -1,0 +1,10 @@
+{
+  "corpus_id": "corpus-synthetic",
+  "corpus_revision": 1,
+  "policy_snapshot_id": "snap-synthetic-v1",
+  "policy_snapshot_digest": "computed-at-runtime",
+  "status": "approved",
+  "approved_by": "synthetic-approver",
+  "approved_at": "2026-01-01T00:00:00Z",
+  "registry_version": "reg-v1"
+}
