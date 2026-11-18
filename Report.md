@@ -246,6 +246,7 @@ These cases are valuable oversight evidence, but they are not agent-miss cases:
 - **#11 — transcript overwrite.** A later session replaced the earlier AI-002 transcript instead of appending to it. `transcripts/**` is frozen human-only, so this is a human-process failure; the PM restored the old transcript and created the separate AI-006 transcript/entry. Evidence: PR #11 review 2026-11-17T12:16:20Z.
 - **#37 — ADR gate before the corpus session.** The testing owner stopped before starting the session and asked whether INV-5/structural rule 7 applied. The PM confirmed it did; the architecture owner approved the addendum scope; the docs PR is open as #46. The value is that the process stopped a session before it could produce unapproved corpus changes. Evidence: PR #37 comments 2026-11-17T09:16:48Z and 10:24:32Z; architecture-owner scope approval 13:35Z.
 - **#16 — manifest footnote.** The over-restrictive `scripts/**` session-owner footnote conflicted with `AGENTS.md` §4 and would have blocked ordinary script work. The PM caught it, the governance owner confirmed the intended scope, and the correction was deferred to issue #38 rather than silently changed in the approved head. Evidence: PR #16 comment 2026-11-17T09:09:02Z; issue #38.
+- **#16 — approver merge under the pre-#39 rule.** Li (the architecture approver) merged the PM-authored #16 after his approval. That matched the rule in force at the time but differs from the later #39 author-merge convention; the result was sound, and the case is recorded as a process-consistency lesson rather than a defect. Evidence: RM-006; PR #16.
 - **#32 / #10 — review catches on human-authored docs.** RM-012 records the missing root CODEOWNERS patterns; RM-010 records the roster filename/name mismatch. These show that the review process is not only an agent guardrail; it is a general quality control.
 
 | Case | Category | What the human caught | Anchor |
@@ -261,6 +262,7 @@ These cases are valuable oversight evidence, but they are not agent-miss cases:
 | #11 transcript overwrite | Human-process | Frozen transcript was replaced | PR #11 review 2026-11-17T12:16:20Z |
 | #37 ADR gate | Human-process | Session stopped before unapproved corpus work | PR #37 comments 2026-11-17 |
 | #16 manifest footnote | Human-process | Over-restrictive `scripts/**` wording | PR #16 comment 2026-11-17T09:09:02Z; #38 |
+| #16 approver merge | Human-process | Process consistency with #39 | RM-006; PR #16 |
 | #32 / #10 docs catches | Human-process | Missing CODEOWNERS patterns; roster mismatch | RM-012; RM-010 |
 
 ### 6.4 What the pattern shows
