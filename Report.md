@@ -184,13 +184,13 @@ Architecture decisions also move with requirements. ADR-001's advisory/authorita
 
 ### 5.2 Requirements ↔ tests
 
-The test suite carries requirement IDs in docstrings, and gate 3 validates the registry the tests target. The S1 branch's offline suite directly cites eight REQ IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001); the remaining requirements are mapped in the trace matrix to planned or later-stage evidence rather than being claimed as covered by tests that do not exist yet. The #24 plan and its 12 collected validator tests are the clearest example of tests-before-code: the test file was required before the PR could pass gate 1, and the empty-file incident in #11 showed that the process needs a collection-count check as well as a marker (issue #38).
+The test suite carries requirement IDs in docstrings, and gate 3 validates the registry the tests target. As of 2026-11-18, the S1 branch's offline suite directly cites eight REQ IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001); the remaining requirements are mapped in the trace matrix to planned or later-stage evidence rather than being claimed as covered by tests that do not exist yet. The #24 plan and its 12 collected validator tests are the clearest example of tests-before-code: the test file was required before the PR could pass gate 1, and the empty-file incident in #11 showed that the process needs a collection-count check as well as a marker (issue #38).
 
 | Layer | Evidence | Status |
 |---|---|---|
 | Registry | 31 requirements | merged in #11 |
 | Trace matrix | 31 rows; 23 `TBD` markers across S1–S5 | merged; planned cells are not passing evidence |
-| Direct REQ IDs cited in the offline suite | 8 IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001) | S1 branch + #11 |
+| Direct REQ IDs cited in the offline suite (as of 2026-11-18) | 8 IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001) | S1 branch + #11 |
 | Validator tests | 12 collected | merged in #11 |
 | S1 tests | 109 collected | open PR #41 |
 | Full offline suite | 121 passed on `b410daf` | S1 branch after #11 merge |
