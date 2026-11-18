@@ -1,26 +1,45 @@
 # Fixed moderation evaluation set (REQ-INV-005)
 
-`moderation_eval.jsonl` is the approved, fixed evaluation corpus intended for
+> **Content warning:** this corpus contains real offensive, hateful and abusive
+> text from public moderation datasets. It is for offline evaluation only, not for
+> display, training or redistribution as raw source data. Handle it according to
+> the course data-handling rules.
+
+`moderation_eval.jsonl` is the fixed evaluation corpus intended for
 replay by the semantic evaluation gate (CI gate 4) whenever a prompt or model
 configuration changes (REQ-INV-005, INV-5). It contains **100 records: 80 Jigsaw (English) +
-20 COLD (Chinese)**, selected with the approved deterministic procedure and seed
+20 COLD (Chinese)**, selected with the documented deterministic procedure and seed
 `5351`.
 
-The file path is fixed: `scripts/check_semantic_eval.py` looks only for
-`test/eval/moderation_eval.jsonl`. Today that gate checks existence only and its
-replay harness is still debt item TD-1, so this file does **not** yet cause gate 4
-to compute metrics. It is the fixed corpus the harness will consume; the offline
-validator in `test/offline/test_evaluation_dataset.py` is the schema authority.
+This revision removes the five previously flagged PII-bearing records and replaces
+them with PII-free records from the same strata. A local name/handle review also
+confirmed additional direct personal names and account identifiers that the
+pattern detector missed; those records were replaced from the same strata.
+Selected records whose text matches a supported PII pattern or a reviewed digest
+are replaced in place, and those texts are not eligible as replacements. Generic
+URLs are not treated as PII unless they contain a personal identifier. See
+[NOTICE.md](NOTICE.md) for licensing, attribution and the required changes
+statement.
 
-## Source approval, provenance and attribution
+The corpus path is fixed at `test/eval/moderation_eval.jsonl`. For prompt/model
+changes, `scripts/check_semantic_eval.py` uses this corpus, the human-authored
+`test/eval/expectation_policy.yaml`, and an explicitly configured recorded replay
+artifact. The replay runner is implemented in PR #47. Gate 4 currently warns
+instead of blocking when a replay is missing or quality thresholds are missed,
+unless `--strict` is enabled; an evaluated high-severity safety escape or
+uncovered row remains a hard failure. Strict activation remains tracked as TD-1.
+A warn-only pass without a replay is not evidence that semantic metrics passed.
+The offline validator in `test/offline/test_evaluation_dataset.py` checks corpus
+structure, not model quality.
 
-The project owner confirmed (2026-11-17) that **both sources are approved for this
-project**, including committing this derived 100-record evaluation file to this
-repository. This is a project-level approval recorded by the owner; **no license
-identifier is asserted here**, because no specific license text was verified for
-the local extracts during this session. The raw extracts contain no
-embedded license metadata. The owner reviews this section before the PR is
-submitted; removing IDs or selecting fewer rows is not, by itself, license evidence.
+## Licensing, attribution and provenance
+
+Licensing and attribution are recorded in [NOTICE.md](NOTICE.md): the Jigsaw
+dataset is **CC0 1.0** and its underlying Wikipedia text is **CC BY-SA 3.0**;
+COLD is **Apache-2.0**. This documentation records the source terms and changes;
+it does not assert a separate project-owner authorization to publish the derived
+corpus. The applicable upstream license terms govern; see `NOTICE.md` for
+attribution and the changes statement.
 
 Sources and attribution:
 
@@ -28,11 +47,15 @@ Sources and attribution:
   Kaggle (2018):
   <https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge>.
   Local labeled extract: 5,000 rows, 2,643,655 bytes; only the six native label
-  columns and the comment text are consumed.
+  columns and the comment text are consumed. Retrieved **2026-11-16**; the
+  pinned extract hash below identifies the local input. No separate immutable
+  upstream revision identifier was recorded.
 - **COLD** — official COLDataset repository, THU CoAI, *COLD: A Benchmark for
   Chinese Offensive Language Detection* (EMNLP 2022):
   <https://github.com/thu-coai/COLDataset>. Local extract: 1,000 rows,
-  236,229 bytes, all from the native `test` split.
+  236,229 bytes, all from the native `test` split. Source commit:
+  [`a0c55a945497ab58e94aef491180e1cf88ffb864`](https://github.com/thu-coai/COLDataset/commit/a0c55a945497ab58e94aef491180e1cf88ffb864)
+  (2023-03-20); retrieved **2026-11-16**.
 
 Pinned input evidence (the builder refuses any other input):
 
@@ -43,8 +66,42 @@ Pinned input evidence (the builder refuses any other input):
 
 The raw extracts are **not** in Git and must stay outside the repository; the
 builder rejects inputs whose resolved path is inside the repository. Only this
-derived subset is committed. Raw record identifiers are not included; records carry
-a SHA-256 of the text instead.
+derived subset is committed. Source row identifiers are omitted. `text_sha256` is
+a content-integrity digest of the verbatim text, not a source row ID or a direct
+mapping to an upstream record.
+
+## Generated corpus counts and hash
+
+These values are calculated from the committed generated output, not hand-entered:
+
+| Item | Value |
+|---|---|
+| Total records | 100 |
+| Jigsaw / COLD | 80 / 20 |
+| Corpus bytes | 75,817 |
+| Corpus SHA-256 | `37a1135ec2e563f39709d1d01fefb8229023c490469545039db80b0729128ed1` |
+
+Jigsaw label totals: `toxic` 56, `severe_toxic` 14, `obscene` 35, `threat` 12,
+`insult` 35, `identity_hate` 12; clean controls 20. COLD retains label 0/1 = 10/10,
+fine-grained cells 7/3/3/7, and topic balance 8/6/6.
+
+## PII remediation and manual review
+
+The five previously flagged PII-bearing records were replaced from the same
+strata. A local review of the generated records and their replacements confirmed
+additional direct personal names and account identifiers that the pattern detector
+missed; those texts were also replaced from the same strata. The builder detects
+valid IPv4 addresses, email addresses, and personal user identifiers/signatures
+(`@handle`, `/u/`, `/user/`, `u/`, and `user:` forms), plus the reviewed text
+digests. Generic URLs alone are not PII. A record that still matches a supported
+PII pattern or a reviewed digest is rejected before any output is written.
+
+### Manual review status
+
+**Operator manual PII review: complete.** Reviewer: **DA Buna**. Date:
+**2026-11-19**. All 100 final records passed the manual PII review. Confirmed
+cases were replaced from the same strata. This records the PII-review result; it
+is not a manual validation of label semantics or model behavior.
 
 ## Label semantics (native labels preserved)
 
@@ -107,11 +164,11 @@ the selected output misses it.
 
 | Label / slice | Guaranteed floor | Final count |
 |---|---:|---:|
-| `toxic` | ≥ 54 | 55 |
-| `severe_toxic` | ≥ 10 | 13 |
-| `obscene` | ≥ 28 | 36 |
-| `threat` | ≥ 10 | 11 |
-| `insult` | ≥ 25 | 34 |
+| `toxic` | ≥ 54 | 56 |
+| `severe_toxic` | ≥ 10 | 14 |
+| `obscene` | ≥ 28 | 35 |
+| `threat` | ≥ 10 | 12 |
+| `insult` | ≥ 25 | 35 |
 | `identity_hate` | 12 | 12 |
 | `identity_hate`-negative controls | 68 | 68 |
 | toxic & `identity_hate`-negative | ≥ 44 | 44 |
@@ -159,12 +216,14 @@ stored.
   so aggregate rates here must not be read as population estimates. Use per-slice
   metrics only.
 - Jigsaw's source split is unknown from the extract and is recorded as null.
+- Both local extracts were retrieved on 2026-11-16. The Jigsaw extract is pinned
+  by its hash above; the COLD source commit is recorded above.
 - Language is a source-level declaration, not per-record detection.
 - COLD contributes only the native `test` split; train/dev-only binary semantics
   are cited for context but no train/dev rows are included.
-- The dataset does not define model expectations or thresholds, and it does not
-  wire gate 4 (TD-1). A future harness must document how native labels map to
-  advisory expectations.
+- The dataset does not define model expectations or thresholds; those are kept in
+  `expectation_policy.yaml`. Gate 4 requires an explicit recorded replay artifact,
+  and strict activation remains tracked as TD-1.
 - Changing the file content, seed, quotas or schema invalidates prior semantic
   baselines and requires owner review.
 
@@ -172,8 +231,10 @@ stored.
 
 The raw extracts must exist outside the repository; they are not distributed here.
 The builder is stdlib-only, performs no network access, verifies the pinned input
-digests and quota guarantees, never logs source text, and writes nothing if any
-check fails.
+digests and quota guarantees, excludes detected PII before selection, never logs
+source text, and writes nothing if any check fails. The approved 95-record fallback
+is available only with the explicit `--allow-fallback-95` flag; the primary target
+is 100 records with same-stratum replacement.
 
 ```bash
 python scripts/build_evaluation_dataset.py \

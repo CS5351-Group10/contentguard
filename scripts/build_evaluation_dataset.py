@@ -17,6 +17,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 from collections import Counter
 from collections.abc import Callable, Sequence
@@ -45,6 +46,47 @@ PINNED_SHA256 = {
     "jigsaw": "ae2968a0248be3b99b636a3924e2895034da12bc307ead40da22593b893761e3",
     "cold": "df4cf25b99152f6c93443371095f2e0e6e54506005cf82e6add9b13e89c82d53",
 }
+
+_IPV4_RE = re.compile(
+    r"(?<![\d.])(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}"
+    r"(?:25[0-5]|2[0-4]\d|1?\d?\d)(?![\d.])"
+)
+_EMAIL_RE = re.compile(
+    r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
+)
+_PERSONAL_IDENTIFIER_RE = re.compile(
+    r"(?<![\w@])@[A-Za-z0-9_]{2,30}\b"
+    r"|(?:/u/|/user/|(?<!\w)u/|\b(?:user|username):)[A-Za-z0-9_.-]{2,}",
+    re.IGNORECASE,
+)
+
+# ADR-001 / REQ-INV-005: texts confirmed during manual review as containing
+# direct personal names or account identifiers that the pattern detector missed.
+# Stored as digests so reviewed text is not duplicated in the builder.
+REVIEWED_PII_TEXT_SHA256 = frozenset(
+    {
+        "8f53115142a6e6ac76984a14f75382552712e3e0244b1296186a172d29ef692e",  # EV-0004
+        "0256f3e92f619da2bdd73ad9f089146feeedc323c568fa559dfa2df3d4f6bf49",  # EV-0030
+        "4c89fadf76717b3301dcc39bb37c1af2d049c1494a10b26cf9021b3d1d37eb94",  # EV-0032
+        "9bc8212f74b37f9270e7e87a562220899c9316acbe480d789d66a40698b4d0dc",  # EV-0037
+        "8c3c65fde3d14bbe51d20970efd5f0ba99470c95e63f0d8947f983ecc67b3764",  # EV-0043
+        "65765ec832127f5046aaf4a66f991f7f5a8fe5e566ee1ae79491dc711a1caa43",  # EV-0051
+        "c0fdca0c30452f7f1012726b2c626bb1d4ead40c71926271643d6f4b6e4a4450",  # EV-0054
+        "6b517928e423f114fb14b51366ec3e4a2f4d48938e8436720d09f0b3b6ad1524",  # EV-0055
+        "bf1a6e6df52f62f65cb16d5475c02317a386039e1f288ad1ce2637d574056f1f",  # EV-0043 replacement 1
+        "72fa7d46ccec0074297bc0baecda4a56aff5748617b7d1f742c7caaf8a798988",  # EV-0051 replacement
+        "33d85829ea42912a6f124a0b5491bf99e93e5af370c28cd2bc9cd9124104802f",  # EV-0043 replacement 2
+        "4fac17b4119e0f8b1484913e9a772cfe4678da187ef47c57747abd5c7ce12b40",  # EV-0010 replacement
+        "df4b0c9aaf6757c66d361319e6f30fd6e1d78e60f26a8714a892389fee045de7",  # EV-0038 replacement 1
+        "25eaf18e23f4f63e43c9e84ab6f7c0afd2328cc8ba555424d4256f2d6252d996",  # EV-0039 replacement
+        "4c50489ca6436721193dd5e9f7af83662718c4d0d89672593a9e4c30c2699b1e",  # EV-0043 replacement 3
+        "730cf03bbe26ee5d83c8dd8bf4798ac61becab228dc56f5e8f176bd49d8c4eb4",  # EV-0038 replacement 2
+        "26f93f865d88a1b70a543de77ea0f94003c0ce4766ec82843575edf37019208e",  # EV-0043 replacement 4
+        "64e20b163765cee5363085c9dda09a03dd25a47138c1774aa11063be8ffa96f4",  # EV-0071
+        "c0e0ff2cad1460f0b44864d54045ae138670839bf7041048dec7a5d1039c4eae",  # EV-0074
+        "12f1f2890397c1df674f0202c4562d20092555137e2c2b7ae38c1178504045fe",  # EV-0076
+    }
+)
 
 RECORD_KEYS = (
     "eval_id",
@@ -323,10 +365,39 @@ def check_cold_pools(rows: list[JsonRecord]) -> None:
             )
 
 
-def select_jigsaw(rows: list[JsonRecord], seed: int = SEED) -> list[tuple[str, JsonRecord]]:
+def has_pii(text: str) -> bool:
+    """ADR-001 / REQ-INV-005: detect supported PII patterns or reviewed IDs."""
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return digest in REVIEWED_PII_TEXT_SHA256 or bool(
+        _IPV4_RE.search(text)
+        or _EMAIL_RE.search(text)
+        or _PERSONAL_IDENTIFIER_RE.search(text)
+    )
+
+
+def _row_has_pii(row: JsonRecord, text_field: str) -> bool:
+    text = row.get(text_field)
+    return isinstance(text, str) and has_pii(text)
+
+
+def exclude_pii_rows(
+    rows: Sequence[JsonRecord], text_field: str
+) -> list[JsonRecord]:
+    """ADR-001 / REQ-INV-005: keep rows without supported PII patterns."""
+    return [row for row in rows if not _row_has_pii(row, text_field)]
+
+
+def select_jigsaw(
+    rows: list[JsonRecord],
+    seed: int = SEED,
+    *,
+    exclude_pii: bool = True,
+) -> list[tuple[str, JsonRecord]]:
     selected: list[tuple[str, JsonRecord]] = []
     for name, predicate, take in jigsaw_strata():
         pool = [row for row in rows if predicate(row)]
+        if exclude_pii:
+            pool = [row for row in pool if not _row_has_pii(row, "comment_text")]
         ranked = sorted(
             pool, key=lambda row: rank_key(seed, "jigsaw", name, row["comment_text"])
         )
@@ -336,7 +407,12 @@ def select_jigsaw(rows: list[JsonRecord], seed: int = SEED) -> list[tuple[str, J
     return selected
 
 
-def select_cold(rows: list[JsonRecord], seed: int = SEED) -> list[tuple[str, JsonRecord]]:
+def select_cold(
+    rows: list[JsonRecord],
+    seed: int = SEED,
+    *,
+    exclude_pii: bool = True,
+) -> list[tuple[str, JsonRecord]]:
     selected: list[tuple[str, JsonRecord]] = []
     quotas = cold_quotas()
     for label, fine in COLD_CELLS:
@@ -350,6 +426,8 @@ def select_cold(rows: list[JsonRecord], seed: int = SEED) -> list[tuple[str, Jso
                 and row["fine-grained-label"] == fine
                 and row["topic"] == topic
             ]
+            if exclude_pii:
+                pool = [row for row in pool if not _row_has_pii(row, "TEXT")]
             ranked = sorted(
                 pool, key=lambda row: rank_key(seed, "cold", stratum, row["TEXT"])
             )
@@ -357,6 +435,72 @@ def select_cold(rows: list[JsonRecord], seed: int = SEED) -> list[tuple[str, Jso
                 raise ValueError(f"cold stratum {stratum}: insufficient rows")
             selected.extend((stratum, row) for row in ranked[:take])
     return selected
+
+
+def _jigsaw_pool_for_stratum(
+    stratum: str, rows: list[JsonRecord]
+) -> list[JsonRecord]:
+    for name, predicate, _ in jigsaw_strata():
+        if name == stratum:
+            return [row for row in rows if predicate(row)]
+    raise ValueError(f"unknown jigsaw stratum: {stratum}")
+
+
+def _cold_pool_for_stratum(
+    stratum: str, rows: list[JsonRecord]
+) -> list[JsonRecord]:
+    for label, fine in COLD_CELLS:
+        for topic in COLD_TOPICS:
+            if f"cold/label{label}-fg{fine}/{topic}" == stratum:
+                return [
+                    row
+                    for row in rows
+                    if row["label"] == label
+                    and row["fine-grained-label"] == fine
+                    and row["topic"] == topic
+                ]
+    raise ValueError(f"unknown cold stratum: {stratum}")
+
+
+def replace_pii_selected(
+    selected: list[tuple[str, JsonRecord]],
+    rows: list[JsonRecord],
+    seed: int,
+    source: str,
+    text_field: str,
+) -> list[tuple[str, JsonRecord]]:
+    """ADR-001 / REQ-INV-005: replace selected PII rows in place."""
+    selected_texts = {row[text_field] for _, row in selected}
+    result: list[tuple[str, JsonRecord]] = []
+    for stratum, row in selected:
+        if not _row_has_pii(row, text_field):
+            result.append((stratum, row))
+            continue
+        pool = (
+            _jigsaw_pool_for_stratum(stratum, rows)
+            if source == "jigsaw"
+            else _cold_pool_for_stratum(stratum, rows)
+        )
+        candidates = [
+            candidate
+            for candidate in pool
+            if not _row_has_pii(candidate, text_field)
+            and candidate[text_field] not in selected_texts
+        ]
+        ranked = sorted(
+            candidates,
+            key=lambda candidate: rank_key(
+                seed, source, stratum, candidate[text_field]
+            ),
+        )
+        if not ranked:
+            raise ValueError(
+                f"{source} stratum {stratum}: no PII-free replacement available"
+            )
+        replacement = ranked[0]
+        selected_texts.add(replacement[text_field])
+        result.append((stratum, replacement))
+    return result
 
 
 def _check_selected_jigsaw(rows: list[JsonRecord]) -> None:
@@ -431,21 +575,52 @@ def build_records(
     jigsaw_rows: list[JsonRecord],
     cold_rows: list[JsonRecord],
     seed: int = SEED,
+    *,
+    allow_fallback_95: bool = False,
 ) -> list[JsonRecord]:
-    """Select and validate the approved 80/20 set; raise before any write."""
+    """ADR-001 / REQ-INV-005: select the PII-free 80/20 set."""
     if seed != SEED:
         raise ValueError(f"seed must be the approved value {SEED}")
     validate_jigsaw_rows(jigsaw_rows)
     validate_cold_rows(cold_rows)
-    check_pool_guarantees(jigsaw_rows)
-    check_cold_pools(cold_rows)
 
-    jigsaw_selected = select_jigsaw(jigsaw_rows, seed)
-    cold_selected = select_cold(cold_rows, seed)
-    _check_selected_jigsaw([row for _, row in jigsaw_selected])
-
-    if len(jigsaw_selected) != 80 or len(cold_selected) != 20:
-        raise ValueError("selection produced an unexpected record count")
+    fallback = False
+    try:
+        check_pool_guarantees(jigsaw_rows)
+        check_cold_pools(cold_rows)
+        jigsaw_base = select_jigsaw(jigsaw_rows, seed, exclude_pii=False)
+        cold_base = select_cold(cold_rows, seed, exclude_pii=False)
+        if len(jigsaw_base) != 80 or len(cold_base) != 20:
+            raise ValueError("selection produced an unexpected record count")
+        jigsaw_selected = replace_pii_selected(
+            jigsaw_base, jigsaw_rows, seed, "jigsaw", "comment_text"
+        )
+        cold_selected = replace_pii_selected(
+            cold_base, cold_rows, seed, "cold", "TEXT"
+        )
+        _check_selected_jigsaw([row for _, row in jigsaw_selected])
+    except ValueError:
+        if not allow_fallback_95:
+            raise
+        jigsaw_selected = [
+            (stratum, row)
+            for stratum, row in select_jigsaw(
+                jigsaw_rows, seed, exclude_pii=False
+            )
+            if not _row_has_pii(row, "comment_text")
+        ]
+        cold_selected = [
+            (stratum, row)
+            for stratum, row in select_cold(
+                cold_rows, seed, exclude_pii=False
+            )
+            if not _row_has_pii(row, "TEXT")
+        ]
+        fallback = True
+        if len(jigsaw_selected) + len(cold_selected) != 95:
+            raise ValueError(
+                "approved 95 fallback expected exactly 95 records"
+            )
 
     records: list[JsonRecord] = []
     for stratum, row in jigsaw_selected:
@@ -456,8 +631,13 @@ def build_records(
     for record in records:
         if set(record) != set(RECORD_KEYS):
             raise ValueError("constructed record does not match the approved schema")
+        if has_pii(record["text"]):
+            raise ValueError(
+                f"detected PII in generated record {record['eval_id']}"
+            )
 
-    _check_selected_cold(records)
+    if not fallback:
+        _check_selected_cold(records)
     return records
 
 
@@ -498,16 +678,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--cold", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--allow-fallback-95", action="store_true")
     args = parser.parse_args(argv)
     try:
         jigsaw_rows = load_source(args.jigsaw, "jigsaw")
         cold_rows = load_source(args.cold, "cold")
-        records = build_records(jigsaw_rows, cold_rows, args.seed)
+        records = build_records(
+            jigsaw_rows,
+            cold_rows,
+            args.seed,
+            allow_fallback_95=args.allow_fallback_95,
+        )
         write_records(records, Path(args.out))
     except (ValueError, TypeError, OSError) as exc:
         print(f"BUILD FAILED: {exc}", file=sys.stderr)
         return 1
-    print(f"WROTE {len(records)} records to {args.out}")
+    if len(records) == 95:
+        print(f"FALLBACK 95: wrote {len(records)} records to {args.out}")
+    else:
+        print(f"WROTE {len(records)} records to {args.out}")
     return 0
 
 

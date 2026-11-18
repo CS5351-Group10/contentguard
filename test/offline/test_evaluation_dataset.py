@@ -27,6 +27,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 EVAL_PATH = ROOT / "test" / "eval" / "moderation_eval.jsonl"
 README_PATH = ROOT / "test" / "eval" / "README.md"
+NOTICE_PATH = ROOT / "test" / "eval" / "NOTICE.md"
 BUILDER_PATH = ROOT / "scripts" / "build_evaluation_dataset.py"
 
 
@@ -117,6 +118,8 @@ COLD_INPUT_SHA256 = (
 )
 JIGSAW_URL = "https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge"
 COLD_URL = "https://github.com/thu-coai/COLDataset"
+RETRIEVAL_DATE = "2026-11-16"
+COLD_COMMIT_SHA = "a0c55a945497ab58e94aef491180e1cf88ffb864"
 
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 EVAL_ID = re.compile(r"^EV-\d{4}$")
@@ -337,6 +340,13 @@ def _validate_readme(text: str) -> None:
         "attack group",
         "anti-bias",
         "not a prevalence benchmark",
+        "Content warning",
+        "CC0 1.0",
+        "CC BY-SA 3.0",
+        "Apache-2.0",
+        "NOTICE.md",
+        RETRIEVAL_DATE,
+        COLD_COMMIT_SHA,
     )
     missing = [item for item in required if item not in text]
     assert not missing, f"README missing required provenance items: {missing}"
@@ -352,7 +362,10 @@ def _mutated(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def test_committed_dataset_validates_against_contract() -> None:
     """REQ-INV-005: committed set matches the approved schema and quotas."""
-    validate_dataset(_valid_records(), README_PATH.read_text(encoding="utf-8"))
+    readme = README_PATH.read_text(encoding="utf-8")
+    validate_dataset(_valid_records(), readme)
+    assert RETRIEVAL_DATE in readme
+    assert COLD_COMMIT_SHA in readme
 
 
 def test_builder_rank_key_is_deterministic_and_seed_sensitive() -> None:
@@ -495,3 +508,207 @@ def test_loader_ignores_blank_lines_only_at_edges(tmp_path: Path) -> None:
     path = tmp_path / "blank.jsonl"
     path.write_text('\n{"eval_id": "EV-0001"}\n\n', encoding="utf-8")
     assert _read_records(path) == [{"eval_id": "EV-0001"}]
+
+
+def test_has_pii_detects_supported_patterns() -> None:
+    """REQ-INV-005: supported PII classes are detected deterministically."""
+    assert builder.has_pii("contact user@example.com")
+    assert builder.has_pii("host 192.0.2.10 replied")
+    assert builder.has_pii("see /u/example_user")
+    assert builder.has_pii("signed user:example_user")
+
+
+def test_has_pii_ignores_generic_urls_and_clean_text() -> None:
+    """REQ-INV-005: generic URLs and clean text are not PII."""
+    assert not builder.has_pii("see https://example.com/article?id=123")
+    assert not builder.has_pii("a normal comment with no identifiers")
+
+
+def test_has_pii_detects_reviewed_text_digest(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005: manual-review digests are treated as PII markers."""
+    text = "reviewed identifier candidate"
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    monkeypatch.setattr(
+        builder, "REVIEWED_PII_TEXT_SHA256", frozenset({digest})
+    )
+    assert builder.has_pii(text)
+
+
+def test_exclude_pii_rows_is_deterministic() -> None:
+    """REQ-INV-005: PII row exclusion preserves order and is repeatable."""
+    rows = [
+        {"comment_text": "clean text"},
+        {"comment_text": "host 192.0.2.10"},
+        {"comment_text": "signed user:example_user"},
+        {"comment_text": "https://example.com/article"},
+    ]
+    first = builder.exclude_pii_rows(rows, "comment_text")
+    second = builder.exclude_pii_rows(rows, "comment_text")
+    assert first == second
+    assert [row["comment_text"] for row in first] == [
+        "clean text",
+        "https://example.com/article",
+    ]
+
+
+def test_select_jigsaw_backfills_same_stratum_after_pii_exclusion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005: a PII-bearing top-ranked row is replaced by a clean row."""
+    monkeypatch.setattr(
+        builder,
+        "jigsaw_strata",
+        lambda: [("synthetic/all", lambda row: True, 1)],
+    )
+    monkeypatch.setattr(
+        builder,
+        "rank_key",
+        lambda seed, source, stratum, text: text,
+    )
+    rows = [
+        {"comment_text": "0 host 192.0.2.10"},
+        {"comment_text": "1 clean replacement"},
+    ]
+    selected = builder.select_jigsaw(rows)
+    assert [row["comment_text"] for _, row in selected] == [
+        "1 clean replacement"
+    ]
+
+
+def test_replace_pii_selected_keeps_non_pii_positions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005: in-place replacement preserves non-PII record order."""
+    monkeypatch.setattr(
+        builder,
+        "jigsaw_strata",
+        lambda: [("synthetic/all", lambda row: True, 2)],
+    )
+    monkeypatch.setattr(
+        builder,
+        "rank_key",
+        lambda seed, source, stratum, text: text,
+    )
+    rows = [
+        {"comment_text": "0 host 192.0.2.10"},
+        {"comment_text": "1 clean"},
+        {"comment_text": "2 replacement"},
+    ]
+    baseline = builder.select_jigsaw(rows, exclude_pii=False)
+    replaced = builder.replace_pii_selected(
+        baseline, rows, SEED, "jigsaw", "comment_text"
+    )
+    assert [row["comment_text"] for _, row in replaced] == [
+        "2 replacement",
+        "1 clean",
+    ]
+
+
+def _synthetic_fallback_inputs() -> tuple[
+    list[dict[str, Any]], list[dict[str, Any]]
+]:
+    labels = {name: 0 for name in JIGSAW_LABELS}
+    jigsaw_rows = [
+        {
+            "comment_text": (
+                "0 host 192.0.2.10"
+                if index == 0
+                else f"synthetic comment {index}"
+            ),
+            **labels,
+        }
+        for index in range(95)
+    ]
+    cold_rows = [
+        {
+            "TEXT": "synthetic cold comment",
+            "label": 0,
+            "fine-grained-label": 0,
+            "topic": "gender",
+            "split": "test",
+        }
+    ]
+    return jigsaw_rows, cold_rows
+
+
+def test_build_records_aborts_when_pii_cannot_be_replaced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005: a PII shortfall aborts without the fallback flag."""
+    monkeypatch.setattr(
+        builder,
+        "jigsaw_strata",
+        lambda: [("synthetic/all", lambda row: True, 95)],
+    )
+    monkeypatch.setattr(builder, "COLD_CELLS", ((0, 0),))
+    monkeypatch.setattr(builder, "COLD_TOPICS", ("gender",))
+    monkeypatch.setattr(builder, "cold_quotas", lambda: {(0, 0, "gender"): 1})
+    jigsaw_rows, cold_rows = _synthetic_fallback_inputs()
+    with pytest.raises(ValueError):
+        builder.build_records(jigsaw_rows, cold_rows)
+
+
+def test_build_records_uses_95_fallback_only_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005: the approved 95 fallback is explicit and PII-free."""
+    monkeypatch.setattr(
+        builder,
+        "jigsaw_strata",
+        lambda: [("synthetic/all", lambda row: True, 95)],
+    )
+    monkeypatch.setattr(builder, "COLD_CELLS", ((0, 0),))
+    monkeypatch.setattr(builder, "COLD_TOPICS", ("gender",))
+    monkeypatch.setattr(builder, "cold_quotas", lambda: {(0, 0, "gender"): 1})
+    jigsaw_rows, cold_rows = _synthetic_fallback_inputs()
+    records = builder.build_records(
+        jigsaw_rows, cold_rows, allow_fallback_95=True
+    )
+    assert len(records) == 95
+    assert all(not builder.has_pii(record["text"]) for record in records)
+
+
+def test_committed_corpus_contains_no_detected_pii() -> None:
+    """REQ-INV-005: the committed corpus has no supported PII patterns."""
+    records = _read_records(EVAL_PATH)
+    offenders = [
+        record["eval_id"]
+        for record in records
+        if builder.has_pii(record["text"])
+    ]
+    assert not offenders, f"PII detected in records: {offenders}"
+
+
+def test_readme_corpus_hash_matches_file() -> None:
+    """REQ-INV-005: README records the actual generated corpus digest."""
+    digest = hashlib.sha256(EVAL_PATH.read_bytes()).hexdigest()
+    assert digest in README_PATH.read_text(encoding="utf-8")
+
+
+def test_readme_records_confirmed_retrieval_dates_and_commit() -> None:
+    """REQ-INV-005: confirmed retrieval date and COLD commit are recorded."""
+    text = README_PATH.read_text(encoding="utf-8")
+    assert RETRIEVAL_DATE in text
+    assert COLD_COMMIT_SHA in text
+    assert "Retrieval dates are unknown" not in text
+
+
+def test_notice_has_attribution_licenses_and_changes_statement() -> None:
+    """REQ-INV-005: NOTICE carries verified attribution, licenses and changes."""
+    text = NOTICE_PATH.read_text(encoding="utf-8")
+    required = (
+        JIGSAW_URL,
+        COLD_URL,
+        "CC0 1.0",
+        "CC BY-SA 3.0",
+        "Apache-2.0",
+        "Changes made",
+        "PII",
+        "not endorsed",
+        RETRIEVAL_DATE,
+        COLD_COMMIT_SHA,
+    )
+    missing = [item for item in required if item not in text]
+    assert not missing, f"NOTICE missing required items: {missing}"

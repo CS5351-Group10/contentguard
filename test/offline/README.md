@@ -10,4 +10,11 @@ Rules (see `docs/code-governance/verification-constraints.md`):
 - At least one **negative test** per feature (proves rejection of an invalid path).
 - Fault-injection tests for the AI-unavailable paths live here (INV-2).
 
+## Evaluation corpus checks
+
+`test_evaluation_dataset.py` validates the fixed gate-4 corpus at
+`test/eval/moderation_eval.jsonl` and the deterministic builder. Corpus
+provenance, licensing, PII remediation, counts/hashes and regeneration are
+documented in `test/eval/README.md`.
+
 Run: `pytest test/offline -v`
