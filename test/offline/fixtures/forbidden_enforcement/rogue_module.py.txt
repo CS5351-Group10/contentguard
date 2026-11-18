@@ -1,0 +1,41 @@
+"""Deliberate REQ-INV-001 violation fixture (never imported by the test suite).
+
+This file is stored with a ``.py.txt`` suffix so it is never executed or collected; the
+structural test copies its text to a temporary ``.py`` file and asserts the AST checker
+flags every bypass form below. Each line exercises a distinct route to the enforcement
+authority that the checker must detect outside ``contentguard.policy``.
+"""
+
+from __future__ import annotations
+
+# 1. Module import.
+import contentguard.policy.enforcement
+
+# 2. Module import with alias, then attribute access.
+import contentguard.policy.enforcement as enf
+
+_authority_by_attribute = enf.EnforcementAuthority
+
+# 3. ``from ... import enforcement`` (submodule import).
+from contentguard.policy import enforcement
+
+_authority_from_submodule = enforcement.EnforcementAuthority
+
+# 4. ``from ...enforcement import X``.
+from contentguard.policy.enforcement import EnforcementAuthority as _EA
+
+# 5. Re-export bypass: ``from contentguard.policy import EnforcementAuthority``.
+from contentguard.policy import EnforcementAuthority
+
+# 6. Literal ``__import__`` string.
+_imported = __import__("contentguard.policy.enforcement")
+
+# 7. Literal ``importlib.import_module`` string.
+import importlib
+
+_module = importlib.import_module("contentguard.policy.enforcement")
+
+
+def _make_authority(store: object) -> object:
+    """Instantiate the authority through a flagged path (attribute access)."""
+    return enforcement.EnforcementAuthority(store)
