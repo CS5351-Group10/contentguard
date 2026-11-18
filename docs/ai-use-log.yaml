@@ -127,5 +127,5 @@ entries:
       (it is baselined on main), accepted the fail-closed reading (absent corpus warn-only,
       evaluated uncovered row fatal), and required that gate 4 never reports PASS from a shipped
       fixture — an explicit replay path and an honest "cannot evaluate" case.
-    pr: pending   # opened from issue #26 on branch feat/26-gate4-strict; fill with the PR number
+    pr: 47   # opened 2026-11-18 from issue #26
 
