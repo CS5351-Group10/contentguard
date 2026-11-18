@@ -297,7 +297,19 @@ def test_per_slice_min_denominator_reported_not_failed(tmp_path: Path) -> None:
     # tiny slice rate > 10% but denominator 3 -> must NOT be a hard failure
     assert not any("jigsaw/clean-rare" in f for f in fails)
     # big slice 1/20 = 5% -> under threshold -> no slice failure for it either
-    assert not any("jigsaw/clean " in f for f in fails)
+    assert not any("jigsaw/clean" in f for f in fails)
+
+
+def test_false_block_aggregate_is_none_without_allow_rows() -> None:
+    """REQ-QUA-003: an empty expected-allow denominator yields None (rendered N/A), not 0.00%."""
+    runner = _load("eval_runner_fb_na", RUNNER_PATH)
+    policy = runner.load_policy(POLICY_PATH)
+    rows = [_jigsaw(f"EV-H{i:03d}", {"identity_hate": 1}, stratum="jigsaw/idh") for i in range(3)]
+    replay = {r["eval_id"]: "block" for r in rows}
+    report = runner.score(rows, policy, replay)
+    assert report.false_block_aggregate is None
+    assert "N/A" in runner.format_table(report)
+    assert not any("false-block" in f.lower() for f in runner.check_thresholds(report))
 
 
 def test_big_slice_false_block_over_ten_percent_fails(tmp_path: Path) -> None:
@@ -485,6 +497,119 @@ def test_no_prompt_change_passes(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "PASS" in out.upper()
 
 
+def test_ground_truth_change_in_prompt_pr_fails_without_strict(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """REQ-INV-005 / TD-1 *negative*: a prompt PR that also edits the ground truth fails
+    gate 4 even without --strict, naming the ground-truth file."""
+    gate = _load("gate_gt_policy", GATE_PATH)
+    monkeypatch.delenv("EVAL_REPLAY", raising=False)
+    corpus = CORPUS_PATH if CORPUS_PATH.exists() else _write_synthetic_corpus(tmp_path)
+    code, out = _run_gate(
+        monkeypatch,
+        gate,
+        argv=[],  # no --strict: this must still block
+        files=["prompts/prompt_v1.0.yaml", "test/eval/expectation_policy.yaml"],
+        corpus_path=str(corpus),
+        replay_path=str(GOOD_REPLAY),
+    )
+    assert code != 0
+    assert "ground truth changed in a prompt pr" in out.lower()
+    assert "test/eval/expectation_policy.yaml" in out
+
+
+def test_ground_truth_change_in_prompt_pr_corpus_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """REQ-INV-005 / TD-1 *negative*: editing the corpus alongside a prompt change also fails."""
+    gate = _load("gate_gt_corpus", GATE_PATH)
+    monkeypatch.delenv("EVAL_REPLAY", raising=False)
+    corpus = CORPUS_PATH if CORPUS_PATH.exists() else _write_synthetic_corpus(tmp_path)
+    code, out = _run_gate(
+        monkeypatch,
+        gate,
+        argv=[],
+        files=["prompts/prompt_v1.0.yaml", "test/eval/moderation_eval.jsonl"],
+        corpus_path=str(corpus),
+        replay_path=str(GOOD_REPLAY),
+    )
+    assert code != 0
+    assert "ground truth changed in a prompt pr" in out.lower()
+    assert "test/eval/moderation_eval.jsonl" in out
+
+
+def test_ground_truth_change_without_prompt_change_is_allowed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """REQ-INV-005: a PR that edits the policy WITHOUT a prompt/model change is not gated here."""
+    gate = _load("gate_gt_nochange", GATE_PATH)
+    monkeypatch.delenv("EVAL_REPLAY", raising=False)
+    code, out = _run_gate(
+        monkeypatch,
+        gate,
+        argv=[],
+        files=["test/eval/expectation_policy.yaml"],
+        corpus_path=None,
+        replay_path=None,
+    )
+    assert code == 0
+    assert "PASS" in out.upper()
+
+
+def test_resolve_replay_accepts_equals_form(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """REQ-INV-005: resolve_replay accepts --replay=PATH as well as --replay PATH."""
+    gate = _load("gate_resolve_eq", GATE_PATH)
+    monkeypatch.delenv("EVAL_REPLAY", raising=False)
+    monkeypatch.setattr(gate, "EVAL_REPLAY", None)
+    target = tmp_path / "r.jsonl"
+    assert gate.resolve_replay([f"--replay={target}"]) == target
+    assert gate.resolve_replay(["--replay", str(target)]) == target
+
+
+def test_resolve_replay_bare_flag_is_usage_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005 *negative*: a bare --replay with no value is a usage error, not a silent
+    fall-through to EVAL_REPLAY/None."""
+    gate = _load("gate_resolve_bare", GATE_PATH)
+    monkeypatch.delenv("EVAL_REPLAY", raising=False)
+    monkeypatch.setattr(gate, "EVAL_REPLAY", Path("/some/env/replay.jsonl"))
+    with pytest.raises(gate.ReplayUsageError):
+        gate.resolve_replay(["--replay"])
+
+
+def test_resolve_replay_empty_equals_is_usage_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005 *negative*: --replay= with an empty value is a usage error."""
+    gate = _load("gate_resolve_empty", GATE_PATH)
+    monkeypatch.delenv("EVAL_REPLAY", raising=False)
+    with pytest.raises(gate.ReplayUsageError):
+        gate.resolve_replay(["--replay="])
+
+
+def test_gate_bare_replay_flag_exits_nonzero(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """REQ-INV-005 *negative*: the gate exits non-zero with a usage error on a bare --replay
+    even without --strict (a misconfigured flag must not report CANNOT EVALUATE / pass)."""
+    gate = _load("gate_bare_main", GATE_PATH)
+    corpus = CORPUS_PATH if CORPUS_PATH.exists() else _write_synthetic_corpus(tmp_path)
+    code, out = _run_gate(
+        monkeypatch,
+        gate,
+        argv=["--replay"],
+        files=["prompts/prompt_v1.0.yaml"],
+        corpus_path=str(corpus),
+        replay_path=None,
+        inject_replay=False,
+    )
+    assert code != 0
+    assert "usage" in out.lower()
+
+
 def test_recorded_replay_no_secret_path(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -536,6 +661,106 @@ def test_corpus_schema_and_hash_validation(tmp_path: Path) -> None:
         runner.load_corpus(dup_file)
 
 
+# --------------------------------------------------------------- policy validation (TD-1)
+def _write_policy(tmp_path: Path, name: str, policy: dict[str, Any]) -> Path:
+    path = tmp_path / f"{name}.yaml"
+    import yaml as _yaml
+
+    path.write_text(_yaml.safe_dump(policy, sort_keys=False), encoding="utf-8")
+    return path
+
+
+def _base_policy(rules: list[dict[str, Any]]) -> dict[str, Any]:
+    return {"version": 1, "match": "first_match", "rules": rules}
+
+
+def _clean_rule(**over: Any) -> dict[str, Any]:
+    rule: dict[str, Any] = {
+        "id": "jigsaw-clean",
+        "when": {"label_scheme": "jigsaw-six-independent-binary-v1", "all_zero": ["toxic"]},
+        "expected_verdict": "allow",
+        "expected_severity": "normal",
+    }
+    rule.update(over)
+    return rule
+
+
+def test_load_policy_rejects_uppercase_severity(tmp_path: Path) -> None:
+    """REQ-INV-005 / TD-1 *negative*: expected_severity 'HIGH' (uppercase) is rejected."""
+    runner = _load("eval_runner_pol_sev", RUNNER_PATH)
+    path = _write_policy(
+        tmp_path, "bad-sev", _base_policy([_clean_rule(expected_severity="HIGH")])
+    )
+    with pytest.raises(runner.EvalError) as exc:
+        runner.load_policy(path)
+    msg = str(exc.value)
+    assert "jigsaw-clean" in msg
+    assert "HIGH" in msg
+
+
+def test_load_policy_rejects_uppercase_verdict(tmp_path: Path) -> None:
+    """REQ-INV-005 / TD-1 *negative*: expected_verdict 'BLOCK' is rejected."""
+    runner = _load("eval_runner_pol_ver", RUNNER_PATH)
+    path = _write_policy(
+        tmp_path, "bad-ver", _base_policy([_clean_rule(expected_verdict="BLOCK")])
+    )
+    with pytest.raises(runner.EvalError) as exc:
+        runner.load_policy(path)
+    msg = str(exc.value)
+    assert "jigsaw-clean" in msg
+    assert "BLOCK" in msg
+
+
+def test_load_policy_rejects_unknown_when_key(tmp_path: Path) -> None:
+    """REQ-INV-005 / TD-1 *negative*: a when with an unknown key is rejected."""
+    runner = _load("eval_runner_pol_when", RUNNER_PATH)
+    rule = _clean_rule(
+        when={"label_scheme": "jigsaw-six-independent-binary-v1", "bogus_key": True}
+    )
+    path = _write_policy(tmp_path, "bad-when", _base_policy([rule]))
+    with pytest.raises(runner.EvalError) as exc:
+        runner.load_policy(path)
+    assert "bogus_key" in str(exc.value)
+
+
+def test_load_policy_rejects_empty_when(tmp_path: Path) -> None:
+    """REQ-INV-005 / TD-1 *negative*: an empty when is rejected."""
+    runner = _load("eval_runner_pol_empty", RUNNER_PATH)
+    path = _write_policy(tmp_path, "empty-when", _base_policy([_clean_rule(when={})]))
+    with pytest.raises(runner.EvalError) as exc:
+        runner.load_policy(path)
+    assert "jigsaw-clean" in str(exc.value)
+
+
+def test_load_policy_rejects_duplicate_ids(tmp_path: Path) -> None:
+    """REQ-INV-005 / TD-1 *negative*: two rules sharing an id are rejected."""
+    runner = _load("eval_runner_pol_dup", RUNNER_PATH)
+    path = _write_policy(
+        tmp_path, "dup-ids", _base_policy([_clean_rule(), _clean_rule()])
+    )
+    with pytest.raises(runner.EvalError) as exc:
+        runner.load_policy(path)
+    assert "jigsaw-clean" in str(exc.value)
+
+
+def test_load_policy_rejects_blank_id(tmp_path: Path) -> None:
+    """REQ-INV-005 / TD-1 *negative*: a blank rule id is rejected."""
+    runner = _load("eval_runner_pol_blank", RUNNER_PATH)
+    path = _write_policy(tmp_path, "blank-id", _base_policy([_clean_rule(id="")]))
+    with pytest.raises(runner.EvalError):
+        runner.load_policy(path)
+
+
+def test_load_policy_yaml_error_is_evalerror(tmp_path: Path) -> None:
+    """REQ-INV-005 / TD-1 *negative*: malformed YAML raises EvalError naming the path."""
+    runner = _load("eval_runner_pol_yaml", RUNNER_PATH)
+    path = tmp_path / "malformed.yaml"
+    path.write_text("match: first_match\nrules: [ : : not valid yaml\n", encoding="utf-8")
+    with pytest.raises(runner.EvalError) as exc:
+        runner.load_policy(path)
+    assert "malformed.yaml" in str(exc.value)
+
+
 # --------------------------------------------------------------------------- infrastructure
 def _write_synthetic_corpus(tmp_path: Path) -> Path:
     return _write_jsonl(tmp_path / "synthetic_corpus.jsonl", _synthetic_corpus())
@@ -549,8 +774,11 @@ def _run_gate(
     files: list[str],
     corpus_path: str | None,
     replay_path: str | None,
+    inject_replay: bool = True,
 ) -> tuple[int, str]:
     """Drive check_semantic_eval.main with PR context, corpus and replay paths injected."""
+    # Ensure a developer's shell EVAL_REPLAY cannot leak into the gate result.
+    monkeypatch.delenv("EVAL_REPLAY", raising=False)
     event = {
         "pull_request": {
             "number": 1,
@@ -562,10 +790,11 @@ def _run_gate(
     monkeypatch.setattr(gate, "changed_files", lambda *a, **k: files)
     if corpus_path is not None:
         monkeypatch.setattr(gate, "EVAL_SET", Path(corpus_path))
-    if replay_path is not None:
-        monkeypatch.setattr(gate, "EVAL_REPLAY", Path(replay_path))
-    else:
-        monkeypatch.setattr(gate, "EVAL_REPLAY", None)
+    if inject_replay:
+        if replay_path is not None:
+            monkeypatch.setattr(gate, "EVAL_REPLAY", Path(replay_path))
+        else:
+            monkeypatch.setattr(gate, "EVAL_REPLAY", None)
     monkeypatch.setattr(sys, "argv", ["check_semantic_eval.py", *argv])
     import io
     from contextlib import redirect_stdout

@@ -59,6 +59,9 @@ REQUIRED_CORPUS_FIELDS = (
 )
 
 VALID_DISPOSITIONS = frozenset({"allow", "block", "escalate"})
+VALID_VERDICTS = frozenset({"allow", "block", "escalate"})
+VALID_SEVERITIES = frozenset({"normal", "high"})
+WHEN_KEYS = frozenset({"label_scheme", "any_of", "all_zero", "labels"})
 
 
 class EvalError(Exception):
@@ -124,11 +127,11 @@ class Report:
         ]
 
     @property
-    def false_block_aggregate(self) -> float:
+    def false_block_aggregate(self) -> float | None:
         allow = [r for r in self.rows if r.expected_verdict == "allow"]
-        blocked = [r for r in allow if r.disposition in ("block", "escalate")]
         if not allow:
-            return 0.0
+            return None
+        blocked = [r for r in allow if r.disposition in ("block", "escalate")]
         return len(blocked) / len(allow)
 
     @property
@@ -175,10 +178,21 @@ def load_corpus(path: Path) -> list[dict[str, Any]]:
 
 
 def load_policy(path: Path) -> dict[str, Any]:
-    """Load the human-authored expectation policy; require first-match with rules."""
+    """Load and validate the human-authored expectation policy (first-match-wins rules).
+
+    Validation (TD-1): parse errors become ``EvalError`` naming the path; every rule has a
+    non-empty unique ``id``, ``expected_verdict`` ∈ {allow, block, escalate},
+    ``expected_severity`` ∈ {normal, high}, and a non-empty ``when`` mapping whose keys are a
+    subset of ``label_scheme``/``any_of``/``all_zero``/``labels`` (at least one present).
+    An unknown ``when`` key would otherwise be silently ignored by ``_when_matches`` — the
+    bypass this validation closes.
+    """
     if not path.exists():
         raise EvalError(f"expectation policy not found: {path}")
-    policy = yaml.safe_load(path.read_text(encoding="utf-8"))
+    try:
+        policy = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise EvalError(f"{path}: invalid YAML — {exc}") from exc
     if not isinstance(policy, dict):
         raise EvalError(f"{path}: policy is not a mapping")
     if policy.get("match") != "first_match":
@@ -186,6 +200,44 @@ def load_policy(path: Path) -> dict[str, Any]:
     rules = policy.get("rules")
     if not isinstance(rules, list) or not rules:
         raise EvalError(f"{path}: policy has no rules")
+
+    seen_ids: set[str] = set()
+    for index, rule in enumerate(rules):
+        where = f"{path}: rule #{index + 1}"
+        if not isinstance(rule, dict):
+            raise EvalError(f"{where}: rule is not a mapping")
+        rule_id = rule.get("id")
+        if not isinstance(rule_id, str) or not rule_id.strip():
+            raise EvalError(f"{where}: rule id must be a non-empty string")
+        if rule_id in seen_ids:
+            raise EvalError(f"{where}: duplicate rule id '{rule_id}'")
+        seen_ids.add(rule_id)
+        where = f"{path}: rule '{rule_id}'"
+
+        verdict = rule.get("expected_verdict")
+        if verdict not in VALID_VERDICTS:
+            raise EvalError(
+                f"{where}: expected_verdict must be one of {sorted(VALID_VERDICTS)}, "
+                f"got {verdict!r}"
+            )
+        severity = rule.get("expected_severity")
+        if severity not in VALID_SEVERITIES:
+            raise EvalError(
+                f"{where}: expected_severity must be one of {sorted(VALID_SEVERITIES)}, "
+                f"got {severity!r}"
+            )
+
+        when = rule.get("when")
+        if not isinstance(when, dict) or not when:
+            raise EvalError(
+                f"{where}: 'when' must be a non-empty mapping with at least one of "
+                f"{sorted(WHEN_KEYS)}"
+            )
+        unknown = sorted(set(when) - WHEN_KEYS)
+        if unknown:
+            raise EvalError(
+                f"{where}: unknown 'when' key(s) {unknown}; allowed: {sorted(WHEN_KEYS)}"
+            )
     return policy
 
 
@@ -309,9 +361,10 @@ def check_thresholds(report: Report) -> list[str]:
         fails.append(
             f"FAIL: verdict agreement {report.agreement:.2%} < {AGREEMENT_MIN:.0%} threshold"
         )
-    if report.false_block_aggregate > FALSE_BLOCK_MAX:
+    fb = report.false_block_aggregate
+    if fb is not None and fb > FALSE_BLOCK_MAX:
         fails.append(
-            f"FAIL: false-block aggregate {report.false_block_aggregate:.2%} "
+            f"FAIL: false-block aggregate {fb:.2%} "
             f"> {FALSE_BLOCK_MAX:.0%} threshold"
         )
     for name, stat in sorted(report.per_slice.items()):
@@ -328,11 +381,13 @@ def check_thresholds(report: Report) -> list[str]:
 def format_table(report: Report) -> str:
     """Render the per-slice metrics table plus a per-row audit echo of the derivation."""
     lines: list[str] = []
+    fb = report.false_block_aggregate
+    fb_str = "N/A" if fb is None else f"{fb:.2%}"
     lines.append(
         f"GATE 4 replay: {report.total} rows scored, "
         f"{report.high_positive_count} high-severity positives, "
         f"agreement {report.agreement:.2%}, "
-        f"false-block {report.false_block_aggregate:.2%}, "
+        f"false-block {fb_str}, "
         f"safety escapes {len(report.safety_escapes)}"
     )
     lines.append("")

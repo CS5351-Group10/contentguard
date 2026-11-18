@@ -115,9 +115,12 @@ entries:
       the runner with an EXPLICIT replay path (--replay/EVAL_REPLAY; never defaults to a
       fixture). Gate 4 stays warn-only and ci.yml is untouched because the corpus is not
       on main (#37 open); --strict flip deferred. Added good/bad replay fixtures (labelled
-      FIXTURES, not model output) and test/offline/test_eval_runner.py (18 tests, incl.
-      negatives for safety escape, uncovered row, missing-set fail-closed, bad-prompt
-      blocked; honest cannot-evaluate-without-replay case).
+      FIXTURES, not model output) and test/offline/test_eval_runner.py (19 tests at head
+      2395978, incl. negatives for safety escape, uncovered row, missing-set fail-closed,
+      bad-prompt blocked; honest cannot-evaluate-without-replay case). Follow-up at the PM's
+      warn-only scope decision (2026-11-18): load_policy validation (+7 negative tests),
+      gate-4 ground-truth protection (+3 tests), --replay=PATH + usage errors (+4 tests),
+      false-block N/A aggregate (+1 test) — 34 test functions total after the follow-up.
       Session: OpenCode gate-4 session, 2026-11-18.
     human_interventions: 2
     intervention_summary: >-
