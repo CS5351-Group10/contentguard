@@ -1,181 +1,748 @@
-# ContentGuard — Machine-Readable Requirements Registry (D1)
-# Validated against req-schema.json by CI gate 3 (scripts/validate_requirements.py).
-#
-# Conventions:
-#   - IDs: REQ-<TYPE>-<NNN>, TYPE in {FUN, INV, QUA, PER, COS, GOV, SEC}
-#   - Invariants (REQ-INV-*): non-negotiable, zero-tolerance; each carries an
-#     enforcing component, a verification method, and a CONCRETE operational fallback.
-#   - MoSCoW priority: must / should / could / wont.
-#   - Status lifecycle: draft -> agreed -> baselined -> implemented -> verified.
-#
-# STATUS: DRAFT — seeded with the governance invariants discussed at project start.
-# The full registry (functional + quality + performance + cost + governance + security)
-# is baselined in the W12 requirements session with the whole team.
-
+# ContentGuard Requirements Registry v1.0 — candidate baseline for PR #11.
+# Lifecycle states reflect PM baseline decision; merge and CI approval remain pending.
 project: ContentGuard
-version: "0.1"
-
+version: '1.0'
 moscow_tradeoff_note: >-
-  DRAFT tradeoff statement: the MVP ships must-have moderation triage with the five
-  safety invariants; should-have bulk-import and analytics dashboards are deferred to
-  protect invariant verification depth; could-have multi-language support is dropped
-  from the MVP. This statement is revisited at every registry baseline change.
-
+  MVP baseline prioritizes content intake, AI advisory analysis, deterministic policy authorization, human
+  review for high-severity or failed AI analysis, durable audit, and six CI governance gates; all five zero-tolerance
+  invariants remain Must. Under the PM's 2026-11-16 ratification, policy-library retrieval (REQ-FUN-005)
+  is adopted as Must, subject to ADR-001 interface/fallback alignment; appeal intake (REQ-FUN-006) is deferred
+  (Won't for MVP) with an extension seam to be reconsidered on 2026-11-20 to 2026-11-21. Bulk import and
+  analytics are deferred; multilingual support is out of MVP scope. REQ-FUN-005 now has Must priority and
+  a proposed fail-safe retrieval contract pending ADR-001 alignment; provisional metric thresholds for REQ-QUA-003,
+  REQ-PER-001 and REQ-COS-001 remain subject to Testing Lead and PM ratification before release.
 requirements:
-  # ---------------------------------------------------------------- invariants
-  - id: REQ-INV-001
-    type: invariant
-    title: AI output never executes enforcement
-    statement: >-
-      The LLM analysis component shall never directly execute an enforcement action
-      (approve/publish, reject/remove, ban). Every enforcement action is decided and
-      executed exclusively by the deterministic policy engine.
-    fit_criterion: >-
-      Structural test (import/call-graph check) proves no module outside
-      src/contentguard/policy/ references the enforcement action API; a negative test
-      demonstrates the call is blocked.
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: structural-check, evidence: "test/offline/test_invariants.py (TBD)" }
-    source: { origin: "Team kickoff discussion 2026-11-15; CS5351 project sheet p.3 advisory/authoritative boundary" }
-    enforcing_component: policy engine (deterministic)
-    fallback: >-
-      If the structural check detects an enforcement call outside the policy engine,
-      CI blocks the merge and the offending path is feature-flagged off at deploy until
-      a human-approved fix lands.
-    zero_tolerance: true
+- id: REQ-INV-001
+  type: invariant
+  title: AI output never executes enforcement
+  statement: Only the deterministic policy engine shall authorize and effect consequential moderation 
+    actions. Every model, moderator, and automated action request is subject to that boundary and its 
+    mandatory safety rules.
+  fit_criterion: Using the approved catalogue of protected actions and entry points, attempt a forged 
+    model action, direct non-policy call, background/replay action and authorized moderator request 
+    contrary to a mandatory rule. Assert no protected state change or external effect. A valid 
+    engine-authorized action on an eligible case succeeds. Review each privileged entry point for 
+    mediation.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: structural-check
+    evidence: PENDING
+  source:
+    origin: "Team kickoff discussion 2026-11-15; CS5351 project sheet p.3 advisory/authoritative boundary"
+    links:
+    - "AGENTS.md"
+    - "docs/architecture/invariants.md"
+  enforcing_component: policy engine (deterministic)
+  fallback: Block merge on a boundary bypass. Disable the affected enforcement path until its 
+    authorization can be enforced.
+  zero_tolerance: true
 
-  - id: REQ-INV-002
-    type: invariant
-    title: Fail-safe hold on AI unavailability
-    statement: >-
-      If the AI analysis service is unavailable, times out, or returns an invalid
-      response, the affected content is placed in the human review queue; it is never
-      auto-approved and never auto-rejected.
-    fit_criterion: >-
-      Fault-injection test: with the AI client mocked to timeout/error, the system
-      asserts queue placement for 100% of affected items and zero auto-actions.
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: unit-test, evidence: "test/offline/test_failsafe_hold.py (TBD)" }
-    source: { origin: "Team kickoff discussion 2026-11-15" }
-    enforcing_component: escalation (human review queue)
-    fallback: >-
-      On violation detection at runtime (an auto-action taken without a valid AI verdict
-      AND a policy decision), the audit subsystem marks the decision invalid, the content
-      item is reverted to the queue, and an alert page is raised to the on-call moderator.
-    zero_tolerance: true
+- id: REQ-INV-002
+  type: invariant
+  title: Fail-safe hold on AI unavailability
+  statement: When AI analysis of an accepted submission is unavailable, timed out, or invalid, the 
+    system shall retain it for human review with no automatic approval or rejection. It shall report 
+    confirmed queue placement only when the handoff is durably established.
+  fit_criterion: Inject provider error, timeout, malformed JSON, missing fields and invalid enums. 
+    With a working queue each reaches human review without auto-disposition. For definitive write 
+    failure, report failed or safely pending for recovery under the approved contract. For uncertain 
+    write outcome, report unconfirmed until reconciled. If a durable write succeeds but its 
+    acknowledgment is lost, retry of the same logical submission resolves to the same case and yields 
+    at most one review entry. No variant effects automatic approval or rejection.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: unit-test
+    evidence: PENDING
+  source:
+    origin: "Team kickoff discussion 2026-11-15"
+    links:
+    - "docs/req/requirements.yaml"
+    - "docs/architecture/invariants.md"
+  enforcing_component: escalation (human review queue)
+  fallback: Prevent automatic disposition. Report definitive failure or unconfirmed handoff 
+    accurately. Reconcile uncertain or lost responses to the existing logical case and recover the 
+    pending review without duplicate effects.
+  zero_tolerance: true
 
-  - id: REQ-INV-003
-    type: invariant
-    title: High-severity content always reaches human review
-    statement: >-
-      Content flagged high-severity (by AI analysis or by deterministic keyword/policy
-      pre-filters) is routed to the human review queue regardless of any automated
-      verdict, including a policy-engine allow verdict.
-    fit_criterion: >-
-      Table-driven test over the severity x policy matrix asserts human-queue routing
-      for every high-severity combination.
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: unit-test, evidence: "test/offline/test_escalation_routing.py (TBD)" }
-    source: { origin: "Team kickoff discussion 2026-11-15" }
-    enforcing_component: policy engine routing rules
-    fallback: >-
-      If an audit record shows a high-severity item resolved without human review, the
-      item is reopened into the queue automatically by the daily audit reconciliation
-      job and the case is logged in docs/bug-diary.md.
-    zero_tolerance: true
+- id: REQ-INV-003
+  type: invariant
+  title: High-severity content always reaches human review
+  statement: An accepted item marked high severity by a valid AI response or an applicable 
+    deterministic pre-filter shall have substantive authorized human review recorded for the 
+    applicable case state before any final disposition, with the final action still subject to the 
+    deterministic policy authority.
+  fit_criterion: Cross each high-severity source with allow, review, violate, and policy allow. Verify
+    queue entry when available and zero final effects before a review record from an authorized 
+    reviewer for the current relevant case state. A forged or stale review record does not satisfy the
+    gate. After a valid recorded review, a permitted policy action succeeds and a mandatory-rule 
+    violation is blocked. Approval defines required review evidence and its invalidation conditions.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: unit-test
+    evidence: PENDING
+  source:
+    origin: "Team kickoff discussion 2026-11-15"
+    links:
+    - "docs/req/requirements.yaml"
+    - "docs/architecture/invariants.md"
+  enforcing_component: policy engine routing rules
+  fallback: Suppress final automatic disposition and surface the case for operator recovery when 
+    normal handoff fails.
+  zero_tolerance: true
 
-  - id: REQ-INV-004
-    type: invariant
-    title: Every decision leaves an audit record
-    statement: >-
-      Every moderation decision persists an audit record containing input content hash,
-      AI verdict (if any), policy rule hit, final action, timestamps, and actor IDs
-      (AI/human/policy).
-    fit_criterion: >-
-      Integration test asserts exactly one audit record per decision with all required
-      fields non-null; schema check rejects records missing fields.
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: integration-test, evidence: "test/offline/test_audit_completeness.py (TBD)" }
-    source: { origin: "Team kickoff discussion 2026-11-15; traceability requirement (project sheet core expectation)" }
-    enforcing_component: audit subsystem
-    fallback: >-
-      If a decision is found without an audit record, the decision is voided, the item
-      re-enters the moderation pipeline from scratch, and writes are suspended (fail
-      closed) until the audit write path is restored.
-    zero_tolerance: true
+- id: REQ-INV-004
+  type: invariant
+  title: Every decision leaves an audit record
+  statement: Every committed moderation decision shall have exactly one associated audit record with 
+    content hash, policy rule or fallback identifier, recorded outcome, timestamp, applicable actor 
+    identifiers and AI verdict when available. An externally effective consequential disposition shall
+    have a durable corresponding audit record; records for incomplete attempts shall not represent a 
+    committed result.
+  fit_criterion: Verify one record for normal, missing-AI, and human decisions. If audit write fails 
+    or is uncertain, no consequential action becomes effective or is acknowledged as committed absent 
+    durable audit. If the audit write succeeds but authoritative state update fails, do not present 
+    the attempt as committed or activate its protected effect. For lost responses or uncertain 
+    external effects, reconcile before retry rather than risking a duplicate action. The same logical 
+    decision yields at most one effective disposition and one committed record. Opposite decisions on 
+    the same logical case state cannot both take effect; an authorized successor needs valid state and
+    a fresh record.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Team kickoff discussion 2026-11-15; traceability requirement (project sheet core expectation)"
+    links:
+    - "docs/req/requirements.yaml"
+    - "docs/architecture/invariants.md"
+  enforcing_component: audit subsystem
+  fallback: Suppress external action and committed acknowledgment without durable audit. Keep 
+    incomplete audit attempts distinguishable from committed decisions. Reconcile before retrying any 
+    action of uncertain outcome.
+  zero_tolerance: true
 
-  - id: REQ-INV-005
-    type: invariant
-    title: Prompt/model changes pass semantic evaluation before production
-    statement: >-
-      A change to any runtime prompt or model configuration cannot merge to the
-      production branch unless the fixed semantic evaluation set replays green against
-      the quality thresholds (CI gate 4).
-    fit_criterion: >-
-      CI gate 4 replay of test/eval/moderation_eval.jsonl reports pass-rate and
-      safety-escape metrics; any metric below threshold blocks the merge (exit != 0).
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: ci-gate, evidence: ".github/workflows/ci.yml gate 4 + scripts/check_semantic_eval.py" }
-    source: { origin: "Project requirement sheet §6 gate 4" }
-    enforcing_component: CI semantic evaluation gate
-    fallback: >-
-      If a prompt/model change reached production without gate 4 evidence, the change is
-      reverted (prompt version pinning allows instant rollback to prompt_vN.yaml) and
-      the incident is recorded in docs/debt-register.md under guardrail debt.
-    zero_tolerance: true
+- id: REQ-INV-005
+  type: invariant
+  title: Prompt/model changes pass semantic evaluation before production
+  statement: A runtime prompt or model configuration change shall be blocked from merging unless the 
+    fixed semantic evaluation replay meets the approved release criteria.
+  fit_criterion: With the approved map of effective prompt/model inputs, exercise applicable changes 
+    including model selection outside conventional filenames. Missing, incomplete, stale or 
+    wrong-revision replay, unavailable runner, failed minimum metric or safety escapes above the 
+    approved maximum block merge. A passing replay is bound to the effective prompt, model/config, 
+    corpus, rubric and evaluated revision. Unrelated changes do not require semantic replay.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: ci-gate
+    evidence: PENDING
+  source:
+    origin: "Project requirement sheet §6 gate 4"
+    links:
+    - "docs/req/requirements.yaml"
+    - "docs/architecture/invariants.md"
+  enforcing_component: CI semantic evaluation gate
+  fallback: Hold the merge if replay evidence is absent or unacceptable. If it has shipped, restore 
+    the last approved prompt and model configuration and record the incident.
+  zero_tolerance: true
 
-  # ------------------------------------------------------------ functional (draft seed)
-  - id: REQ-FUN-001
-    type: functional
-    title: Content submission intake
-    statement: >-
-      The system accepts user-generated content submissions (text) through its API and
-      returns a triage outcome (approve / hold / reject / escalate) with an audit ID.
-    fit_criterion: >-
-      Integration test: POST a sample item, assert one of the four outcomes and a
-      resolvable audit ID within the response.
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: integration-test, evidence: "TBD" }
-    source: { origin: "Team kickoff discussion 2026-11-15" }
+- id: REQ-FUN-001
+  type: functional
+  title: Content submission intake
+  statement: For a successfully completed text triage, the API shall return one outcome and an audit 
+    identifier resolvable to the corresponding decision by an authorized lookup. For incomplete or 
+    uncertain triage or queue handoff, the API shall communicate the known state without claiming 
+    success.
+  fit_criterion: Exercise ordinary and high-severity triage, provider failure with durable handoff, 
+    definitive queue failure, unknown handoff and lost response after durable success. A successful 
+    response returns a matching audit ID. Incomplete and uncertain results must not appear successful.
+    Replay the same logical submission under the approved retry contract and verify reconciliation 
+    without duplicate queue work or effects.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Team kickoff discussion 2026-11-15"
+    links:
+    - "docs/req/requirements.yaml"
+    - "AGENTS.md"
 
-  - id: REQ-FUN-002
-    type: functional
-    title: AI advisory analysis
-    statement: >-
-      For each submitted item the system obtains an LLM moderation analysis (verdict,
-      severity, rationale) and passes it to the policy engine as advisory input only.
-    fit_criterion: >-
-      Contract test: analysis output validates against the runtime prompt response
-      schema (prompts/prompt_v1.0.yaml); malformed output triggers REQ-INV-002 behavior.
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: unit-test, evidence: "TBD" }
-    source: { origin: "Team kickoff discussion 2026-11-15" }
+- id: REQ-FUN-002
+  type: functional
+  title: AI advisory analysis
+  statement: For each accepted item, the system shall attempt LLM moderation analysis and pass a valid
+    verdict, severity and rationale to policy evaluation as advisory data.
+  fit_criterion: For accepted content on the live analysis path, a real configured LLM is invoked and 
+    the model identity, contract version and advisory response are recorded in test evidence. Offline 
+    contract fixtures admit only a valid response to policy evaluation; provider failure, invalid 
+    shape, wrong types and invalid enums enter the fallback. The live evidence and offline contract 
+    check are separate.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: unit-test
+    evidence: PENDING
+  source:
+    origin: "Team kickoff discussion 2026-11-15"
+    links:
+    - "docs/req/requirements.yaml"
+    - "AGENTS.md"
 
-  - id: REQ-FUN-003
-    type: functional
-    title: Human review queue
-    statement: >-
-      Held and escalated items appear in a human review queue where a moderator can
-      approve or reject; moderator actions are audited like automated ones.
-    fit_criterion: >-
-      Integration test: an escalated item appears in the queue; a moderator decision
-      produces a complete audit record (REQ-INV-004).
-    priority: must
-    status: draft
-    changed_date: "2026-11-15"
-    verification: { method: integration-test, evidence: "TBD" }
-    source: { origin: "Team kickoff discussion 2026-11-15" }
+- id: REQ-FUN-003
+  type: functional
+  title: Human review queue
+  statement: The system shall make successfully queued held and escalated items available for review 
+    and accept disposition requests from authorized moderators through the policy boundary. A 
+    submitted review request does not itself grant an enforcement action.
+  fit_criterion: Use held and escalated cases. Verify an allowed moderator disposition commits through
+    the engine and is attributable. Verify an unauthorized, stale, or mandatory-rule-violating request
+    has no consequential effect. Confirm the permitted outcome and override table before signing off 
+    workflow coverage.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Team kickoff discussion 2026-11-15"
+    links:
+    - "docs/req/requirements.yaml"
+    - "AGENTS.md"
+
+- id: REQ-FUN-004
+  type: functional
+  title: Policy justification
+  statement: The system shall attribute an accepted content decision to the applicable policy or 
+    fallback reason and preserve that attribution when policy changes.
+  fit_criterion: Exercise an approved policy match and a fallback. Each committed record has the 
+    expected reason. Activate a new policy snapshot through the supported policy-change mechanism; 
+    retrieval of the old decision still returns its original identifiers.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Derived from REQ-INV-004 and authority boundary"
+    links:
+    - "docs/architecture/runtime-policy-catalog.md"
+
+- id: REQ-FUN-005
+  type: functional
+  title: Retrieval grounding
+  statement: For each accepted moderation case requiring an AI advisory assessment, the system shall 
+    retrieve relevant clauses from the approved, versioned community-policy snapshot and attach their 
+    clause IDs and snapshot version to the advisory context. Retrieved text is untrusted input and 
+    shall never authorize or execute a moderation action.
+  fit_criterion: >-
+    Integration-test an authentic clause, fabricated clause, stale snapshot, conflicting clauses,
+    malicious instruction embedded in retrieved text, retrieval timeout and zero-match response.
+    Accept as grounding only verifiably matching clauses from the case-approved snapshot, with
+    clause ID/version traceability. For missing, invalid, conflicting or unavailable retrieval,
+    record the retrieval failure and submit the case to a durable human-review hold (or report the
+    handoff as unconfirmed if not durably acknowledged); never invent citations or automatically
+    approve/reject. Assert no retrieved text bypasses deterministic policy authorization. Confirm
+    the interface and fallback details with ADR-001 and the runtime-policy catalog before baseline
+    acceptance. Provisional numerical acceptance sampling: execute at least 100 pinned retrieval
+    fixtures, including at least 20 expected-match cases and at least 20 retrieval-error or
+    tampered-citation cases. Among successful grounded assessments, require 100% of cited clause
+    IDs and snapshot versions to resolve to the approved snapshot (0 fabricated or stale accepted
+    citations). Require 100% of injected missing, conflicting, unavailable, or invalid retrieval
+    cases to produce no automatic disposition and a recorded safe hold or truthful unconfirmed
+    handoff. These sample minima and acceptance metrics require Testing Lead and PM ratification;
+    ADR-001 defines the binding fallback interface.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Contribution-log build plan and blueprint §11"
+    links:
+    - "architecture-blueprint.md"
+    - "docs/contribution-log.md"
+
+  provisional: true
+- id: REQ-FUN-006
+  type: functional
+  title: Appeal intake
+  statement: Appeal deferral remains a provisional Won’t for MVP, pending PM or team ratification. If 
+    adopted, each accepted appeal and disposition shall link to the original moderation decision 
+    without changing that historical record.
+  fit_criterion: Inspect the recorded scope decision before treating appeal deferral as final. If 
+    adopted, verify authorized appeal and disposition resolve the original unchanged record and use 
+    the existing review and enforcement authority. Unknown decisions and unauthorized actors create no
+    appeal.
+  priority: wont
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Attachment 1 §1.1 and §4F"
+    links:
+    - "docs/req/requirements.yaml"
+
+- id: REQ-FUN-007
+  type: functional
+  title: Demo comparison controls
+  statement: The team shall demonstrate comparable baseline and enhanced behavior as required by the 
+    project instructions. Runtime safety constraints shall remain in force whenever an actual 
+    enforcement path is enabled.
+  fit_criterion: Run the same input in each demo condition and identify requirements, configuration 
+    and observable outcome. If showing behavior that would violate a safety boundary, use a read-only 
+    or isolated simulation and verify no real effect.
+  priority: should
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: manual-review
+    evidence: PENDING
+  source:
+    origin: "Team plan §1.2 demonstration method and course slide 23 as quoted"
+    links: []
+
+- id: REQ-SEC-001
+  type: security
+  title: Untrusted analysis inputs
+  statement: The system shall keep submitted text and any retrieved policy text from granting 
+    authority or write privileges to the model.
+  fit_criterion: Run direct and, when retrieval is enabled, indirect injections requesting privileged 
+    tools, fabricated policy citations, or schema-valid malicious recommendations. Assert zero 
+    unauthorized effects and no privilege change. For forged citations check the authorized policy 
+    snapshot contract when retrieval is used.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Derived from REQ-INV-001 with OWASP LLM01/LLM05 supporting review"
+    links:
+    - "AGENTS.md"
+    - "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+
+- id: REQ-SEC-002
+  type: security
+  title: Validate submission boundary
+  statement: The system shall reject unsupported or malformed submission data at intake before asking 
+    the LLM for analysis.
+  fit_criterion: Supply malformed request data, absent required text and unsupported input type. For 
+    each case assert controlled rejection and zero model calls. After input limits are approved, 
+    exercise their exact boundary and one unit above.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: unit-test
+    evidence: PENDING
+  source:
+    origin: "Derived from accepted text scope in REQ-FUN-001"
+    links:
+    - "docs/req/requirements.yaml"
+
+- id: REQ-SEC-003
+  type: security
+  title: Moderator authorization
+  statement: Only an authorized moderator shall be able to submit a human disposition through the 
+    review pathway.
+  fit_criterion: Use authorized and unauthorized identities against the same case, including a valid 
+    moderator lacking the case grant where scoped review applies. Change only identity or case grant. 
+    Unauthorized requests are denied before enforcement and leave the case and external effects 
+    unchanged.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Derived from moderator role in REQ-FUN-003"
+    links:
+    - "docs/req/requirements.yaml"
+
+- id: REQ-SEC-004
+  type: security
+  title: Privacy and evidence access
+  statement: The system shall restrict decision evidence according to a team-approved access and 
+    retention policy.
+  fit_criterion: After lifecycle and access rules are approved, compare owner, assigned moderator and 
+    unauthorized requests. Verify authorized access and denial fields, then use a controlled clock to 
+    verify action on each artifact at its approved retention boundary.
+  priority: should
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Attachment 1 §§4G, 4I, 7; INV-4 demands audit data"
+    links:
+    - "docs/architecture/invariants.md"
+
+- id: REQ-SEC-005
+  type: security
+  title: Exclude submission credentials
+  statement: The submission archive shall exclude API keys and other credentials.
+  fit_criterion: Inspect the staged submission and scan for known secret formats and seeded dummy 
+    credentials; the release archive contains zero valid credentials and the dummy-bearing archive is 
+    rejected by the agreed review process.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: manual-review
+    evidence: PENDING
+  source:
+    origin: "Team plan §1.2, citing introduction slide 23"
+    links: []
+
+- id: REQ-QUA-001
+  type: quality
+  title: Deterministic repeatability
+  statement: The policy boundary shall produce the same outcome and reason with the same validated 
+    inputs, applicable authoritative state and policy revision.
+  fit_criterion: Repeat and reorder policy evaluations using fixed fixtures. For identical complete 
+    input/state/revision tuples the outcome and reason have zero mismatches; separately verify that 
+    metadata such as timestamps can differ.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: unit-test
+    evidence: PENDING
+  source:
+    origin: "Derived from the deterministic enforcement obligation"
+    links:
+    - "docs/architecture/invariants.md"
+
+- id: REQ-QUA-002
+  type: quality
+  title: Conflicting moderation writes
+  statement: If concurrent moderation or retry workflows are adopted, the team shall define legal 
+    successor transitions, replay identity, and reconciliation behavior for uncertain responses. The 
+    mandatory no-duplicate-effect, no-stale-conflict and no-false-success boundaries in REQ-INV-002, 
+    REQ-INV-004 and REQ-FUN-001 apply wherever these situations can occur.
+  fit_criterion: Exercise two opposite actions on one case revision, duplicate delivery, lost 
+    acknowledgment, and missing audit or state write. Check both response and outcome against the 
+    approved transition/replay contract. No duplicate committed decision or side effect, conflicting 
+    commit on the same version, or false success is permitted.
+  priority: should
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Attachment 1 §4H; derived risk around REQ-INV-004"
+    links:
+    - "docs/architecture/runtime-policy-catalog.md"
+
+- id: REQ-QUA-003
+  type: quality
+  title: Report semantic evaluation by slice
+  statement: The evaluation report shall publish reproducible agreement and 
+    false-positive/false-negative results by approved policy category and selected context slices, 
+    using a fixed labeled evaluation set, predefined label mapping and explicit denominators.
+  fit_criterion: >-
+    On a pinned labeled set of at least 100 cases, pre-register label mapping, model/prompt/policy
+    versions and evaluation environment. Provisional release target: overall agreement >= 85%
+    (agreed classifications / evaluable cases); report accuracy and FP/FN counts and rates for
+    every populated policy category and context slice, each with numerator, denominator and sample
+    count. Mark empty denominators N/A, not zero; publish unknown/disagreement counts separately.
+    Run adversarial invariant tests alongside the evaluation and require zero observed
+    consequential policy-boundary bypasses; an agreement pass cannot override an invariant
+    failure. Buna (Testing Lead) and PM must ratify thresholds and slice coverage before release.
+    Additional provisional slice criteria: include at least 20 labeled high-severity-positive
+    cases and target high-severity recall >= 90% (true high-severity positives detected / all
+    labeled high-severity positives). Publish a separate confusion matrix for each policy category
+    with at least 10 labeled examples; for categories with fewer than 10 examples report
+    insufficient sample size instead of claiming a pass. Require 100% of evaluation cases to be
+    accounted for as evaluable, unknown, or failed, with no omitted cases. All thresholds and the
+    fixed sample composition require Testing Lead and PM ratification.
+  priority: should
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: live-test
+    evidence: PENDING
+  source:
+    origin: "Attachment 1 §4J and D4 behavioral verification"
+    links:
+    - "docs/code-governance/verification-constraints.md"
+
+  provisional: true
+- id: REQ-PER-001
+  type: performance
+  title: Measure end-to-end latency
+  statement: The system shall measure elapsed time from accepted intake to a confirmed triage outcome 
+    (advisory result or durably confirmed human-review hold), or to a truthful unconfirmed/failure 
+    response, using a documented workload and timing anchors.
+  fit_criterion: >-
+    Under a provisional benchmark of at least 100 moderation submissions, single-request
+    concurrency, and a documented provider/model, host and network configuration, target p95 <=
+    10000 ms from accepted intake to observable terminal response; at least 95% of submissions
+    should reach confirmed triage or confirmed durable human-review hold within 10000 ms. Count
+    every accepted request in the denominator and report normal, held/fallback, timeout and
+    unresolved/failure groups separately; publish p50/p95, per-group sample counts, timeout counts
+    and unconfirmed counts. Never count uncertain queue writes as confirmed or bypass human review
+    to meet latency. The workload and numeric thresholds require Buna and PM ratification.
+    Coordination pending with Shiyi on PR #15: ADR-001 proposes a 20000 ms timeout for one
+    model invocation, while this registry proposes 10000 ms end-to-end p95. They measure
+    different things; no equivalence or agreement is claimed. Confirm safe early fallback,
+    asynchronous response semantics and durability evidence before deciding the release target.
+    Additional provisional targets: report p50 <= 5000 ms and p95 <= 10000 ms on at least 100
+    accepted submissions per run, across 2 independently recorded runs with the same documented
+    workload. Require 100% of accepted requests to appear in the timing dataset, including
+    failures and unconfirmed queue handoffs. An unconfirmed handoff is not a successful triage
+    even if the API replies within the latency limit. These extra targets require Testing Lead and
+    PM ratification.
+  priority: could
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: live-test
+    evidence: PENDING
+  source:
+    origin: "Attachment 1 §4K and ADR-001 reconsideration conditions"
+    links:
+    - "docs/architecture/adr/001-placeholder.md"
+
+  provisional: true
+- id: REQ-COS-001
+  type: cost
+  title: Account for provider usage
+  statement: The system shall account for provider-reported input and output tokens for each 
+    invocation attempt, including retries, and record missing usage as unknown. A provisional 
+    per-logical-request token budget shall trigger safe cost controls without granting the model 
+    enforcement authority.
+  fit_criterion: >-
+    For a benchmark of at least 100 logical moderation requests under the recorded model/prompt
+    configuration, target >= 95% of requests with fully reported usage at <= 4000 combined
+    input+output tokens including retries; count unknown-usage requests separately and never
+    exclude them silently from coverage. The provisional ADR-001-aligned per-invocation
+    context envelope is 8192 tokens: up to 6144 input tokens, 1024 generated output tokens and
+    1024 reserved tokens. Reserve is unused context headroom, not actual billed usage. Validate
+    the context envelope before each model invocation; if it cannot be met, use a durably
+    confirmed human-review hold (or truthfully report an unconfirmed handoff), with no automatic
+    disposition. The separate total budget for a logical request including retries is OPEN
+    for architecture, testing and PM review; 8192 must not be described as that aggregate cap. Verify
+    normal, retry, missing-usage, budget-exhausted and provider-overrun fixtures; reconcile
+    input/output per attempt and report complete-usage coverage. Buna and PM must ratify token
+    targets and model assumptions. Additional provisional targets: median combined usage <= 2500
+    tokens per logical request and p95 combined usage <= 4000 tokens among fully observed
+    requests, measured with at least 100 fully observed logical requests. Target >= 95% complete
+    provider usage reporting on the designated successful-request benchmark; report
+    failed-provider attempts and their unknown usage in a separate count and denominator, never as
+    zero tokens. Limit the planned provider-call retry policy to at most 2 total invocation
+    attempts per logical request before safe hold; do not retry if the per-invocation envelope cannot be met or the pending aggregate
+    request-budget policy prevents another attempt. Shiyi (Architecture Lead), Buna (Testing Lead)
+    and PM must ratify these targets before any value becomes a release gate.
+  priority: could
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: integration-test
+    evidence: PENDING
+  source:
+    origin: "Attachment 1 §4K and blueprint §11"
+    links:
+    - "architecture-blueprint.md"
+
+  provisional: true
+- id: REQ-GOV-001
+  type: governance
+  title: OpenCode implementation provenance
+  statement: Implementation changes shall have traceable OpenCode session evidence and recorded human 
+    supervision.
+  fit_criterion: For a sampled code or test change, trace paths and commit to the corresponding 
+    session, human plan approval and AI-use-log entry. A missing evidence link fails review.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: manual-review
+    evidence: PENDING
+  source:
+    origin: "Team plan §1.3 and repo Prompt.md"
+    links:
+    - "AGENTS.md"
+    - "Prompt.md"
+    - "docs/ai-use-log.yaml"
+
+- id: REQ-GOV-002
+  type: governance
+  title: Approve tests before implementation
+  statement: The team shall record human test-plan approval before implementing a covered change.
+  fit_criterion: For a code PR, verify the referenced issue exists and has explicit human approval 
+    preceding the first implementation commit. Missing, fake and late approval fixtures fail the 
+    acceptance check.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: ci-gate
+    evidence: PENDING
+  source:
+    origin: "Course gate 1 per repo design and Prompt.md"
+    links:
+    - "scripts/check_test_approval.py"
+    - "Prompt.md"
+    - "docs/debt-register.md"
+
+- id: REQ-GOV-003
+  type: governance
+  title: Validate the registry
+  statement: The registry shall pass validation against the repository requirement schema before 
+    merge.
+  fit_criterion: The updated Gate 3 validator validates the requirements registry against the JSON Schema, accepts valid registry data, and rejects invalid entries including duplicate IDs, missing required fields, invalid lifecycle statuses, and invariant violations.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: ci-gate
+    evidence: PENDING
+  source:
+    origin: "Course D1 and repo workflow gate 3"
+    links:
+    - "docs/req/req-schema.json"
+    - "scripts/validate_requirements.py"
+
+- id: REQ-GOV-004
+  type: governance
+  title: Trace acceptance evidence
+  statement: Each baselined requirement shall trace to its source, accountable architectural 
+    responsibility and verification evidence. Gate and test design evidence shall be identifiable 
+    separately from execution evidence.
+  fit_criterion: Confirm exact ID correspondence between the adopted registry and the authoritative 
+    Architecture matrix. Each baselined row has an origin, role and criterion. At implementation 
+    acceptance, verify test references cite IDs, and each invariant has an executed negative case 
+    whose result would expose a violation.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: structural-check
+    evidence: PENDING
+  source:
+    origin: "Repository AGENTS.md §6 and D2.4/D4"
+    links:
+    - "AGENTS.md"
+    - "docs/architecture/trace-matrix.md"
+    - "docs/code-governance/verification-constraints.md"
+
+- id: REQ-GOV-005
+  type: governance
+  title: Protect safety-critical changes
+  statement: Safety-critical implementation changes shall have an approved ADR and explicit human 
+    approval.
+  fit_criterion: Match the policy change to an accepted ADR and named approval in the PR record. A 
+    path change without the ADR or required approval is rejected before merge.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: manual-review
+    evidence: PENDING
+  source:
+    origin: "Repository AGENTS.md §7 and D2 permission model"
+    links:
+    - "AGENTS.md"
+    - "docs/architecture/permission-model.md"
+
+- id: REQ-GOV-006
+  type: governance
+  title: Run static checks
+  statement: The CI pipeline shall block a proposed change that fails the required lint or type 
+    checks.
+  fit_criterion: Run workflow fixtures producing one lint error and one type error separately. The 
+    required check fails each time. A clean comparison succeeds.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: ci-gate
+    evidence: PENDING
+  source:
+    origin: "Repository CI gate 2 and D4"
+    links:
+    - ".github/workflows/ci.yml"
+    - "docs/code-governance/verification-constraints.md"
+
+- id: REQ-GOV-007
+  type: governance
+  title: Block offline regressions
+  statement: The CI pipeline shall block changes that regress the offline suite.
+  fit_criterion: Inject a known offline failure into an isolated change. The required CI check fails. 
+    Successful rerun of the full preceding offline suite produces zero failures without network 
+    access.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: ci-gate
+    evidence: PENDING
+  source:
+    origin: "Repository CI gate 5 and D4"
+    links:
+    - ".github/workflows/ci.yml"
+    - "docs/code-governance/verification-constraints.md"
+
+- id: REQ-GOV-008
+  type: governance
+  title: Correlate AI-use changes
+  statement: Covered implementation PRs, including applicable workflow changes, shall include a 
+    corresponding AI-use-log entry in the same change.
+  fit_criterion: For a covered code or workflow-only PR, verify an absent log update blocks. Review 
+    rejects an unrelated or empty log change. An acceptable entry links the actual session, relevant 
+    paths and change scope.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: ci-gate
+    evidence: PENDING
+  source:
+    origin: "Repository AGENTS.md §6 and CI gate 6"
+    links:
+    - "scripts/check_ai_use_log.py"
+    - "docs/ai-use-log.yaml"
+
+- id: REQ-GOV-009
+  type: governance
+  title: Protect main using required checks
+  statement: The team shall require the blocking CI check and applicable review through main-branch 
+    protection.
+  fit_criterion: Inspect hosted repository settings and CI requirements. With authorized hosted 
+    evidence, verify a failing required check blocks even with review, and missing required review 
+    blocks even with passing checks. Record any bypass authority. Read-only analysis may identify 
+    configuration intent but cannot establish hosted enforcement.
+  priority: must
+  status: baselined
+  changed_date: '2026-11-16'
+  verification:
+    method: manual-review
+    evidence: PENDING
+  source:
+    origin: "Team plan §1.2 and repository README"
+    links:
+    - "README.md"
+    - ".github/CODEOWNERS"
