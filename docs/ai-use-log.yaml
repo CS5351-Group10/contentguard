@@ -94,6 +94,43 @@ entries:
       consolidated evidence and transcript export.
     pr: 11
 
+  - id: AI-007
+    date: 2026-11-18
+    agent: opencode
+    model: cityu-deepseek/CS5351/DeepSeek-V4-Flash
+    operator: LIU Jianwei (61022208)
+    session_transcript: transcripts/61022208-LIU-Jianwei.md
+    scope: >-
+      src/contentguard/policy/{contracts,errors,snapshot,prefilter,engine,enforcement,store}.py,
+      src/contentguard/audit/{contracts,errors,repository}.py,
+      src/contentguard/escalation/{contracts,repository}.py,
+      test/offline/{conftest,test_policy_determinism,test_policy_justification,
+      test_escalation_routing,test_audit_completeness,test_invariants}.py,
+      test/offline/fixtures/forbidden_enforcement/rogue_module.py.txt
+    summary: >-
+      S1 deterministic policy kernel + audit subsystem. PolicySnapshot with a fixed
+      built-in reason catalog, literal case-folded prefilter, explicit severity rank,
+      mandatory-REJECT floor, high-severity escalation, human-review transition with
+      reviewer attribution, atomic case/queue/audit commit in one SQLite transaction,
+      exactly one audit record per committed decision, replay-safe commit and a
+      test-side AST boundary checker. 101 new offline tests (109 total); ruff, both mypy
+      commands and gate 3 clean. Step 7 review path covers normal holds, high-severity
+      and typed-failure cases; pinned-snapshot review/replay after activation is tested;
+      stale-review replay returns a controlled CONFLICT; final-state/held-without-review
+      state conflicts return CONFLICT rather than FAILED; normal HOLD/ESCALATE decisions
+      set requires_human_review=True.
+    human_interventions: 11
+    intervention_summary: >-
+      Delegated plan approval with scope correction; rejected a typing shortcut; detected
+      and reverted an unauthorized docs/ai-use-log write; rejected a forgeable string
+      authority token; required pinned-snapshot replay; required the full review path
+      (normal hold too); required the structural checker to prove a failing fixture;
+      accepted only after independent full verification; required controlled
+      stale-review replay errors; required state-conflict status alignment; required the
+      P1 review semantics/coverage fixes (requires_human_review, Invalid/Stale review
+      CONFLICT mapping, missing negative tests).
+    pr: 41
+
   - id: AI-009
     date: 2026-11-18
     agent: opencode
