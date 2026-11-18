@@ -274,7 +274,12 @@ The cases also show the cost of oversight. The PM is the default reviewer and th
 One short paragraph (300–500 words) per member, with name and student ID. **Collection deadline: 2026-11-22 18:00 HKT.** Members write their own paragraphs; the PM only assembles them and does not fabricate or rewrite another member's reflection.
 
 ### LIU Jianwei (61022208)
-TBD — author to supply.
+
+I came into this project expecting to manage a team that used an AI coding agent. What I actually had to manage was the evidence that the agent and the team produced. The first weeks were mostly about building the process: the repository as the source of truth, the requirement registry as the scope authority, test plans before code, the six gates, the review-memo ledger. The S1 build showed why. The OpenCode session could produce a policy kernel in five checkpoints, but it also wrote a human-owned ai-use-log file, proposed a forgeable authority token, and used the active snapshot instead of the pinned one on replay. Each of those was caught by a human reading the diff, not by the agent's own summary. The lesson I keep returning to is that an agent's completion report is a claim, not evidence; the PM has to rerun the commands and read the diffs.
+
+The process was not clean. I pushed a commit seven seconds after a reviewer approved a PR and dismissed the approval; we reset the head and re-approved, and the incident became the author-merge rule in #39. I let the #11 PR cycle through several rounds before the empty test file and the overwritten transcript were fixed. The review bottleneck was real (TD-6), and I sometimes trusted a green gate for more than it checked. The fixes were procedural, not rhetorical: a collection-count follow-up (#38), rule 6, explicit provisioning of the AI-use log, and an insistence that planned rows in the evaluation logbook are not evidence.
+
+What I would keep: plan approval before code, the review memo as a written judgment, and the distinction between what is merged, what is open, and what is planned. What I would change: start the transcript annotation earlier, give the domain owners more of the review load, and treat the debt register as a live checklist rather than a report artifact. The agent made the team faster; the human work was deciding what the speed was allowed to claim.
 
 ### HAN Mei (60914643)
 TBD — author to supply.
