@@ -207,3 +207,40 @@ trusted versioned constants: advisory-only authority, untrusted-data boundary,
 mandatory human review, failure fallback, required schema and citation rules.
 Reinsert it as instructions, not inside the untrusted summary, then recount and
 validate all required constraints before dispatch.
+
+
+## Addendum — fixed evaluation evidence maintenance (2026-11-17)
+
+Status: Proposed for repository review; the architecture owner approved the scope on 2026-11-17 (PR #37 comment). This section becomes the recorded decision when this PR merges; it does not itself authorize implementation.
+
+
+Context: PR #37's fixed corpus is named INV-5 verification evidence. Structural constraint 7 therefore requires an architecture decision and human review before corpus maintenance. The existing ADR-001 establishes required semantic evaluation but does not expressly describe the maintenance operation. This addendum supplements that decision without changing the invariant or inventing measured compliance.
+
+### Decision proposed
+
+Permit a narrowly reviewed maintenance revision of the PR #37 candidate evaluation corpus for PII exclusion, same-stratum replacement where available, provenance/license/NOTICE correction, and associated reproducible artifact/version/hash/count updates. Preserve native source labels, source splits, seed 5351, deterministic ranking and original strata/quota targets. PII screening is an explicit new eligibility predicate: document and test it, rather than describing the candidate pool as unchanged.
+
+Do not change runtime prompts, model configuration, policy authority, enforcement outcomes, semantic thresholds, or label-to-policy mappings in this maintenance session. Changes to strata, quota targets, ranking/seed, threshold eligibility or semantic label mappings require a further reviewed architecture decision.
+
+### Reproducibility and review
+
+- Record the exact old/new corpus hashes and version, actual counts per source/stratum, seed, raw-input hashes, builder revision and PII-screening rule. Keep the approved sources' native labels and document provenance limitations honestly.
+- Preserve evidence of changed membership by hashes/identifiers and aggregate reasons, without republishing removed PII in review logs, transcripts or new artifacts.
+- The operator manually reviews the resulting tracked corpus for identifiers. Deterministic tests reject identified PII patterns and preserve schema, label semantics, selection determinism and stated coverage. A regex pass alone is not a full privacy review.
+- NOTICE, attribution and source permissions remain subject to PM/governance review. This ADR is not a license determination or permission to publish unreviewed raw text.
+
+### Insufficient safe replacements
+
+If the previously PM-authorized 95-record fallback is used, record exactly which quota/coverage targets are unmet and preserve the original targets as unmet. Do not silently redefine 80/20 or any stratum target as satisfied. A reduced artifact is provisional evidence only: it does not satisfy the >=100-case criterion in candidate QUA-003 or the >=100-labeled-row prerequisite for strict-gate activation in verification constraints. Restore required coverage through a subsequent reviewed corpus revision before making those acceptance claims. No invariant or threshold is waived by this fallback.
+
+### Gate 4 evidence validity
+
+Treat the changed corpus as a new version; replay results for the previous corpus do not prove this version passes. Bind any future semantic results to the exact corpus, prompt, model, policy/configuration and runner revisions. A recorded-output replay must match those revisions; re-running stale outputs after a prompt/model change cannot validate the changed behavior. This addendum does not close TD-1, establish a blocking replay implementation or satisfy INV-5 by itself.
+
+### Execution prerequisites and scope
+
+Record human approval of this addendum before approving the follow-up OpenCode execution plan or running the revised builder. Cite the recorded ADR decision and test-plan #36 in that plan and implementing PR. Preserve the original implementation-before-test-approval deviation in the review memo.
+
+The follow-up session may modify the builder and its offline tests through OpenCode, with AI-004 for the follow-up and AI-003 retained for the original session. Existing raw-path restrictions remain: the agent does not read `/tmp/raw_*.jsonl` or change frozen permissions; the operator executes the builder with raw inputs outside Git and records that division of work. No provider call is required for corpus maintenance.
+
+Human architecture approval, separate human execution-plan approval, PM/governance data review and PR review remain distinct records. No approval date, test execution, transcript intervention or hours are asserted by this proposed text.
