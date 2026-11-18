@@ -83,7 +83,18 @@ entry, so nothing below rewrites any recorded hours.
 
 | Member | Phase | Hours | What |
 |---|---|---|---|
-| — | — | — | — |
+| LIU Jianwei | ① | 12.5 | 11-14 proposal authoring 3.5h + 11-15 repo kickoff/governance 9.0h; anchors: PR #8 man-hours comment |
+| LIU Jianwei | ② | 3.5 | 11-16 man-hours protocol + RM-002 backfill + CONTRIBUTING guide (incl. 0.3h [borderline] session wrap-up); anchors: PR #8/#9/#10 comments |
+| LI Shiyi | ② | 5.0 | 11-16 architecture blueprint, ADR-001, module interface contracts; anchor: PR #15 body |
+| HUANG Hongwei | ② | 4.25 | 11-16 PR #8 re-review 2.0h + PR #17 domain review/debt register 2.0h + PR #30 review follow-up 0.25h; anchors: PR #8/#17/#30 comments |
+| HUANG Hongwei | ③ | 1.0 | 11-17 #33 rebase/review fixes 0.5h + #37 data-governance answers 0.5h; anchors: PR #33/#37 comments |
+
+> Aggregated by the PM on 2026-11-18 00:50 HKT from anchored, member-reported entries.
+> LIU's 16.0h covers the #8/#9/#10 report through early 11/16; later phase-②/③ PM work
+> (docs PRs #16/#17/#29, reviews) is not yet in the log. Not yet reported: HAN Mei (no
+> anchored phase ①/② entry), HUANG Hongwei phase ①, LI Shiyi phase ①, Buna DA phases
+> ①/②/③ (onboarding 11-17; no anchored entry). First-batch deadline: 2026-11-18 18:00
+> HKT (issue #28). No end-of-phase estimates are inserted here.
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
@@ -106,3 +117,4 @@ entry, so nothing below rewrites any recorded hours.
 | 2026-11-16 | Review-memo ledger finalized: RM-005..RM-011 appended after PR #8 merged (RM-004); provisional reviewer labels mapped in the ledger's 2026-11-16 note | D4 audit chain: reviewers post memos in PR threads, but the ledger needs one authoritative, collision-free sequence; #5/#10 provisional labels were renumbered where they collided |
 | 2026-11-16 | Repository permission: @Mei-github read → write (PM-authorized; executed via gh api from the PM workstation; verified permission=write, no pending invitation) | Requirements owner needs an org branch to run gate 4 with CI secrets; write is the minimum role (no admin granted). |
 | 2026-11-17 | PR #11: @Mei-github implemented the permanent Gate 3 requirements-validator test suite following the Testing Lead-approved Issue #24 test plan (AI-006, session `ses_e170e175cffeErOe3BcXI8zqed`); added 10 named test functions (12 pytest items), completed offline regression testing (20/20 passed), and validated all 31 requirements successfully. | REQ-GOV-003 and REQ-GOV-004 evidence: `test/offline/test_validate_requirements.py`, `test/offline/test-gate3-report.md`, `transcripts/60914643-HAN-Mei-AI-006.md`. Implementation and local verification completed. |
+| 2026-11-18 | Phase ② man-hours first batch aggregated (partial: 3 of 5 members anchored; `Report.md` §2 weights pending) via PR #40 / issue #28 | D6 evidence chain: the phase-② close needs per-phase hours; unreported cells stay `pending` rather than being estimated, and the 18:00 HKT deadline remains open for the remaining members. |
