@@ -245,10 +245,19 @@ The cases also show the cost of oversight. The PM is the default reviewer and th
 
 ## 7. Member self-reflections
 
-One short paragraph (300–500 words) per member, with name and student ID.
+One short paragraph (300–500 words) per member, with name and student ID. **Collection deadline: 2026-11-22 18:00 HKT.** Members write their own paragraphs; the PM only assembles them and does not fabricate or rewrite another member's reflection.
 
-### TODO (Name, ID)
-TBD
+### LIU Jianwei (61022208)
+TBD — author to supply.
 
-### TODO (Name, ID)
-TBD
+### HAN Mei (60914643)
+TBD — author to supply.
+
+### LI Shiyi (60938585)
+TBD — author to supply.
+
+### HUANG Hongwei (60368210)
+TBD — author to supply.
+
+### Buna DA (60105888)
+TBD — author to supply.
