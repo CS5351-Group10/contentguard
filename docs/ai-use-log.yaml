@@ -131,6 +131,37 @@ entries:
       CONFLICT mapping, missing negative tests).
     pr: 41
 
+  - id: AI-008
+    date: 2026-11-18
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-td3.md
+    scope: >-
+      test/offline/test_smoke.py, test/offline/test_governance_scaffold.py,
+      test/offline/test_gate2_safety.py, prompts/prompt_v1.0.yaml, pytest.ini,
+      src/README.md, requirements.txt, scripts/check_dependencies.py,
+      scripts/check_safety_paths.py, .github/workflows/ci.yml,
+      docs/debt-register.md, docs/ai-use-log.yaml
+    summary: >-
+      TD-3 scaffold regeneration (test_smoke keeps the 31-ID trace-matrix coverage asset;
+      prompt_v1.0 rewritten to the ADR-001 advisory contract; pytest.ini scopes the offline
+      tier; src/README describes the module layout + authority boundary) plus TD-8 / partial
+      TD-4: added requirements.txt as the single toolchain source CI installs from, a gate-2
+      pip-check + manifest step, and a path-conditional safety tier requiring an ADR/invariant
+      reference on policy/eval PRs (contract/API/call-graph checks left as TODO(TD-4)).
+      Supports REQ-GOV-005/006; prompts change makes gate 4 applicable (warn-only, TD-1).
+    human_interventions: 2
+    intervention_summary: >-
+      (1) Task brief: fixed scope to issue #42, forbade weakening assertions or adding a
+      check that cannot fail, and required TODO(TD-4) markers for work that does not exist
+      yet. (2) Plan approval with four decisions: use AI-008 (AI-007 held by PR #41);
+      allow the debt-register progress note without closing any status; replace runtime
+      parsing of invariants.md with an explicit SAFETY_PATHS constant + drift test; make
+      requirements.txt the single source CI installs from. Count matches the transcript
+      (2 human messages, 2 annotated interventions).
+    pr: 45   # opened 2026-11-18 from issue #42
+
   - id: AI-009
     date: 2026-11-18
     agent: opencode
