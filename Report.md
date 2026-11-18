@@ -1,6 +1,6 @@
 # Report.md — Process Report (D6)
 
-> **Status: DRAFT — §3–§6 drafted (2026-11-18); §2 aggregation and §7 member reflections pending.**
+> **Status: DRAFT — §3–§6 and the PM §7 reflection drafted (2026-11-18); §2 aggregation and the four other member reflections pending.**
 > Final report: ≤ 10,000 words (excluding diagrams), more than 15 pages, single-line spacing.
 
 ## 1. Team
@@ -205,7 +205,7 @@ The S1 implementation is the first full instance of this mapping: policy decisio
 
 ### 5.4 Evidence and version co-evolution
 
-Version binding is explicit across artifacts. ADR-001 and the blueprint carry the same context-envelope table; the evaluation logbook attributes the proposed values to that ADR rather than to a measured provider result. PR #37 requires a new corpus version, old/new hashes, counts, seed, raw-input hashes and a builder revision, and it requires future semantic results to bind to the exact corpus/prompt/model/policy/runner revisions. #11's trace matrix and registry were reviewed together; #41's branch was updated after #11 merged, and the AI-use log resolution keeps AI-002/AI-006 from main plus AI-007 from S1 instead of renumbering or overwriting any entry.
+Version binding is explicit across artifacts. ADR-001 and the blueprint carry the same context-envelope table; the evaluation logbook attributes the proposed values to that ADR rather than to a measured provider result. The proposed ADR addendum (#37 / PR #46) requires a new corpus version, old/new hashes, counts, seed, raw-input hashes and a builder revision, and it requires future semantic results to bind to the exact corpus/prompt/model/policy/runner revisions. #11's trace matrix and registry were reviewed together; #41's branch was updated after #11 merged, and the AI-use log resolution keeps AI-002/AI-006 from main plus AI-007 from S1 instead of renumbering or overwriting any entry.
 
 The same rule applies to the report's own evidence. The pre-#11 and post-#11 verification blocks in PR #41 are labeled separately (109 tests at `e0cc849`; 121 at `b410daf`), so a later merge cannot be mistaken for the earlier head's result. The report uses the same discipline here: it cites the head and date for each measurement.
 
@@ -234,9 +234,9 @@ This section uses two evidence sources: the PM/domain review memos in `docs/revi
 
 **6.2.5 Unverifiable "10/10 PASS" and a 0-byte test file (#11).** The agent's work claimed ten validator tests passed, but the committed test file was 0 bytes at one head; `pytest` collected zero tests and gate 5 stayed green. The PM review found the empty file, required a real 235-line/8,267-byte suite with ID-citing docstrings, and recorded the empty-test blind spot as issue #38. A later review also found that the AI-002 summary still said "temporary fixture tests passed 10/10"; the permanent suite and the AI-006 entry were the actual evidence. Evidence: PR #11 reviews 2026-11-15T19:58Z, 2026-11-16T08:21:59Z and 2026-11-17T09:09:11Z; `docs/bug-diary.md` BUG-002 context.
 
-**6.2.6 Dead evidence paths (#11).** The agent's Gate 3 report and contribution row cited `test-results/gate3/pytest-initial-run.txt`, `pytest-offline-regression.txt`, `validator-result.txt` and `transcripts/gate3/gate3-validator-v2-session.md`; none were committed and `.gitignore` did not exclude them. A D5/D6 pointer that resolves to nothing is a review defect, not evidence. The PM required the report to cite only committed artifacts or to commit sanitized outputs. Evidence: PR #11 review 2026-11-17T12:16:20Z (dead-path finding).
+**6.2.6 Dead evidence paths (#11).** The Gate 3 report and contribution row cited `test-results/gate3/pytest-initial-run.txt`, `pytest-offline-regression.txt`, `validator-result.txt` and `transcripts/gate3/gate3-validator-v2-session.md`; none were committed and `.gitignore` did not exclude them. A D5/D6 pointer that resolves to nothing is a review defect, not evidence. The PM required the report to cite only committed artifacts or to commit sanitized outputs. Evidence: PR #11 review 2026-11-17T12:16:20Z (dead-path finding).
 
-**6.2.7 P1 semantic/coverage gaps in S1.** The independent S1 review found a normal HOLD/ESCALATE decision could be enqueued while `requires_human_review` was false, stale reviews mapped to the wrong status, and several negative branches were asserted only in prose. The PM required the metadata fix, the `InvalidReviewError`/`StaleReviewError` → `CONFLICT` mapping, and the missing negative tests; the final S1 branch has 109 tests. Evidence: `transcripts/61022208-LIU-Jianwei.md:41`; commit `afe390b`.
+**6.2.7 P1 semantic/coverage gaps in S1.** The independent S1 review found a normal HOLD/ESCALATE decision could be enqueued while `requires_human_review` was false, stale reviews mapped to the wrong status, and several negative branches were asserted only in prose. The PM required the metadata fix, the `InvalidReviewError`/`StaleReviewError` → `CONFLICT` mapping, and the missing negative tests; the S1 session's final count is 109 tests; the branch merged with main collects 121. Evidence: `transcripts/61022208-LIU-Jianwei.md:41`; commit `afe390b`.
 
 ### 6.3 Human-process cases (labeled)
 
@@ -244,7 +244,7 @@ These cases are valuable oversight evidence, but they are not agent-miss cases:
 
 - **#39 — push after approval.** A second commit was pushed seven seconds after the reviewer's approval, dismissing it. The head was reset to the reviewed commit and re-approved; PR #39 documents the failure mode and the author-merge convention. Evidence: PR #39 comment 2026-11-17T14:30:50Z; RM-019 is a PR-comment memo, not yet in the ledger.
 - **#11 — transcript overwrite.** A later session replaced the earlier AI-002 transcript instead of appending to it. `transcripts/**` is frozen human-only, so this is a human-process failure; the PM restored the old transcript and created the separate AI-006 transcript/entry. Evidence: PR #11 review 2026-11-17T12:16:20Z.
-- **#37 — ADR gate before the corpus session.** The testing owner stopped before starting the session and asked whether INV-5/structural rule 7 applied. The PM confirmed it did; the architecture owner approved the addendum scope; the docs PR is still pending. The value is that the process stopped a session before it could produce unapproved corpus changes. Evidence: PR #37 comments 2026-11-17T09:16:48Z and 10:24:32Z; architecture-owner scope approval 13:35Z.
+- **#37 — ADR gate before the corpus session.** The testing owner stopped before starting the session and asked whether INV-5/structural rule 7 applied. The PM confirmed it did; the architecture owner approved the addendum scope; the docs PR is open as #46. The value is that the process stopped a session before it could produce unapproved corpus changes. Evidence: PR #37 comments 2026-11-17T09:16:48Z and 10:24:32Z; architecture-owner scope approval 13:35Z.
 - **#16 — manifest footnote.** The over-restrictive `scripts/**` session-owner footnote conflicted with `AGENTS.md` §4 and would have blocked ordinary script work. The PM caught it, the governance owner confirmed the intended scope, and the correction was deferred to issue #38 rather than silently changed in the approved head. Evidence: PR #16 comment 2026-11-17T09:09:02Z; issue #38.
 - **#32 / #10 — review catches on human-authored docs.** RM-012 records the missing root CODEOWNERS patterns; RM-010 records the roster filename/name mismatch. These show that the review process is not only an agent guardrail; it is a general quality control.
 
