@@ -44,22 +44,159 @@ entries:
     pr: 7   # merged 2026-11-15 as 9cd38f7
 
   - id: AI-002
+    date: 2026-11-16
+    agent: opencode
+    model: Big Pickle
+    operator: HAN Mei (60914643)
+    session_transcript: transcripts/60914643-HAN-Mei-AI-002.md
+    scope: "scripts/validate_requirements.py"
+    summary: >-
+      Developed and enhanced the Gate 3 requirements validator
+      for REQ-GOV-003. Added duplicate ID detection, ID/type
+      consistency checks, invariant safety-field validation,
+      improved schema error reporting, and failure exit handling.
+      Performed preliminary verification using temporary fixtures.
+      Session: ses_e1fa17e9dffeD1bxtEnItAbngB.
+    human_interventions: 3
+    intervention_summary: >-
+      Approved the implementation plan before code changes.
+      Separately authorized the verification stage.
+      Redirected the agent to classify the traceability-matrix
+      failure as an unresolved architecture dependency,
+      not a validator defect.
+    pr: 11
+
+  - id: AI-006
     date: 2026-11-17
     agent: opencode
-    model: opencode/deepseek-v4.1-flash-free
-    operator: DA Buna (60105888)
-    session_transcript: transcripts/60105888-DA-Buna.md
+    model: Big Pickle
+    operator: HAN Mei (60914643)
+    session_transcript: transcripts/60914643-HAN-Mei-AI-006.md
     scope: >-
-      scripts/build_evaluation_dataset.py,
-      test/eval/moderation_eval.jsonl, test/eval/README.md,
-      test/offline/test_evaluation_dataset.py
+      test/offline/test_validate_requirements.py,
+      test/offline/test-gate3-report.md
     summary: >-
-      Built a deterministic, hash-pinned local dataset builder and a fixed
-      100-record moderation evaluation set (80 Jigsaw, 20 COLD; seed 5351).
-      Added provenance and label documentation plus 18 offline validation tests.
-      Preserved source-specific labels and verified deterministic regeneration.
+      Following the Testing Lead's review of the test plan in
+      Issue #24, developed the permanent Gate 3 pytest suite
+      for the existing requirements validator. Added ten named
+      test functions covering REQ-GOV-003 and REQ-GOV-004,
+      using isolated temporary fixtures. Executed 12 targeted
+      test items and the complete offline regression suite
+      (20 items), with all tests passing. Also consolidated
+      Gate 3 verification evidence.
+      Session: ses_e170e175cffeErOe3BcXI8zqed.
+    human_interventions: 5
+    intervention_summary: >-
+      Approved implementation after initial inspection;
+      specified and refined the ten approved test cases;
+      authorized targeted testing; authorized full offline
+      regression and validator verification; requested
+      consolidated evidence and transcript export.
+    pr: 11
+
+  - id: AI-007
+    date: 2026-11-18
+    agent: opencode
+    model: cityu-deepseek/CS5351/DeepSeek-V4-Flash
+    operator: LIU Jianwei (61022208)
+    session_transcript: transcripts/61022208-LIU-Jianwei.md
+    scope: >-
+      src/contentguard/policy/{contracts,errors,snapshot,prefilter,engine,enforcement,store}.py,
+      src/contentguard/audit/{contracts,errors,repository}.py,
+      src/contentguard/escalation/{contracts,repository}.py,
+      test/offline/{conftest,test_policy_determinism,test_policy_justification,
+      test_escalation_routing,test_audit_completeness,test_invariants}.py,
+      test/offline/fixtures/forbidden_enforcement/rogue_module.py.txt
+    summary: >-
+      S1 deterministic policy kernel + audit subsystem. PolicySnapshot with a fixed
+      built-in reason catalog, literal case-folded prefilter, explicit severity rank,
+      mandatory-REJECT floor, high-severity escalation, human-review transition with
+      reviewer attribution, atomic case/queue/audit commit in one SQLite transaction,
+      exactly one audit record per committed decision, replay-safe commit and a
+      test-side AST boundary checker. 101 new offline tests (109 total); ruff, both mypy
+      commands and gate 3 clean. Step 7 review path covers normal holds, high-severity
+      and typed-failure cases; pinned-snapshot review/replay after activation is tested;
+      stale-review replay returns a controlled CONFLICT; final-state/held-without-review
+      state conflicts return CONFLICT rather than FAILED; normal HOLD/ESCALATE decisions
+      set requires_human_review=True.
+    human_interventions: 11
+    intervention_summary: >-
+      Delegated plan approval with scope correction; rejected a typing shortcut; detected
+      and reverted an unauthorized docs/ai-use-log write; rejected a forgeable string
+      authority token; required pinned-snapshot replay; required the full review path
+      (normal hold too); required the structural checker to prove a failing fixture;
+      accepted only after independent full verification; required controlled
+      stale-review replay errors; required state-conflict status alignment; required the
+      P1 review semantics/coverage fixes (requires_human_review, Invalid/Stale review
+      CONFLICT mapping, missing negative tests).
+    pr: 41
+
+  - id: AI-008
+    date: 2026-11-18
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-td3.md
+    scope: >-
+      test/offline/test_smoke.py, test/offline/test_governance_scaffold.py,
+      test/offline/test_gate2_safety.py, prompts/prompt_v1.0.yaml, pytest.ini,
+      src/README.md, requirements.txt, scripts/check_dependencies.py,
+      scripts/check_safety_paths.py, .github/workflows/ci.yml,
+      docs/debt-register.md, docs/ai-use-log.yaml
+    summary: >-
+      TD-3 scaffold regeneration (test_smoke keeps the 31-ID trace-matrix coverage asset;
+      prompt_v1.0 rewritten to the ADR-001 advisory contract; pytest.ini scopes the offline
+      tier; src/README describes the module layout + authority boundary) plus TD-8 / partial
+      TD-4: added requirements.txt as the single toolchain source CI installs from, a gate-2
+      pip-check + manifest step, and a path-conditional safety tier requiring an ADR/invariant
+      reference on policy/eval PRs (contract/API/call-graph checks left as TODO(TD-4)).
+      Supports REQ-GOV-005/006; prompts change makes gate 4 applicable (warn-only, TD-1).
     human_interventions: 2
     intervention_summary: >-
-      Operator approved the revised execution plan and requested a focused
-      Ruff E402 fix; the operator reviewed the resulting scope and validation.
-    pr: 36
+      (1) Task brief: fixed scope to issue #42, forbade weakening assertions or adding a
+      check that cannot fail, and required TODO(TD-4) markers for work that does not exist
+      yet. (2) Plan approval with four decisions: use AI-008 (AI-007 held by PR #41);
+      allow the debt-register progress note without closing any status; replace runtime
+      parsing of invariants.md with an explicit SAFETY_PATHS constant + drift test; make
+      requirements.txt the single source CI installs from. Count matches the transcript
+      (2 human messages, 2 annotated interventions).
+    pr: 45   # opened 2026-11-18 from issue #42
+
+  - id: AI-009
+    date: 2026-11-18
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-gate4.md
+    scope: >-
+      scripts/eval_runner.py, scripts/check_semantic_eval.py,
+      test/eval/replay/good_prompt.jsonl, test/eval/replay/bad_prompt.jsonl,
+      test/offline/test_eval_runner.py, docs/ai-use-log.yaml
+    summary: >-
+      TD-1 semantic-evaluation replay harness for gate 4 (REQ-INV-005 / REQ-QUA-003).
+      Added scripts/eval_runner.py: loads the fixed corpus + the human-authored
+      test/eval/expectation_policy.yaml, derives expected verdict/severity per row by
+      first-match-wins (uncovered row = hard failure), compares against a recorded replay
+      artifact, computes agreement (>=0.80), zero-tolerance safety escapes (hard 0) and
+      false-block (<=0.10 aggregate + per slice, hard only for >=10-row slices), prints a
+      per-slice table with per-row rule/derivation echo. Wired check_semantic_eval.py to
+      the runner with an EXPLICIT replay path (--replay/EVAL_REPLAY; never defaults to a
+      fixture). Gate 4 stays warn-only and ci.yml is untouched because the corpus is not
+      on main (#37 open); --strict flip deferred. Added good/bad replay fixtures (labelled
+      FIXTURES, not model output) and test/offline/test_eval_runner.py (19 tests at head
+      2395978, incl. negatives for safety escape, uncovered row, missing-set fail-closed,
+      bad-prompt blocked; honest cannot-evaluate-without-replay case). Follow-up at the PM's
+      warn-only scope decision (2026-11-18): load_policy validation (+7 negative tests),
+      gate-4 ground-truth protection (+3 tests), --replay=PATH + usage errors (+4 tests),
+      false-block N/A aggregate (+1 test) — 34 test functions total after the follow-up.
+      Session: OpenCode gate-4 session, 2026-11-18.
+    human_interventions: 2
+    intervention_summary: >-
+      (1) Task brief: fixed the derivation contract (first match wins; uncovered row is a hard
+      failure), forbade editing the human-authored policy file, and required the --strict decision
+      to follow evidence. (2) Plan approval: corrected the stale REQ-QUA-003 "provisional" marking
+      (it is baselined on main), accepted the fail-closed reading (absent corpus warn-only,
+      evaluated uncovered row fatal), and required that gate 4 never reports PASS from a shipped
+      fixture — an explicit replay path and an honest "cannot evaluate" case.
+    pr: 47   # opened 2026-11-18 from issue #26
+

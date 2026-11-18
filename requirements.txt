@@ -1,0 +1,20 @@
+# Declared toolchain for CI gate 2 and local development (TD-8).
+#
+# This file is the single source of truth: .github/workflows/ci.yml installs from it
+# (`pip install -r requirements.txt`), so the workflow and the manifest cannot drift.
+# The manifest records a compatible floor, not the exact set CI happened to install.
+# Observed versions: pytest 8.4.2-9.2.0, mypy 1.20.2-2.4.1 (the ranges span both ends).
+# pyyaml/jsonschema are the distribution names for the `yaml`/`jsonschema` imports used
+# by scripts/validate_requirements.py.
+pytest>=8,<10
+ruff>=0.6,<1
+mypy>=1.11,<3
+pyyaml>=6,<7
+jsonschema>=4,<5
+
+# Type stubs for pyyaml. Declared here because gate 2b (`mypy`) reports
+# `import-untyped` for an installed-but-unannotated `yaml` on current mypy, and
+# `--ignore-missing-imports` does not cover that error class. Without this line the
+# manifest would be an invisible source of CI failure (TD-8).
+types-PyYAML>=6,<7
+

@@ -15,7 +15,7 @@
 | Requirements — D1 registry + req-schema + policy docs | HAN Mei (60914643) | pending (PR #11) | @Mei-github |
 | Architecture — D2 artifacts (multi-round ADD) + D9 Prompt.md | LI Shiyi (60938585) | [60938585-LI-Shiyi.md](60938585-LI-Shiyi.md) | @xiaolizi33 |
 | Governance & CI — D3 + D7 gates + README + ai-use-log | HUANG Hongwei (60368210) | [60368210-HUANG-Hongwei.md](60368210-HUANG-Hongwei.md) | @creator-xiyuan |
-| Testing — D4 verification governance + D8 suites + bug-diary/debt-register | Buna DA | pending onboarding | — |
+| Testing — D4 verification governance + D8 suites + bug-diary/debt-register | Buna DA (60105888) | [60105888-DA-Buna.md](60105888-DA-Buna.md) | @davina-cs |
 
 ## Add yourself (first PR exercise)
 
@@ -29,8 +29,11 @@
    Docs-only PR: **no test-plan marker needed** — gate 1 passes docs-only changes
    automatically; gates 2 (lint/type), 3 (schema) and 5 (regression) run as usual.
 5. PM reviews (the reviewer's memo lands in `docs/review-memo.md` with the next RM
-   number), approves, merges, and logs ~0.5 h in `docs/contribution-log.md`.
+   number), approves, and logs ~0.5 h in `docs/contribution-log.md`; once
+   `blocking-gates` is green and the verdict is recorded, **you (the author) merge**
+   with squash.
 
-Final names + student IDs + contributions are transcribed into `Report.md` §2 at
-submission; man-hours evidence lives in `docs/contribution-log.md`. No emails in
+Final names + student IDs are transcribed into `Report.md` §1 (roster), and the
+relative-contribution table into §2, at submission; man-hours evidence lives in
+`docs/contribution-log.md`. No emails in
 this directory — the submitted zip carries no PII beyond what D6 requires.
