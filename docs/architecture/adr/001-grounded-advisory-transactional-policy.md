@@ -2,6 +2,7 @@
 
 > Status: APPROVED — PM LIU Jianwei approved this ADR on 2026-11-16; the
 > requirements/testing co-signs remain pending (Mei PR #11 / Buna onboarding).
+> Owner (architecture): Shiyi LI.
 > AI-assisted documentation; no implementation or test-execution evidence is claimed.
 
 ## Baseline and scope
@@ -25,11 +26,6 @@ for this build (no full benchmark commitment). Numerical criteria remain provisi
 future acceptance targets, not implemented/verified claims or an implicit registry
 edit. Record later scope/priority changes explicitly with the requirements owner.
 Objections to that working scope remain open until 2026-11-17 09:00 HKT.
-
-
-
-Title: Modular monolith with grounded advisory analysis and transactional policy authority.
-Status: APPROVED. Date: 2026-11-16. Owner: Shiyi LI. Human approval: PM LIU Jianwei, 2026-11-16; requirements/testing co-signs pending.
 
 ### Architectural design process (ADD)
 
