@@ -284,5 +284,5 @@ entries:
       paginate /issues/{n}/comments and /pulls/{n}/commits (per_page=100 + Link), define bot
       detection as user.type=="Bot" OR a "[bot]" login, and normalise both timestamps to UTC.
       Count matches the transcript (2 human messages).
-    pr: pending   # opened 2026-11-19 from issue #58 (number assigned at PR creation)
+    pr: 61   # opened 2026-11-19 from issue #58 (number assigned at PR creation)
 
