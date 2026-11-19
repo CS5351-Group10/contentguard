@@ -126,9 +126,10 @@
 >   re-review; the posted RM-021 changes-requested reviews (on `1ff2050`,
 >   re-issued on `8111850`) are superseded and not a final memo.
 >   RM-034 is the approved #57 review memo at `72eb656`; #57 squash-merged as
->   `8e7e2af` on 2026-11-19 (entry in the next ledger update). RM-035 is the
->   approved #61 review memo, re-issued at `6ffaecc` after the base update
->   dismissed the `7901e8c` approval (entry after #61 merges).
+>   `8e7e2af` on 2026-11-19. RM-035 is the approved #61 review memo, re-issued
+>   at `6ffaecc` after the base update dismissed the `7901e8c` approval; #61
+>   squash-merged as `6264e89` on 2026-11-19. Both entries go in the next
+>   ledger update.
 > - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
 >   RM-017.
 
