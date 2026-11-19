@@ -1,8 +1,8 @@
-# ContentGuard — Community Content Policy v1.0 (formal)
+# ContentGuard — Community Content Policy v1.0-draft.2
 
 **Document ID:** CG-POL-001
-**Version:** 1.0
-**Status:** formal
+**Version:** 1.0-draft.2
+**Status:** Draft — Cross-review pending
 **Project:** ContentGuard
 **Document Type:** Community Moderation Policy
 **Owner:** Requirements Engineering Team
@@ -323,7 +323,7 @@ No single keyword should independently determine the final severity.
 
 - S3/high severity overrides lower-severity routing.
 - Where multiple categories match, retain all matched categories as evidence and route according to the highest applicable severity.
-- Do not assume missing context. If information needed for a reliable contextual determination is unavailable, route to `escalate`; if the analysis or grounding process itself fails, use `hold` under the fail-safe rule.
+- Do not assume missing context. If information needed for a reliable contextual determination is unavailable, route to `escalate`. If AI analysis, grounding, or recovery fails, a deterministic S3/high-severity or pre-filter trigger takes precedence and routes the case to `escalate`; otherwise, use the safe `hold` route. Neither failure path may produce an automated `approve` or `reject`.
 - Contextual exceptions cannot override mandatory safety rules or required human review.
 - AI-generated categories, confidence, and severity are advisory evidence, not independent disposition authority.
 
@@ -341,7 +341,7 @@ The system MUST route a case to human review when any of these operational trigg
 
 These are **review-routing triggers**, not final findings about illegality, factual authenticity, or the truth of an accusation. They introduce no unapproved numerical confidence thresholds. Multiple violations must retain their categories and follow the highest-severity rule; multiple-category matching alone does not automatically raise severity.
 
-Where AI analysis, grounding, or recovery fails operationally, use `hold` rather than asserting completed escalation. A human-review queue entry is confirmed only after the atomic persistence requirements in §4.3 are satisfied.
+Where AI analysis, grounding, or recovery fails operationally, a deterministic S3/high-severity or pre-filter trigger takes precedence and routes the case to `escalate`; otherwise, use the safe `hold` route. Neither route may produce an automated `approve` or `reject`. Both a committed review-required `hold` and a committed `escalate` require durable human-review queue placement under the atomic persistence requirements in §4.3. If persistence fails or remains uncertain, the result is `failed` or `pending_unconfirmed`, never a confirmed hold, escalation, or queue placement.
 
 ---
 
@@ -355,7 +355,7 @@ The policy-facing terms below map to the architecture's canonical case outcomes:
 |---|---|---|
 | `ALLOW` | `approve` | Confirmed local case state permitting content under the applicable policy |
 | `FLAG` | `escalate` | Persisted placement in the human-review queue; not a final disposition |
-| `HOLD` | `hold` | Safe local retention after analysis, grounding, or recovery failure |
+| `HOLD` | `hold` | Safe local retention for a non-high-severity analysis, grounding, or recovery failure; mandatory S3/high-severity or pre-filter triggers use `escalate` |
 | `REJECT` | `reject` | Local rejection authorized by the deterministic policy engine |
 
 `FLAG` is not a cosmetic marker: it requires a durably committed human-review queue entry. `escalate` is pending review, not a final determination. AI output is **advisory evidence only**; it never independently authorizes a case-state transition. S3/high-severity content cannot receive automated `approve` or final `reject` before human review. A local `reject` is not an external-platform removal. Failed or unconfirmed writes must never be described as confirmed outcomes.
@@ -404,7 +404,7 @@ Human moderators are responsible for:
 1. User submits content; intake validates the request and its authenticated actor, idempotency key, and payload identity.
 2. AI analysis supplies advisory evidence; a deterministic pre-filter and policy engine evaluate mandatory safety rules and routing constraints.
 3. The policy boundary authorizes a local `approve`, `hold`, `reject`, or `escalate` transition as permitted by §§3 and 4.1.
-4. An `escalate` transition requires a corresponding human-review queue entry.
+4. An `escalate` transition, and any `hold` requiring human review, requires a corresponding durable human-review queue entry.
 5. Case state, any required queue entry, and exactly one audit record for the logical transition commit atomically before a confirmed outcome is returned.
 6. Human moderators review escalated cases, with subsequent authorized transitions independently attributable and audited.
 
@@ -416,7 +416,7 @@ If any required write fails, the transaction is rolled back and the API reports 
 
 If an acknowledgement is lost, the system reconciles the existing logical request using the authenticated actor, idempotency key and payload identity before retrying. A retry must not create a duplicate case, queue entry, audit record or external effect. Reuse of an idempotency key with a different payload identity must not silently overwrite the original request.
 
-If AI analysis fails, times out, or returns an invalid response, the case follows the safe `hold` route; the system must not automatically approve or reject it, nor claim review-queue placement without successful persistence. Any unconfirmed commit is reconciled before returning a confirmed status.
+If AI analysis fails, times out, or returns an invalid response, a deterministic S3/high-severity or pre-filter trigger routes the case to `escalate`; otherwise, the case follows the safe `hold` route. Neither path may automatically approve or reject the content. A confirmed review-required `hold` or `escalate` requires atomic persistence of the case state, the corresponding human-review queue entry, and exactly one audit record. If persistence fails or remains uncertain, the system reports `failed` or `pending_unconfirmed` and must not claim a confirmed disposition or queue placement. Any unconfirmed commit is reconciled before returning a confirmed status.
 
 ---
 
@@ -427,7 +427,7 @@ If AI analysis fails, times out, or returns an invalid response, the case follow
 The MVP supports **only** these local moderation capabilities:
 
 - Local case state: `approve`, `hold`, `reject`, or `escalate`.
-- Persisted human-review queue entries for `escalate`.
+- Persisted human-review queue entries for `escalate` and for any `hold` requiring human review.
 - Audit records for authorized local transitions.
 
 These outcomes do not automatically change the visibility, posting permissions, or account status of any external platform. In particular, local `reject` does not remove external content, and local `escalate` denotes persisted review routing rather than a warning or final enforcement action.
@@ -476,7 +476,7 @@ Users criticizing, documenting, or opposing abusive content should not be penali
 
 ## 6.5 Ambiguous Language
 
-When intent cannot be reliably established because relevant contextual evidence is missing, use `escalate` rather than an unsupported definitive judgment. If analysis or grounding itself fails, use `hold` (§§3.2, 4.3).
+When intent cannot be reliably established because relevant contextual evidence is missing, use `escalate` rather than an unsupported definitive judgment. If analysis or grounding fails, a deterministic S3/high-severity or pre-filter trigger takes precedence and routes the case to `escalate`; otherwise, use `hold`. Neither failure path may produce an automated `approve` or `reject`, and both confirmed routes require durable human-review handoff as specified in §4.3.
 
 ## 6.6 Testable Contextual Cases
 
@@ -488,7 +488,9 @@ When intent cannot be reliably established because relevant contextual evidence 
 | Counterspeech | Quoting abuse to explicitly oppose it | Repeating abuse without oppositional context | Former may `approve`; latter follows category and severity rules |
 | Ambiguous | Evidence is insufficient to determine intent | Assuming either safety or a violation without evidence | `escalate` (or `hold` if analysis/grounding fails) |
 
-The examples above define policy expectations for deterministic positive, negative, and ambiguous tests. Evaluation-corpus coverage is maintained separately under its approved test plan and REQ-QUA-003. A contextual exception may support `approve` only if required context is present and no mandatory safety rule applies. These exceptions do not override mandatory safety invariants.
+The examples above are policy guidance and candidate test scenarios; they do not yet constitute a complete set of deterministic fixtures. Exact paired content, category, severity, evidence prerequisites, and expected outcomes remain tracked under Issue #48 and the approved evaluation and test plans. Until those fixtures are approved, an ambiguous contextual case must route to human review rather than receive an assumed expected result.
+
+A contextual exception may support `approve` only when the required context is present and no mandatory safety rule applies. Contextual exceptions never override mandatory safety invariants or required human review. Evaluation-corpus coverage is maintained separately under its approved test plan and REQ-QUA-003.
 
 ---
 
@@ -654,7 +656,4 @@ The following materials are used as research references. ContentGuard does not c
 2. Reddit. *Reddit Rules.*
    https://redditinc.com/policies/reddit-rules
 
-3. YouTube. *YouTube Community Guidelines.*
-   https://support.google.com/youtube/answer/9288567
-
-**End of Document — ContentGuard Community Content Policy v1.0**
+3. YouTube
