@@ -11,7 +11,7 @@
 | Phase | Dates | Focus | Done |
 |---|---|---|---|
 | ① Kickoff | 2026-11-15 | topic vote, role claim, repo init, branch protection, ai-use-log | ✅ |
-| ② Planning & foundation | 11-16 | requirements final, blueprint + ADR draft, governance drafts, schema gate live, **eval set live** | ⬜ |
+| ② Planning & foundation | 11-16 | requirements final, blueprint + ADR draft, governance drafts, schema gate live, **eval set live** | ✅ (closed 11-18, first-batch aggregation via PR #40) |
 | ③ Build (sessions 1–4) | 11-17 → 11-20 | deterministic core, RAG/LLM components, permission model, gates online | ⬜ |
 | ④ Refine & evaluate | 11-20 → 11-21 | semantic eval gate live, negative tests + architecture revision — **locked 11-21 23:59** | ⬜ |
 | ⑤ Final sprint | 11-22 → 11-24 | report, transcripts annotated (all 5 complete by **11-21 23:59**), demo video, slides | ⬜ |
@@ -105,6 +105,12 @@ entry, so nothing below rewrites any recorded hours.
 | PR # | Domain | Assigned CR (non-author) | PM sign-off | Arch co-sign (safety-critical) |
 |---|---|---|---|---|
 | — | — | — | — | — |
+
+> Status (2026-11-20): the authoritative domain-CR record is the Reviewer/domain
+> column of each memo in `docs/review-memo.md` (RM-001–RM-039; RM-033+ land via
+> PR #64). Backfilling 40+ domain assignments into this index before the 11-21 lock
+> is not scheduled — this table stays an index-only view and is populated at the D6
+> aggregation only if the report needs it.
 
 > Rule: no member self-certifies their own hours at phase close — the PM aggregates
 > from this log at every phase close, so the final table is defensible.
