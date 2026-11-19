@@ -6,7 +6,7 @@
 
 The table below maps all 31 requirements in the v1.0 registry. A test file or evidence item marked `TBD (Sx)` is **planned, not yet implemented or verified**. It must not be counted as passing evidence.
 
-Runtime-monitor cells name the **intended** production monitor; until the owning slice lands (S2 api / S3 analysis / S5 evaluation), monitors exist only as log/audit artifacts — treat monitor cells as planned, not verified.
+Runtime-monitor cells name the **intended** production monitor; until the owning slice lands (S2 api / S3 analysis / S5 evaluation), monitors exist only as log/audit artifacts — except the governance rows, whose monitors are the already-live CI gates. Treat product-monitor cells as planned, not verified.
 
 - **S1:** Policy kernel and audit (11/17).
 - **S2:** Intake and queue (11/18).
@@ -37,7 +37,7 @@ Runtime-monitor cells name the **intended** production monitor; until the owning
 | REQ-QUA-002 | quality | policy + DB transaction | S2 planned (not yet on main): `test/offline/test_transaction_replay.py` — opposite actions, duplicate delivery, lost ack `TBD (S2)` | conflict/duplicate metric |
 | REQ-QUA-003 | quality | eval harness | Partial evaluation evidence: `test/eval/` report + `evaluation-logbook.md`; full evaluation deferred under Issue #23 `TBD (S5)` | eval dashboard |
 | REQ-PER-001 | performance | metrics/log | Full benchmark (≥100 requests) deferred under Issue #23; performance measurement remains limited to available logging evidence `TBD (S5)` | p50/p95 latency |
-| REQ-COS-001 | cost | provider usage accounting + analysis context budget | `test/offline/test_context_budget.py` — context-budget checks (planned, lands with PR #52); usage-accounting test planned, not yet created (S2 scope); aggregate logical-request budget remains OPEN and separate from the 8192-token envelope; full benchmark deferred under Issue #23 `TBD (S2/S3)` | token usage counter |
+| REQ-COS-001 | cost | provider usage accounting + analysis context budget | `test/offline/test_context_budget.py` — context-budget checks (lands with PR #52); usage accounting planned under issue #43 and drafted on PR #52 (`test_analysis_provider.py`) — not yet on main; aggregate logical-request budget remains OPEN and separate from the 8192-token envelope; full benchmark deferred under Issue #23 `TBD (S3)` | token usage counter |
 | REQ-GOV-001 | governance | ai-use-log + transcripts | `docs/ai-use-log.yaml` + `transcripts/` + review | gate 6 + review memo |
 | REQ-GOV-002 | governance | gate 1 | `scripts/check_test_approval.py` + test-plan issues | gate 1 |
 | REQ-GOV-003 | governance | gate 3 | `scripts/validate_requirements.py` + validator tests | gate 3 |

@@ -29,7 +29,7 @@
 - **Operational fallback if violated:** audit subsystem marks the decision invalid,
   the item is reverted to the queue; the anomaly surfaces through the audit log
   reviewed by the moderation team (no paging infrastructure is in scope for this
-  build — see runtime policy catalog R-1/R-5)
+  build — see runtime policy catalog R-1/R-12 for the hold semantics)
 
 ## INV-3 — High-severity always reaches human review
 

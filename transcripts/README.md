@@ -30,9 +30,10 @@ the human action actually happened — not where the agent replied.
 
 **Format note:** the HUANG-series transcripts use a tabular "Annotated
 interventions" section instead of the inline `>>> [INTERVENTION]` marker; the type
-column uses the same four canonical types (`interrupt | redirect | approve |
-reject`). This is accepted as equivalent evidence; if inline normalization is
-done at all, it must happen before the 11-21 lock.
+column is descriptive (e.g. "Approve with corrections", "Accidental interruption",
+"Scope guard") and maps onto the four canonical types (`interrupt | redirect |
+approve | reject`). This is accepted as equivalent evidence; if inline
+normalization is done at all, it must happen before the 11-21 lock.
 
 **Excerpt policy (honesty over volume):** where a full raw dump is unavailable, a
 transcript may carry an annotated excerpt set; the file must state at the top that
@@ -50,8 +51,8 @@ guards this, but sanitization is the human responsibility here.
 
 | File(s) | Member | Session line | Annotation status |
 |---|---|---|---|
-| `61022208-LIU-Jianwei.md` | LIU Jianwei (PM) | S1 build; report citation realignment | inline ✓ |
-| `60368210-HUANG-Hongwei.md` + `-gate4.md`, `-gate4-strict.md`, `-td2.md`, `-td3.md` | HUANG Hongwei (governance & CI) | gates 2/4, TD-1/TD-2/TD-3 sessions | table format ✓ (see format note) |
+| `61022208-LIU-Jianwei.md` | LIU Jianwei (PM) | S1 build session (AI-007, CP1–CP6); D5 stage-3/4 markers added in #53 | inline ✓ |
+| `60368210-HUANG-Hongwei.md` + `-gate4.md`, `-gate4-strict.md`, `-td2.md`, `-td3.md` | HUANG Hongwei (governance & CI) | gate 4 harness/strict (TD-1), gate 1 tightening (TD-2), TD-3 scaffold + gate-2 tier | table format ✓ (see format note) |
 | `60914643-HAN-Mei-AI-002.md`, `-AI-006.md` | HAN Mei (requirements) | D1 registry; policy v1 | raw — inline annotation due 11-21 |
 | `60105888-DA-Buna-AI003.md`, `-AI004.md`, `-AI012.md` | Buna DA (testing) | evaluation corpus; release acceptance tests | inline ✓; canonical `-DA-Buna.md` lands with S5 |
 | `60938585-LI-Shiyi.md` | LI Shiyi (architecture) | S3 analysis slice | lands with PR #52 (annotation attached there) |
