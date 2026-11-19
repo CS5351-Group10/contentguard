@@ -123,9 +123,10 @@
 > - RM-031 #40 (posted RM-025; #41's Li memo is earlier); RM-032 #59
 >   (posted RM-020; #35 is earlier).
 > - RM-033 is reserved for PR #62's final memo after its pending test fixes and
->   re-review; the posted RM-021 changes-requested review on `1ff2050` is
->   superseded and not a final memo. RM-034/RM-035 are the provisional labels
->   for the PM's #57/#61 reviews (final ledger entries after approval).
+>   re-review; the posted RM-021 changes-requested reviews (on `1ff2050`,
+>   re-issued on `8111850`) are superseded and not a final memo.
+>   RM-034/RM-035 are the provisional labels for the PM's #57/#61 reviews
+>   (final ledger entries after approval).
 > - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
 >   RM-017.
 
@@ -417,7 +418,7 @@
 - Code quality: validator and gate-3 script reviewed; no unresolved blocking issue
 - Test quality: reviewer ran gate 3 and the offline suite at the final head; three non-blocking records
 - Security / Efficiency: no secrets; no runtime path
-- Operational metadata: merged at `25ddd8a` (2026-11-18); the Report's earlier "intentionally not pre-numbered" note is resolved by this backfill entry
+- Operational metadata: merged at `25ddd8a` (2026-11-18); the ledger now assigns RM-023, and the Report's earlier "intentionally not pre-numbered" sentence is refreshed in the follow-up docs pass (PR #63 / next Report pass)
 - Oversight case: yes — reviewer ran the checks instead of trusting the PR body, and recorded a schema misread
 - Verdict: APPROVE
 
