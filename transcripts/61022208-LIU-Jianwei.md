@@ -24,6 +24,14 @@
   (stale replay + P1 coverage). **109 offline tests pass**, ruff clean, both mypy checks
   clean, gate 3 PASS. No docs/transcript/ai-use-log commit by the agent.
 
+## Excerpt policy
+
+- Full tool outputs are omitted for size; every human turn, checkpoint instruction,
+  approval, repair request and intervention point is retained in the condensed
+  sections below.
+- The full raw session is reproducible with
+  `opencode export ses_e155eb529ffeGWBMBggUVvqRPs`.
+
 ## Annotated interventions
 
 | # | Phase | Type | What the human did | Why |
@@ -61,6 +69,13 @@ out-of-scope write in the session; it was reverted before any commit.
 
 ### Human — CP0 approval / correction
 
+>>> [INTERVENTION] type: approve — by: LIU Jianwei
+    rationale: The plan review was delegated by the PM and recorded REVIEWED — PASS (2026-11-18); all 13 §8 proposed answers are adopted as working decisions.
+
+>>> [INTERVENTION] type: redirect — by: LIU Jianwei
+    rationale: The plan's allowlist is narrower than the module tree; a broad `src/**` licence would let the agent touch `analysis/`/`api/`, which are out of S1 scope.
+
+
 > The PM delegated the plan review; the plan status is REVIEWED — PASS (2026-11-18).
 > All 13 proposed answers in §8 are adopted as working decisions; do not stop for them.
 > Correction to CP0: the allowed write paths are exactly `src/contentguard/__init__.py`,
@@ -83,6 +98,10 @@ value sets and `AuditRecord.from_mapping`, `QueueEntry`, and a scaffold-only con
 failed at `is_frozen_dto`.
 
 ### Human — CP1 repair
+
+>>> [INTERVENTION] type: reject — by: LIU Jianwei
+    rationale: The safety-critical `src/` tree is not type-checked by CI; the extra local check is the only type evidence for it.
+
 
 > The extra local check `.venv/Scripts/python.exe -m mypy --ignore-missing-imports src
 > scripts test` fails at `policy/contracts.py:568` in `is_frozen_dto` with union-attr on
@@ -126,7 +145,15 @@ also wrote `docs/ai-use-log.yaml` (AI-002) to satisfy gate 6 — **outside the a
 `recovery/unauthorized-ai-use-log.patch`, reverted `docs/ai-use-log.yaml` to HEAD, and
 continued. The code changes were unaffected.
 
+>>> [INTERVENTION] type: reject — by: LIU Jianwei
+    rationale: `docs/ai-use-log.yaml` is human-owned; the agent was explicitly told to stop and report, never to write docs. Gate 6 is the PM's action.
+
+
 ### Human — CP3 repair 1 (opaque token)
+
+>>> [INTERVENTION] type: reject — by: LIU Jianwei
+    rationale: A string constant can be copied by any module that imports `policy.enforcement`; the plan requires a non-serializable token and the structural test is the boundary.
+
 
 > The plan requires an opaque, non-serializable authority token, but `enforcement.py`
 > exports a forgeable string `AUTHORITY_TOKEN`. Define a module-private opaque
@@ -141,6 +168,10 @@ forged-decision test still raises `ForbiddenAuthorityError`. 58 passed; ruff/myp
 
 ### Human — CP3 repair 2 (replay pinned snapshot)
 
+>>> [INTERVENTION] type: reject — by: LIU Jianwei
+    rationale: A legitimate retry of an old case must not be misclassified as CONFLICT merely because a new snapshot is globally active.
+
+
 > `evaluate_and_commit` currently short-circuits replay by calling `self.evaluate`, which
 > uses `self.snapshot`. If a newer snapshot is globally active and the case is pinned to
 > an older one, a legitimate replay can be misclassified as CONFLICT. Load the case row
@@ -153,6 +184,10 @@ the row's immutable evidence; added `test_replay_survives_newer_active_snapshot`
 59 passed; ruff/mypy clean.
 
 ### Human — CP4 (Slice C)
+
+>>> [INTERVENTION] type: redirect — by: LIU Jianwei
+    rationale: The contract says hold/escalate may transition only through current authorized human review; a normal hold must not be permanently stuck.
+
 
 > Write the review tests first; extend the escalation tests with commit/queue assertions
 > and the high-severity matrix; extend the audit tests with human-reviewed, normal-held,
@@ -168,6 +203,10 @@ review replay under ESCALATED, reviewer actor, queue resolution; fixed the
 tests passed; ruff/mypy clean; only `engine.py` and the two test files changed.
 
 ### Human — CP5 (Slice D)
+
+>>> [INTERVENTION] type: redirect — by: LIU Jianwei
+    rationale: INV-001's fit criterion requires a negative fixture that demonstrably fails the structural check, not just a passing scan.
+
 
 > Write `test_invariants.py` and the forbidden `.py.txt` fixture; implement the AST
 > checker; cover module/attribute/literal import forms and the re-export bypass; add
@@ -191,6 +230,10 @@ S2-owned intake/concurrency boundary.
 
 ### Human — post-CP6 review fix
 
+>>> [INTERVENTION] type: redirect — by: LIU Jianwei
+    rationale: These errors subclass `PolicyError`, not `PolicyKernelError`; without the fix a stale/unauthorized review replay could propagate instead of returning a controlled `CONFLICT`.
+
+
 > The replay retry block catches only `PolicyKernelError`; `InvalidReviewError`,
 > `StaleReviewError` and `UnauthorizedReviewError` subclass `PolicyError`, not
 > `PolicyKernelError`, so a stale/unauthorized review replay can propagate instead of a
@@ -203,6 +246,10 @@ mypy checks clean. The fix is committed as `49c58f5`.
 
 ### Human — post-CP6 semantic consistency
 
+>>> [INTERVENTION] type: redirect — by: LIU Jianwei
+    rationale: `FAILED` is for definitive persistence/validation failure; state conflicts are 409-class per the interface contract.
+
+
 > A `PolicyConflictError` from the final-state / held-without-review checks is a state
 > conflict, but `evaluate_and_commit` mapped it to `CommitResult.FAILED`. Map it to
 > `CommitResult.CONFLICT`; keep persistence/validation failures as `FAILED`, and update
@@ -213,6 +260,10 @@ mypy checks clean. The fix is committed as `49c58f5`.
 passed; ruff and both mypy checks clean. The fix is committed as `f689815`.
 
 ### Human — post-CP6 P1 review fixes
+
+>>> [INTERVENTION] type: redirect — by: LIU Jianwei
+    rationale: The independent review found P1 untested guards and a metadata bug: a normal hold could be enqueued while claiming no human review was required; stale reviews were indistinguishable from persistence failures; several negative branches were asserted only in prose.
+
 
 > The independent review found P1 gaps: normal-path HOLD/ESCALATE decisions claimed
 > `requires_human_review=False`; stale/invalid reviews were returned as `FAILED` rather
@@ -237,6 +288,10 @@ committed as `afe390b`.
 .venv/Scripts/python.exe scripts/validate_requirements.py → GATE 3 PASS: 8 requirements
 git diff --check → clean
 ```
+
+>>> [INTERVENTION] type: approve — by: LIU Jianwei
+    rationale: The agent's own report is not evidence; the PM/verifier reruns the commands.
+
 
 ## Governance notes
 
