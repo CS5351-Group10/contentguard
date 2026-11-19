@@ -66,6 +66,51 @@ entries:
       not a validator defect.
     pr: 11
 
+  - id: AI-003
+    date: 2026-11-17
+    agent: opencode
+    model: opencode/deepseek-v4.1-flash-free
+    operator: DA Buna (60105888)
+    session_transcript: transcripts/60105888-DA-Buna-AI003.md
+    scope: >-
+      scripts/build_evaluation_dataset.py,
+      test/eval/moderation_eval.jsonl, test/eval/README.md,
+      test/offline/test_evaluation_dataset.py
+    summary: >-
+      Built a deterministic, hash-pinned local dataset builder and a fixed
+      100-record moderation evaluation set (80 Jigsaw, 20 COLD; seed 5351).
+      Added provenance and label documentation plus 18 offline validation tests.
+      Preserved source-specific labels and verified deterministic regeneration.
+    human_interventions: 4
+    intervention_summary: >-
+      Operator approved the revised execution plan and requested a focused
+      Ruff E402 fix; the operator reviewed the resulting scope and validation.
+    pr: 37
+
+  - id: AI-004
+    date: 2026-11-18
+    agent: opencode
+    model: opencode/deepseek-v4.1-flash-free
+    operator: DA Buna (60105888)
+    session_transcript: transcripts/60105888-DA-Buna-AI004.md
+    scope: >-
+      scripts/build_evaluation_dataset.py,
+      test/eval/moderation_eval.jsonl, test/eval/README.md,
+      test/eval/NOTICE.md, test/offline/test_evaluation_dataset.py
+    summary: >-
+      Performed the reviewed-name remediation using same-stratum replacements.
+      Replaced 11 of 12 reviewed candidates; left EV-0068 unchanged because the
+      numeric token was not established as an account identifier. Excluded
+      identifiers introduced by replacement candidates and preserved the
+      100-record 80/20 corpus, strata, labels and seed. Updated corpus
+      documentation and tests. Reported 204 offline tests passing, with Ruff,
+      mypy, and gates 2 and 3 passing.
+    human_interventions: 9
+    intervention_summary: >-
+      Directed reviewed-name remediation and same-stratum replacement;
+      required preserving corpus quotas and labels and completing validation.
+    pr: 37
+
   - id: AI-006
     date: 2026-11-17
     agent: opencode

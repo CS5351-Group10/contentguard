@@ -293,3 +293,23 @@
 - Operational metadata: merged at `3bda2ed`; the rule applies to future memos and the `Oversight case:` line is now the norm.
 - Oversight case: yes — PM checked the diff scope (only `docs/review-memo.md` §Review process), confirmed the rule matches the cited PR #2 incident, and verified the existing RM ledger/numbering note was untouched.
 - Verdict: APPROVE
+
+## RM-017 — PR #37: test(eval): add fixed moderation evaluation corpus
+
+> Author-side timing record only. This is not the independent review memo or
+> verdict; the non-author reviewer must complete those against the final PR head.
+
+- First implementation commit: `0c742340`, 2026-11-16 19:55:02 UTC
+  (2026-11-17 03:55:02 HKT).
+- PM conditional approval of the revised test plan on #36: 2026-11-17
+  03:21:08 UTC (11:21:08 HKT), 7 hours 26 minutes 6 seconds after the
+  implementation commit.
+- Governance/CI co-approval on #36: 2026-11-17 05:39:42 UTC
+  (13:39:42 HKT), 9 hours 44 minutes 40 seconds after the implementation
+  commit.
+- Timing deviation: the first implementation preceded both required approvals.
+  The later approvals do not retroactively satisfy the pre-implementation
+  approval requirement. Record this as a process deviation; do not imply that
+  the later approval changed the chronology.
+- Final independent review, AI-use-log/transcript verification, and verdict:
+  pending review of the final PR head.
