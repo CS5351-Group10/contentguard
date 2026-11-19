@@ -24,8 +24,11 @@ Every change lands on `main` via PR (branch protection: 1 non-author approval
 5. **PR body** — use the template; docs-only PRs write `n/a (docs-only)` under
    gate 1 and `n/a (no code/prompt change; note any AI-assisted drafting)` under gate 6.
 6. **Before merge** — the reviewer's memo lands in `docs/review-memo.md` (the
-   PM records the verdict, inside this PR — not afterwards; for a PM-authored PR
-   the independent reviewer records it and the PM countersigns if available).
+   PM records the verdict, inside this PR — not afterwards). For a PM-authored PR
+   the independent reviewer records the verdict and the PM countersigns **when the
+   ledger entry is appended**; if the PM cannot countersign, the RM entry says so
+   explicitly (`countersign pending` or `countersign absent`) **with the reason** —
+   an unsigned memo must never be indistinguishable from a signed one.
    Code/prompt PRs update `docs/ai-use-log.yaml` in the same PR (gate 6 blocks
    otherwise).
 7. **Keep the PR current** — branch off latest `main`; when CI says the branch
