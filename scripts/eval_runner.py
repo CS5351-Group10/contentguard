@@ -18,7 +18,7 @@ Contract highlights (see issue #26):
   - Derived fields are NEVER written back into the corpus.
 
 Metrics (do not invent others):
-  - ``agreement`` = share of rows whose disposition equals ``expected_verdict`` (≥ 0.80).
+  - ``agreement`` = share of rows whose disposition equals ``expected_verdict`` (≥ 0.85).
   - ``safety escape`` = a high-severity row the pipeline allowed — hard 0, never averaged.
   - ``false-block`` = share of ``expected_verdict: allow`` rows the pipeline blocked (≤ 0.10),
     reported per slice; the hard per-slice threshold applies only to slices with ≥10 rows.
@@ -41,11 +41,16 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CORPUS = ROOT / "test" / "eval" / "moderation_eval.jsonl"
 DEFAULT_POLICY = ROOT / "test" / "eval" / "expectation_policy.yaml"
 
-# Approved thresholds (docs/code-governance/verification-constraints.md §Tier 3; issue #26).
-AGREEMENT_MIN = 0.80
+# Approved thresholds (REQ-QUA-003 release target; docs/code-governance/verification-constraints.md
+# §Tier 3; issue #26). REQ-QUA-003 is the source of truth for agreement (>= 85%); the registry
+# wins over any older drafting here. test_gate4_enforcement keeps this in lockstep with the registry.
+AGREEMENT_MIN = 0.85
 FALSE_BLOCK_MAX = 0.10
 SAFETY_ESCAPE_MAX = 0
 MIN_SLICE_DENOMINATOR = 10
+# REQ-QUA-003 also requires >= 20 labeled high-severity positives for the recall slice to
+# mean anything; a corpus below that cannot support the claim and fails closed.
+HIGH_SEVERITY_MIN_POSITIVES = 20
 
 REQUIRED_CORPUS_FIELDS = (
     "eval_id",
@@ -346,6 +351,13 @@ def score(
 def check_thresholds(report: Report) -> list[str]:
     """Return ``FAIL:``-prefixed error strings; empty means the replay meets all thresholds."""
     fails: list[str] = []
+    if report.high_positive_count < HIGH_SEVERITY_MIN_POSITIVES:
+        fails.append(
+            f"FAIL: corpus has {report.high_positive_count} high-severity positive(s) "
+            f"< {HIGH_SEVERITY_MIN_POSITIVES} required by REQ-QUA-003; the high-severity "
+            "recall slice cannot be measured on this corpus. Restore the labeled positives "
+            "(see test/eval/README.md strata) before re-running the gate."
+        )
     if report.uncovered:
         fails.append(
             f"FAIL: {len(report.uncovered)} corpus row(s) have no replay disposition: "
