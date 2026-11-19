@@ -138,7 +138,8 @@
 > **2026-11-20 ledger append note (RM-033–RM-039).** This append writes the
 > entries reserved above and closes the documented deferrals in the PM reviews
 > of #56 and #67 (CONTRIBUTING step 6; both review bodies are the memos of
-> record, transcribed below). RM-036/037 keep PM's posted labels (unique);
+> record, transcribed below). RM-036 keeps PM's posted label (proposed in the
+> #56 review); RM-037 is chain-assigned after it (no label was posted on #67);
 > RM-038/039 are PM review memos written before merge with CHANGES REQUIRED
 > verdicts (process §4). Numbering follows the chain reserved in PR #64, not
 > merge order: #56 (RM-036) merged at 13:41Z, before #62 (RM-033) at 14:20Z —
@@ -582,7 +583,7 @@
 
 ## RM-037 — PR #67: docs(governance): enforcement table matches gate 5's actual AST coverage (TD-4)
 
-- Reviewer(s): PM swordnew123 (LIU Jianwei; posted label RM-037, unique)
+- Reviewer(s): PM swordnew123 (LIU Jianwei; ledger number RM-037 assigned by the reserved chain after RM-036 — no label was posted on #67)
 - Spec alignment: no requirement change; the enforcement table now states exactly what gate 5 runs — rule 4's INV-1 half and rule 5's named prohibitions are machine-enforced by `test_invariants.py`; rule 1, the analysis→policy edge and element cycles remain planned in #66; contract/API/call-graph checks do not exist and are not claimed
 - Architecture alignment: no element/ADR change; rule 6's inline note now says review rule + the narrow #66 guard for `.opencode/`/`.agent/`, explicitly not `transcripts/`
 - Code quality: n/a (docs-only, 1 file)
