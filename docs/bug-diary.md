@@ -32,7 +32,7 @@
 
 ## BUG-002 — Requirements registry expanded to 31 but the trace matrix still covered 8
 
-- Date found: 2026-11-16 | Found by: CI run 43816456713 (PR #11) | Fixed in: PR #11 (pending; the 31 matrix rows will be delivered with that PR)
+- Date found: 2026-11-16 | Found by: CI run 43816456713 (PR #11) | Fixed in: PR #11 (merged, `25ddd8a` — the 31 matrix rows landed with it)
 - Symptom: `test/offline/test_smoke.py::test_trace_matrix_covers_every_registry_requirement` failed; 23 registry IDs (REQ-COS-001, REQ-FUN-004..007, REQ-GOV-001..009, REQ-PER-001, REQ-QUA-001..003, REQ-SEC-001..005) were absent from `docs/architecture/trace-matrix.md`.
 - Reproduction: in PR #11, run `pytest test/offline -v` (CI gate 5) against the 31-requirement registry; the coverage assertion lists the missing IDs.
 - Classification: integration / artifact co-evolution (requirements ↔ architecture)
