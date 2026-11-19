@@ -230,13 +230,16 @@ def _imported_policy_modules(file_rel: Path, tree: ast.AST) -> set[str]:
     return found
 
 
-def test_dependency_direction() -> None:
-    """Verifies REQ-INV-001 / structural rule 5 (dependency direction): ``audit`` and
-    ``escalation`` do not import ``policy``; ``policy`` does not import ``analysis``; and
-    the audit/escalation mutation repositories are imported only by ``policy`` or their
-    own package (never by an adapter/API) — a forward-looking guard for S2."""
-    for path in sorted(SRC.rglob("*.py")):
-        rel = path.relative_to(SRC)
+def _dependency_direction_violations(root: Path) -> list[str]:
+    """AST-scan ``root`` for dependency-direction violations (structural rule 5).
+
+    Covers the named prohibitions: ``audit``/``escalation`` must not import ``policy``;
+    ``policy`` must not import ``analysis``; ``analysis`` must not import ``policy`` (the
+    advisory component never reaches the authoritative boundary); and the audit/escalation
+    mutation repositories are imported only by ``policy`` or their own package.
+    """
+    for path in sorted(root.rglob("*.py")):
+        rel = path.relative_to(root)
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         imported = _imported_policy_modules(rel, tree)
         top = rel.parts[1] if len(rel.parts) >= 2 else ""
@@ -251,6 +254,14 @@ def test_dependency_direction() -> None:
                 "contentguard.analysis."
             ) for m in imported), f"{rel.as_posix()} imports analysis: {sorted(imported)}"
 
+        if top == "analysis":
+            assert not any(m == "contentguard.policy" or m.startswith(
+                "contentguard.policy."
+            ) for m in imported), (
+                f"{rel.as_posix()} (analysis) imports policy: {sorted(imported)} — the "
+                "advisory component must not import the authoritative boundary"
+            )
+
         if top not in {"audit", "escalation", "policy"}:
             for sensitive in ("contentguard.audit.", "contentguard.escalation."):
                 offenders = {m for m in imported if m.startswith(sensitive)}
@@ -258,6 +269,35 @@ def test_dependency_direction() -> None:
                     f"{rel.as_posix()} imports a mutation repository port: "
                     f"{sorted(offenders)}"
                 )
+    return []
+
+
+def test_dependency_direction() -> None:
+    """Verifies REQ-INV-001 / structural rule 5 (dependency direction): ``audit`` and
+    ``escalation`` do not import ``policy``; ``policy`` does not import ``analysis``;
+    ``analysis`` does not import ``policy``; and the audit/escalation mutation
+    repositories are imported only by ``policy`` or their own package (never by an
+    adapter/API) — a forward-looking guard for S2."""
+    assert _dependency_direction_violations(SRC) == []
+
+
+def test_analysis_must_not_import_policy(tmp_path: Path) -> None:
+    """Verifies REQ-INV-001 (negative): an ``analysis`` module importing ``policy`` is
+    flagged by the dependency-direction scan.
+
+    The advisory component must never reach the authoritative boundary. A fixture tree
+    ``contentguard/analysis/rogue.py`` importing ``contentguard.policy`` must fail.
+    """
+    analysis = tmp_path / "contentguard" / "analysis"
+    analysis.mkdir(parents=True)
+    (analysis / "__init__.py").write_text("", encoding="utf-8")
+    (analysis / "rogue.py").write_text(
+        "from contentguard.policy import engine\n", encoding="utf-8"
+    )
+    with pytest.raises(AssertionError) as excinfo:
+        _dependency_direction_violations(tmp_path)
+    assert "analysis" in str(excinfo.value)
+    assert "policy" in str(excinfo.value)
 
 
 def _valid_advisory_payload() -> dict[str, object]:

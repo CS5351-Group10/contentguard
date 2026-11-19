@@ -326,3 +326,41 @@ entries:
       the code lacks (state it as a known limitation). Count matches the transcript.
     pr: 61   # opened 2026-11-19 from issue #58
 
+  - id: AI-012
+    date: 2026-11-19
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-td4.md
+    scope: >-
+      scripts/check_structural.py, test/offline/test_structural_check.py,
+      test/offline/test_invariants.py (dependency-direction extension only),
+      .github/workflows/ci.yml, docs/ai-use-log.yaml
+    summary: >-
+      TD-4 CI structural checks per issue #66 Revision 2 (REQ-INV-001). Added
+      scripts/check_structural.py (gate 2e): module-set vs ADR-001 (undeclared package
+      directory FAILs, declared-but-absent element is INFO; package-only, __pycache__
+      ignored), element-to-element import cycle detection, a frozen-path guard for
+      .opencode/** and .agent/** only (NOT transcripts/**), and a docs-only pass; on a PR
+      a missing GITHUB_TOKEN fails closed with an actionable message and still runs the
+      source-tree part. Gate 2e deliberately does NOT re-run the INV-1 enforcement scan or
+      the dependency-direction check (those stay in gate 5's test_invariants.py) and does
+      not import from test/. Extended test/offline/test_invariants.py::test_dependency_direction
+      with the one missing prohibition, analysis must not import policy, plus a negative
+      fixture. Added test/offline/test_structural_check.py (10 tests, tmp_path fixture
+      trees) and a "Gate 2e — structural checks" step in the existing blocking-gates job
+      (per-step env only; job name unchanged). Pure stdlib (ast, pathlib). Zero findings on
+      main.
+    human_interventions: 2
+    intervention_summary: >-
+      (1) Plan approval with two corrections: (a) gate 2e must not import
+      find_enforcement_violations/_imported_policy_modules from test/ (inverted dependency);
+      scope it to the gaps only and leave INV-1/dependency direction to gate 5, with no
+      scanner refactor; (b) no silent skip on a missing token — a PR event without
+      GITHUB_TOKEN must fail closed with an actionable message and still run the
+      source-tree part, replacing the 401-SKIP test with a closed-fail test. (2) Operator
+      acceptance of implementation start before @xiaolizi33's architecture co-sign, on the
+      record, because the change is additive and does not touch the ADR-001 element set,
+      module tree or dependency matrix; co-sign remains a merge precondition.
+    pr: REPLACE_WITH_PRNUMBER
+
