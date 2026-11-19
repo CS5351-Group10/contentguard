@@ -71,6 +71,25 @@ The requirements baseline was rebuilt before the first product module. PR #11 re
 
 Architecture followed a recorded ADD process before implementation. The team scored three candidates against weighted criteria (35/25/25/15) in the evaluation logbook: C1 scored 5.00, C3 4.00 and C2 3.25, and C1 — a modular monolith with grounded advisory analysis and a transactional policy authority — was selected. ADR-001 records the advisory/authoritative split, the module layout, the invariant set and the failure paths; `docs/architecture/interface-contracts.md` defines the module operations. The trace matrix maps every requirement to its enforcing component, its test/evidence path and its runtime monitor, and marks planned cells as `TBD (Sx)` rather than as passing evidence.
 
+The advisory/authoritative split that ADR-001 fixed, in one picture:
+
+```mermaid
+flowchart LR
+    subgraph advisory["Advisory layer (AI)"]
+        A["analysis/ — LLM verdict, severity, rationale"]
+    end
+    subgraph auth["Authoritative layer (deterministic)"]
+        P["policy/ — enforcement decision (safety-critical)"]
+        E["escalation/ — human review queue"]
+        AU["audit/ — decision record"]
+    end
+    API["api/ — intake + review interface"] --> A
+    API --> P
+    A -. "advisory only — never executes enforcement (INV-1)" .-> P
+    P --> E
+    P --> AU
+```
+
 Test plans were written before the code they were meant to verify. Issue #24 covered the requirements validator, #25 the S1 policy kernel and audit, #36 the fixed evaluation corpus, #42 the TD-3/TD-8 scaffold and dependency work, and #43 the S3 analysis/RAG layer. Gate 1 checks the `Test-Plan-Approved:` marker in the PR body; the PM and the Testing Lead signed the plans, and in #43 the PM explicitly separated the plan approval from the still-unratified QUA-003/COS-001 thresholds. The marker is intentionally a weak check (TD-2): it proves that a gate-1 record exists, not that every claim in the PR is true, which is why the review memos and the transcripts remain part of the evidence chain.
 
 ### 3.3 Plan approval and session control
@@ -85,11 +104,26 @@ Plan approval also creates a record of what the agent was not allowed to do. The
 
 The CI pipeline implements the six blocking gates described in the requirement sheet, with gate 7 deferred by decision (TD-9):
 
+```mermaid
+flowchart LR
+    PR["PR opened"] --> G1{"Gate 1: test plan approved + predates impl?"}
+    G1 -- fail --> X["merge blocked"]
+    G1 -- pass --> G2["Gate 2: ruff + mypy + deps"]
+    G2 --> G3["Gate 3: registry schema"]
+    G3 --> G5["Gate 5: full offline suite"]
+    G5 --> G4{"prompt/model change?"}
+    G4 -- yes --> G4S["Gate 4 strict: replay fixed eval set"]
+    G4 -- no --> G6
+    G4S --> G6{"Gate 6: ai-use-log updated?"}
+    G6 -- pass --> M["squash merge to main"]
+    G6 -- fail --> X
+```
+
 - **Gate 1** — the PR body carries `Test-Plan-Approved: #<issue>`.
 - **Gate 2a/2b** — `ruff check src scripts test` and the CI-form `mypy --ignore-missing-imports scripts test`.
 - **Gate 3** — `python scripts/validate_requirements.py` validates the registry against its schema; the current main reports `GATE 3 PASS: 31 requirements`.
-- **Gate 4** — semantic evaluation for prompt/model changes; it is currently **warn-only** (TD-1), not a semantic acceptance claim.
-- **Gate 5** — the full offline suite (`pytest test/offline -v`); on the S1 branch merged with main it collects and passes 121 tests (109 S1 + 12 from #11).
+- **Gate 4** — semantic evaluation for prompt/model changes. Warn-only at the S1 merge (TD-1); since PR #57 it blocks on a `--strict` replay of the fixed evaluation set, so a green replay is semantic acceptance evidence for prompt/model changes.
+- **Gate 5** — the full offline suite (`pytest test/offline -v`); on the S1 branch merged with main it collects and passes 121 tests (109 S1 + 12 from #11). At the 2026-11-20 consistency pass the suite collects 260 offline tests on `6f47cc2` (259 pass + the pre-existing Windows corpus-digest environment failure, BUG-005); counts are per-head by design (§5.4).
 - **Gate 6** — `docs/ai-use-log.yaml` must change when code, tests or prompts change.
 
 | Gate | What it checks | Evidence on 2026-11-18 | Limit |
@@ -97,13 +131,13 @@ The CI pipeline implements the six blocking gates described in the requirement s
 | 1 | Test-plan marker in the PR body | #25/#24/#36/#42/#43 records | Marker only; no issue/timestamp resolution (TD-2) |
 | 2a/2b | Lint and type check | clean on `b410daf`; PM re-ran both mypy forms | CI form covers `scripts test`, not `src`; the extra `src scripts test` form is a local PM check |
 | 3 | Registry against its schema | `GATE 3 PASS: 31 requirements` | Schema validity, not requirement correctness |
-| 4 | Semantic evaluation for prompt/model changes | not triggered by S1; warn-only | Not strict; no semantic acceptance claim (TD-1) |
+| 4 | Semantic evaluation for prompt/model changes | not triggered by S1 (no prompt/model change yet); `--strict` since #57 | TD-1 closed; strict replay is acceptance evidence |
 | 5 | Offline regression suite | 121 passed on `b410daf` | Cannot detect an empty/zero-collection test file (#38) |
 | 6 | AI-use log updated with code/prompt changes | AI-001/002/006 on main; AI-007 on S1 | File changed, not transcript completeness |
 
 The gates are deliberately executable rather than narrative. The S1 branch (`s1-policy-kernel-audit`, head `b410daf`, PR #41) is green on `blocking-gates` after merging main; the PM independently re-ran the offline suite, ruff, both mypy forms and gate 3 and recorded the commands and results in the PR body. The agent's own completion report is not treated as evidence; the review memo and the PM re-run are.
 
-The same discipline exposed a gate limitation. In #11 the validator test file existed but was **0 bytes** at one head; `pytest` collected zero tests and gate 5 stayed green. The PM review caught the empty file, required a real 235-line/8,267-byte suite with ID-citing docstrings, and recorded the blind spot as a follow-up in issue #38 (reject empty or zero-collection test files). Gate 1's marker-only behavior (TD-2) and gate 4's warn-only status (TD-1) are recorded in the debt register for the same reason: a green check is evidence only for what it actually checks.
+The same discipline exposed a gate limitation. In #11 the validator test file existed but was **0 bytes** at one head; `pytest` collected zero tests and gate 5 stayed green. The PM review caught the empty file, required a real 235-line/8,267-byte suite with ID-citing docstrings, and recorded the blind spot as a follow-up in issue #38 (reject empty or zero-collection test files). Gate 1's marker-only behavior (TD-2) and gate 4's warn-only status (TD-1) were recorded in the debt register for the same reason: a green check is evidence only for what it actually checks. Both have since been paid down (gate 1 resolves and timestamps the cited plan, #61; gate 4 blocks on strict replay, #57).
 
 ### 3.5 Review and merge discipline
 
@@ -113,7 +147,7 @@ Merge rights were also changed by evidence. PR #39 moved the team from "PM merge
 
 ### 3.6 Improvement loops and what was optimized
 
-The process improved through recorded defects, not through retrospective claims. BUG-001 records the CI 401 defect: gate 1 emitted an `Authorization: Bearer ` header with an empty token, gates 4 and 6 never ran, and the fix in PR #7 made the helper fail closed, added per-step tokens and least-privilege permissions, and added the first header tests. BUG-002 records the requirements/matrix drift described above. The debt register then tracks the known guardrail gaps — TD-1 (gate 4 warn-only), TD-2 (gate 1 marker-only), TD-3 (scaffold regeneration), TD-4 (structural check), TD-5 (prompt rot), TD-6 (transcript/review bottleneck), TD-7 (agent-induced bloat), TD-8 (dependencies), TD-9 (gate 7 deferred) — with owners and dates instead of leaving them implicit.
+The process improved through recorded defects, not through retrospective claims. BUG-001 records the CI 401 defect: gate 1 emitted an `Authorization: Bearer ` header with an empty token, gates 4 and 6 never ran, and the fix in PR #7 made the helper fail closed, added per-step tokens and least-privilege permissions, and added the first header tests. BUG-002 records the requirements/matrix drift described above. The debt register then tracks the known guardrail gaps — TD-1 (gate 4 warn-only → strict via #57), TD-2 (gate 1 marker-only → timestamp-verified via #61), TD-3 (scaffold regeneration), TD-4 (structural check, in review as PR #69), TD-5 (prompt rot), TD-6 (transcript/review bottleneck), TD-7 (agent-induced bloat), TD-8 (dependencies), TD-9 (gate 7 deferred) — with owners and dates instead of leaving them implicit.
 
 Architecture revision follows the same evidence rule. PR #16's review required the failure contract to preserve truthful failed/unconfirmed outcomes rather than inventing a runtime flag; the revision fixed R-4/R-7/R-8 and the manifest, and the remaining `scripts/**` footnote scope issue was explicitly deferred to issue #38. PR #37 then triggered the architecture gate before any corpus change: the fixed evaluation set is named INV-5 evidence, structural rule 7 requires an ADR decision, and the architecture owner approved the scope of an ADR-001 addendum on 2026-11-17. The addendum merged as PR #46 (`7b0ee1e`), and the corpus merged as PR #37 (`539ae7cf`).
 
@@ -154,7 +188,7 @@ Two process defects are recorded in `docs/bug-diary.md`:
 
 Neither is a product-logic defect. That is itself a finding: the early failure modes were in the evidence system (gates, traceability, transcripts), not in the policy logic. The S1 review later found product-level P1 issues — a normal hold could be enqueued while claiming no human review was required, stale reviews were indistinguishable from persistence failures, and several negative branches were asserted only in prose — and those were fixed before the S1 review verdict, with the fixes recorded in the transcript and the evidence commit `afe390b`. The distinction matters: the process defects were caught by CI and review infrastructure; the product defects were caught by human re-review of the implementation.
 
-The bug diary still records BUG-002's fix as "PR #11 (pending)"; #11 merged as `25ddd8a` on 2026-11-18, and the next ledger/governance update will correct that pointer. The debt register is the forward-looking half of the same evidence. TD-1 and TD-2 record the gate 4 and gate 1 limitations; TD-3 records the scaffold-regeneration obligation; TD-4 the missing structural check; TD-8 the dependency manifest; TD-9 the deferred gate 7. Each has an owner and a target date, so the report does not present a green pipeline as a complete guardrail system.
+The bug diary's BUG-002 fix pointer said "PR #11 (pending)" after #11 merged as `25ddd8a` on 2026-11-18; the pointer was corrected in the 2026-11-20 bug-diary consistency pass (ride-along on PR #70). The debt register is the forward-looking half of the same evidence. TD-1 and TD-2 record the gate 4 and gate 1 limitations; TD-3 records the scaffold-regeneration obligation; TD-4 the missing structural check; TD-8 the dependency manifest; TD-9 the deferred gate 7. Each has an owner and a target date, so the report does not present a green pipeline as a complete guardrail system.
 
 ### 4.3 Ambiguity resolution as review evidence
 
@@ -177,7 +211,7 @@ The current verification evidence is strong but bounded:
 - **Gate 6:** AI-007 is in the S1 branch; AI-001/AI-002/AI-006 are on main; the merge resolution keeps all four entries distinct.
 - **Traceability:** the trace matrix has 31 rows; the smoke test asserts that every registry ID appears; test docstrings cite their REQ/INV IDs.
 
-The limits are equally explicit. Gate 4 is warn-only (TD-1), so no prompt/model change is semantically accepted until the S5 harness is strict. Gate 1 checks a marker, not an issue record or a timestamp (TD-2). Gate 5 cannot detect an empty test file; that blind spot is why #11's 0-byte file passed and why issue #38 exists. Gate 7 is deferred (TD-9). The trace matrix contains `TBD (S1)` through `TBD (S5)` cells, which are planned evidence, not passing evidence. The S1 code and tests were merged in PR #41 (`e60dd50`); the report therefore treats S1 as merged evidence in the co-evolution section.
+The limits are equally explicit. Gate 4 blocked as warn-only (TD-1) until PR #57 flipped it to `--strict` on 2026-11-19; no prompt/model change has been semantically accepted yet because none has occurred. Gate 1 checked only a marker (TD-2) until PR #61 added issue resolution and timestamp verification. Gate 5 cannot detect an empty test file; that blind spot is why #11's 0-byte file passed and why issue #38 exists. Gate 7 is deferred (TD-9). The trace matrix contains `TBD (S1)` through `TBD (S5)` cells, which are planned evidence, not passing evidence. The S1 code and tests were merged in PR #41 (`e60dd50`); the report therefore treats S1 as merged evidence in the co-evolution section.
 
 ### 4.5 Honest evidence boundaries
 
@@ -220,7 +254,7 @@ The same rule applies to the report's own evidence. The pre-#11 and post-#11 ver
 
 ### 5.5 What is not yet co-evolved
 
-The project does not claim full co-evolution. S1's code/tests were merged in PR #41 (`e60dd50`); the trace matrix still marks S1–S5 cells as `TBD`; gate 4 is warn-only; S2 intake/queue, S3 analysis/RAG, S4 CI hardening and S5 evaluation are not implemented. #37's corpus and the ADR addendum (#46) are merged; the S3 offline slice is open as draft PR #52 with changes requested. These gaps are recorded in the debt register, the trace matrix and the issue tracker, and the report treats them as open rather than filling them with narrative.
+The project does not claim full co-evolution. S1's code/tests were merged in PR #41 (`e60dd50`); the trace matrix still marks unimplemented slices as `TBD`; gate 4 is strict since #57; S2 intake/queue and S5 evaluation are not implemented, S3 analysis is in flight (draft PR #52), and S4's CI hardening landed as #47/#57/#61/#62. #37's corpus and the ADR addendum (#46) are merged; the S3 offline slice is open as draft PR #52 with changes requested. These gaps are recorded in the debt register, the trace matrix and the issue tracker, and the report treats them as open rather than filling them with narrative.
 
 ## 6. What human oversight caught that the agent did not
 
@@ -282,7 +316,7 @@ The cases also show the cost of oversight. The PM is the default reviewer and th
 
 ## 7. Member self-reflections
 
-One short paragraph (300–500 words) per member, with name and student ID. **Collection deadline: 2026-11-22 18:00 HKT.** Members write their own paragraphs; the PM only assembles them and does not fabricate or rewrite another member's reflection.
+One short paragraph (300–500 words) per member, with name and student ID. **Collection deadline: 2026-11-20 20:00 HKT (issue #27).** Members write their own paragraphs; the PM only assembles them and does not fabricate or rewrite another member's reflection.
 
 ### LIU Jianwei (61022208)
 
