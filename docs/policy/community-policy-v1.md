@@ -1,8 +1,8 @@
-# ContentGuard — Community Content Policy v1.0 (Draft Revision 2)
+# ContentGuard — Community Content Policy v1.0 (formal)
 
 **Document ID:** CG-POL-001
-**Version:** 1.0-draft.2
-**Status:** Draft — Cross-review pending
+**Version:** 1.0
+**Status:** formal
 **Project:** ContentGuard
 **Document Type:** Community Moderation Policy
 **Owner:** Requirements Engineering Team
@@ -359,6 +359,11 @@ The policy-facing terms below map to the architecture's canonical case outcomes:
 | `REJECT` | `reject` | Local rejection authorized by the deterministic policy engine |
 
 `FLAG` is not a cosmetic marker: it requires a durably committed human-review queue entry. `escalate` is pending review, not a final determination. AI output is **advisory evidence only**; it never independently authorizes a case-state transition. S3/high-severity content cannot receive automated `approve` or final `reject` before human review. A local `reject` is not an external-platform removal. Failed or unconfirmed writes must never be described as confirmed outcomes.
+
+For Gate 4 replay, policy outcomes map to the evaluation vocabulary defined in
+`test/eval/expectation_policy.yaml`: `approve` maps to `allow`, `reject` maps to
+`block`, and `escalate` maps to `escalate`. `hold` is an unscored runtime fallback
+covered by failure and integration tests rather than content-accuracy evaluation.
 
 ## 4.2 Decision Responsibilities
 
