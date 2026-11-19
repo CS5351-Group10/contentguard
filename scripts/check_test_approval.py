@@ -24,11 +24,18 @@ alone. For a code/prompt PR it enforces the whole requirement:
    pre-implementation approval into a post-hoc one. Both sides are normalised to UTC
    before comparison, so ``Z`` and ``+00:00`` compare equal and an offset shifts nothing.
 
-Fail closed: any API or parse problem, a missing commit file list, or no non-merge code
-commit produces an actionable ``GATE 1 FAIL: <reason>`` and exit 1 (never a traceback,
-never a silent pass, never a marker-only fallback). Docs-only PRs and push events keep
-their early pass with no issue lookup. Approval *authority* (which role may sign) is out
-of scope; the gate only requires that an independent human approved before implementation.
+Fail closed: any API or parse problem — including a missing/invalid timestamp on a
+candidate comment or commit — produces an actionable ``GATE 1 FAIL: <reason>`` and exit 1
+(never a traceback, never a silent pass, never a marker-only fallback). Docs-only PRs and
+push events keep their early pass with no issue lookup. Approval *authority* (which role
+may sign) is out of scope; the gate only requires that an independent human approved
+before implementation.
+
+Known limitation: GitHub caps a single commit's file list (``GET /commits/{sha}`` returns
+at most ~300 files). This gate does not detect that truncation; a commit whose changed
+files exceed the cap could be misread as docs-only if the code change is beyond the cap.
+Detecting the cap would need the ``stats.total``/pagination behaviour that endpoint does
+not expose reliably, so it is recorded here rather than promised as a check.
 """
 
 import json
@@ -94,6 +101,12 @@ def _api_paginate(url: str, token: str) -> list[dict]:
                 batch = _json_load(resp)
                 link = resp.headers.get("Link") if getattr(resp, "headers", None) else None
         except urllib.error.HTTPError as exc:
+            if exc.code == 401:
+                raise RuntimeError(
+                    f"GitHub API returned 401 Unauthorized for {page_url}. The "
+                    "GITHUB_TOKEN for this step is missing or invalid; pass it via "
+                    "`env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` on the gate step."
+                ) from exc
             raise RuntimeError(
                 f"GitHub API error {exc.code} for {page_url}: {exc.reason}"
             ) from exc
@@ -171,7 +184,7 @@ def _is_bot(user: dict) -> bool:
 
 
 def _parse_time(value: object) -> datetime:
-    """Parse an ISO-8601 timestamp to an aware UTC datetime; raise on a bad value."""
+    """Parse an ISO-8601 timestamp to an aware UTC datetime; raise ValueError if bad."""
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"missing timestamp: {value!r}")
     text = value.strip()
@@ -189,7 +202,10 @@ def _qualified_approval(
     """Earliest qualifying approval comment's (effective UTC time, comment author).
 
     Qualifying means: human (not a bot), not the issue author, not the PR author, body
-    matches the marker. Edited comments use ``updated_at`` as the effective time.
+    matches the marker. Edited comments use ``updated_at`` as the effective time. A
+    missing or invalid timestamp on a qualifying comment is a parse failure and is
+    surfaced as RuntimeError (the gate's single fail-closed path), never a ValueError
+    escaping ``main()``.
     """
     best: tuple[datetime, str] | None = None
     for comment in comments:
@@ -203,7 +219,13 @@ def _qualified_approval(
         created = comment.get("created_at")
         updated = comment.get("updated_at")
         effective = updated if updated not in (None, created) else created
-        when = _parse_time(effective)
+        try:
+            when = _parse_time(effective)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"approval comment by {login or '?'} has an unreadable timestamp "
+                f"(created_at={created!r}, updated_at={updated!r}): {exc}"
+            ) from exc
         if best is None or when < best[0]:
             best = (when, login)
     return best
@@ -242,8 +264,10 @@ def _commit_author_time(commit: dict) -> datetime:
 def _commit_code_files(repo: str, sha: str, token: str) -> list[str]:
     """The code/prompt files changed by one commit (per-commit ``GET /commits/{sha}``).
 
-    Raises RuntimeError when the file list is truncated or unavailable, so the caller
-    fails closed instead of guessing that a commit is docs-only.
+    Raises RuntimeError when the endpoint errors, returns a non-object, or reports no
+    ``files`` array at all, so the caller fails closed instead of assuming docs-only.
+    (It does not detect the GitHub file-list size cap — see the module docstring's known
+    limitation.)
     """
     url = f"{API_ROOT}/repos/{repo}/commits/{sha}"
     req = urllib.request.Request(url, headers=_headers(token))
@@ -330,7 +354,6 @@ def main() -> int:
         )
     issue_number = int(match.group(1))
 
-    issue_author = ""
     pr_author = str((pr.get("user") or {}).get("login", ""))
     try:
         issue = _issue_or_none(repo, issue_number, token)
@@ -346,15 +369,15 @@ def main() -> int:
             )
         issue_author = str((issue.get("user") or {}).get("login", ""))
         comments = _issue_comments(repo, issue_number, token)
+        approval = _qualified_approval(
+            comments, issue_author=issue_author, pr_author=pr_author
+        )
     except RuntimeError as exc:
         return _fail(str(exc))
 
-    approval = _qualified_approval(
-        comments, issue_author=issue_author, pr_author=pr_author
-    )
     if approval is None:
         authors = _marker_authors(comments)
-        if authors and authors <= ({pr_author} if pr_author else set()):
+        if authors and pr_author and authors <= {pr_author}:
             return _fail(
                 "the approval comment is by the pull-request author "
                 "(self-approval does not count) — have someone other than the "

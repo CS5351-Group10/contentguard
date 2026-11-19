@@ -20,10 +20,13 @@ sign-off's technical rules and the two 2026-11-19 amendments:
 - Bot detection is ``user.type == "Bot"`` or a login ending in ``[bot]``; both timestamps
   are normalised to UTC before comparison.
 
-No network and no conftest: the fetch layer (``_api_json``, ``_pull_commits``,
-``_commit_code_files``, ``event_payload``, ``changed_files``) is monkeypatched, same style
-as ``test_pr_files_headers.py`` / ``test_gate2_safety.py``. This module uses only the
-stdlib so it also runs on the 3.10 dev box (CI is 3.12).
+PR #61 review P1 also requires that a qualifying marker comment with an unreadable
+timestamp (e.g. ``created_at=None``) fails closed with ``GATE 1 FAIL`` and no traceback.
+
+No network and no conftest: the fetch layer (``_json_load``, ``_api_paginate``,
+``_pull_commits``, ``_commit_code_files``, ``event_payload``, ``changed_files``) is
+monkeypatched, same style as ``test_pr_files_headers.py`` / ``test_gate2_safety.py``. This
+module uses only the stdlib so it also runs on the 3.10 dev box (CI is 3.12).
 """
 
 from __future__ import annotations
@@ -74,17 +77,19 @@ def _pr_issue(login: str = ISSUE_AUTHOR) -> dict:
 
 def _comment(
     login: str,
-    created: str,
+    created: object = "2026-11-19T07:25:03Z",
     body: str = MARKER,
     *,
-    updated: str | None = None,
+    updated: object | None = None,
     ctype: str = "User",
 ) -> dict:
+    if updated is None:
+        updated = created
     return {
         "user": {"login": login, "type": ctype},
         "body": body,
         "created_at": created,
-        "updated_at": updated if updated is not None else created,
+        "updated_at": updated,
     }
 
 
@@ -92,29 +97,29 @@ def _commit(
     sha: str,
     author_date: str,
     *,
-    parents: list[str] | None = None,
+    parents: int = 1,
     committer_date: str | None = None,
-    files: list[str] | None = None,
 ) -> dict:
-    """A commit as returned by the pulls/{n}/commits endpoint (files optional there)."""
+    """A commit as returned by the pulls/{n}/commits endpoint (files fetched separately)."""
     return {
         "sha": sha,
-        "parents": [{"sha": p} for p in (parents if parents is not None else ["p"])],
+        "parents": [{"sha": f"p{i}"} for i in range(parents)],
         "commit": {
             "author": {"date": author_date},
-            "committer": {"date": committer_date if committer_date is not None else author_date},
+            "committer": {
+                "date": committer_date if committer_date is not None else author_date
+            },
         },
-        "_files": files,
     }
 
 
-def _event(body: str = MARKER) -> dict:
+def _event(body: str = MARKER, pr_author: str = PR_AUTHOR) -> dict:
     return {
         "pull_request": {
             "number": PR_NUMBER,
             "body": body,
             "base": {"repo": {"full_name": REPO}},
-            "user": {"login": PR_AUTHOR},
+            "user": {"login": pr_author},
         }
     }
 
@@ -317,7 +322,7 @@ def test_merge_commit_skipped(
 ) -> None:
     """Verifies: REQ-GOV-002 / TD-2 — a merge commit (two parents) touching code is skipped;
     the first non-merge code commit is the implementation anchor."""
-    merge = _commit("m1", "2026-11-19T06:00:00Z", parents=["a", "b"])
+    merge = _commit("m1", "2026-11-19T06:00:00Z", parents=2)
     real = _commit("c1", "2026-11-19T08:00:00Z")
     files_by_sha = {
         "m1": ["src/contentguard/x.py"],
@@ -418,12 +423,10 @@ def test_self_approval_by_pr_author_fails(
     pull-request author ⇒ distinct self-approval message, not "no approval recorded"."""
     author = "implementer"
     commits, files_by_sha = _code_then_docs()
-    event = _event()
-    event["pull_request"]["user"]["login"] = author
     exit_code, out, _ = _run(
         monkeypatch,
         capsys,
-        event=event,
+        event=_event(pr_author=author),
         files=["src/contentguard/x.py"],
         issue=_issue(login="reporter"),
         comments=[_comment(author, "2026-11-19T07:25:03Z")],
@@ -442,9 +445,8 @@ def test_pagination_finds_earliest_comment(
     """Verifies: REQ-GOV-002 / TD-2 — amendment A2: pagination must not lose a valid
     approval or pick a later commit.
 
-    Comments past the first page (a qualifying marker and a later one) are found via the
-    paginated ``/comments`` endpoint, and a >30-commit PR whose only code commit is last
-    is resolved to that last commit — so a legitimate pre-implementation approval PASSes
+    The qualifying marker sits past the first page of comments, and a >30-commit PR has
+    its only code commit last — so a legitimate pre-implementation approval PASSes
     instead of becoming a false "post-hoc".
     """
     first_page = [
@@ -456,13 +458,9 @@ def test_pagination_finds_earliest_comment(
     ]
     comments = first_page + second_page
 
-    commits = [
-        _commit(f"c{i:03d}", "2026-11-19T05:00:00Z") for i in range(30)
-    ]
+    commits = [_commit(f"c{i:03d}", "2026-11-19T05:00:00Z") for i in range(30)]
     commits.append(_commit("code", "2026-11-19T08:00:00Z"))
     files_by_sha = {c["sha"]: ["docs/x.md"] for c in commits}
-    for c in commits:
-        files_by_sha[c["sha"]] = ["docs/x.md"]
     files_by_sha["code"] = ["src/contentguard/x.py"]
 
     exit_code, out, _ = _run(
@@ -477,6 +475,28 @@ def test_pagination_finds_earliest_comment(
     )
     assert exit_code == 0, out
     assert "PASS" in out
+
+
+def test_marker_comment_with_none_timestamp_fails_closed(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Verifies: REQ-GOV-002 / TD-2 (PR #61 review P1) — a qualifying marker comment with an
+    unreadable timestamp (``created_at=None``) must produce ``GATE 1 FAIL`` and exit 1 with
+    no traceback, not let a ValueError escape ``main()``."""
+    commits, files_by_sha = _code_then_docs()
+    exit_code, out, _ = _run(
+        monkeypatch,
+        capsys,
+        event=_event(),
+        files=["src/contentguard/x.py"],
+        issue=_issue(),
+        comments=[_comment(REVIEWER, None)],
+        commits=commits,
+        commit_files=files_by_sha,
+    )
+    assert exit_code == 1
+    assert "GATE 1 FAIL" in out
+    assert "unreadable timestamp" in out
 
 
 def test_fail_closed_when_no_code_commit(

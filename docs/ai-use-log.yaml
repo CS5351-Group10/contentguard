@@ -255,34 +255,36 @@ entries:
       scripts/check_test_approval.py, test/offline/test_gate1_approval.py,
       .github/workflows/ci.yml, docs/ai-use-log.yaml
     summary: >-
-      TD-2 gate 1 tightening (REQ-GOV-002), per issue #58 and its PM sign-off plus the
-      2026-11-19 amendments. Gate 1 no longer trusts the PR-body marker alone: it resolves
-      the cited number via GET /issues/{n} (404 = "issue not found"; a pull_request key =
-      "cited number is a pull request, not an issue"), reads the issue's comments (paginated
-      per_page=100 + Link) and takes the earliest qualifying approval comment (marker body;
-      human = not user.type=="Bot" and not a "[bot]" login; not the issue author; not the
-      PR author — A1: a solo PR-author marker fails with a distinct self-approval message;
-      edited comments use updated_at). It then selects the first non-merge implementation
-      commit from GET /pulls/{n}/commits (paginated, returned order; merges with >1 parent
-      skipped; per-commit GET /commits/{sha} file list, first commit touching a
-      CODE_PREFIXES path) and compares the approval's effective time to that commit's
-      commit.author.date (never committer), both normalised to UTC. Fails closed on any
-      API/parse problem, a missing commit file list, or no non-merge code commit
-      (GATE 1 FAIL: <reason>, exit 1, no traceback). Docs-only PRs and push events keep
-      their early pass with no issue lookup. Added test/offline/test_gate1_approval.py
-      (15 tests: the #58 fit cases, merges skipped, docs-only commit skipped, edited
-      approval uses updated_at, bot ignored, self-approval, pagination, fail-closed) and
-      added issues: read to ci.yml permissions (per-step env only; job name unchanged).
-      Stdlib only (urllib + re); approval authority stays out of scope.
+      TD-2 gate 1 tightening (REQ-GOV-002), per issue #58 + its PM sign-off + the
+      2026-11-19 amendments (A1 self-approval, A2 pagination/UTC/bot-detection), and the
+      PR #61 review changes. Gate 1 resolves the cited number via GET /issues/{n}
+      (404 = "issue not found"; a pull_request key = "cited number is a pull request, not
+      an issue"), reads the issue's comments (paginated per_page=100 + Link) and takes the
+      earliest qualifying approval (marker body; human = not user.type=="Bot" and not a
+      "[bot]" login; not the issue author; not the PR author; edited comments use
+      updated_at). It selects the first non-merge implementation commit from
+      GET /pulls/{n}/commits (paginated, returned order; merges with >1 parent skipped;
+      per-commit GET /commits/{sha} file list, first commit touching a CODE_PREFIXES path)
+      and compares the approval's effective time to that commit's commit.author.date (never
+      committer), both normalised to UTC. Fails closed (GATE 1 FAIL: <reason>, exit 1, no
+      traceback) on any API/parse problem, a missing commit file list, or no non-merge code
+      commit. PR #61 P1: _parse_time ValueError is converted to RuntimeError inside
+      _qualified_approval, so a marker comment with created_at=None yields GATE 1 FAIL and
+      exit 1 with no traceback (new test test_marker_comment_with_none_timestamp_fails_closed).
+      PR #61 P2: the test header names the fetch helper _json_load (was _api_json), and the
+      per-commit file-list docstring states GitHub's file-list size cap as a documented
+      known limitation instead of promising a truncation check the code lacks. Added
+      test/offline/test_gate1_approval.py (16 tests) and issues: read to ci.yml permissions
+      (per-step env only; job name unchanged). Stdlib only (urllib + re); approval authority
+      out of scope.
     human_interventions: 2
     intervention_summary: >-
-      (1) Task brief: scope fixed to issue #58 + its PM sign-off comment; required fetching
-      the issue AND its comments, commit.author.date not committer, merge skipping, fail
-      closed, four distinct messages, and a rewritten (not merely trimmed) module docstring.
-      (2) Plan approval with two amendments (2026-11-19): A1 — a qualifying approval must
-      also not be by the pull-request author, with a distinct self-approval message; A2 —
-      paginate /issues/{n}/comments and /pulls/{n}/commits (per_page=100 + Link), define bot
-      detection as user.type=="Bot" OR a "[bot]" login, and normalise both timestamps to UTC.
-      Count matches the transcript (2 human messages).
-    pr: 61   # opened 2026-11-19 from issue #58 (number assigned at PR creation)
+      (1) Task brief: scope fixed to issue #58 + sign-off; required commit.author.date not
+      committer, merge skipping, fail closed, four distinct messages, rewritten docstring;
+      then two amendments (A1 self-approval, A2 pagination/UTC/bot). (2) PR #61 changes
+      requested by the PM: P1 — convert the parse ValueError to RuntimeError at the parsing
+      boundary inside _qualified_approval and add a created_at=None fail-closed test; P2 —
+      fix the _api_json/_json_load name and stop the docstring promising a truncation check
+      the code lacks (state it as a known limitation). Count matches the transcript.
+    pr: 61   # opened 2026-11-19 from issue #58
 
