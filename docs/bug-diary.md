@@ -59,3 +59,13 @@
 - Root cause: the enum mirrors the interface-contract status set, but the current persistence path has no "write succeeded but confirmation pending" state; the value was never wired or removed.
 - Fix: Not applied in PR #62. Decide with the architecture/policy owner: either implement the pending-confirmation path and document exactly when it is returned, or remove the value and update `docs/architecture/interface-contracts.md`; add a contract test so the enum and emitted statuses stay in lockstep.
 - Invariant gap exposed: REQ-INV-004 / REQ-GOV-004 — commit status and audit evidence must be complete and traceable; a declared-but-unreachable status weakens the status contract used by callers and evidence checks.
+
+## BUG-005 — Corpus digest gate fails on Windows checkouts (CRLF vs recorded LF sha256)
+
+- Date found: 2026-11-19 | Found by: LIU Jianwei (PM) / independent verification of PR #69 | Fixed in: not fixed — environmental; needs a line-ending policy decision (a `chore/line-endings-policy` branch exists without an open PR — coordinate there)
+- Symptom: `test/offline/test_evaluation_dataset.py::test_readme_corpus_hash_matches_file` fails on Windows working copies while Linux CI is green on the same commits. Observed on PR #69's head `fd17f6d` (1 failed / 270 passed) and on a clean `main` checkout (`6f47cc2`) — so it is pre-existing, not introduced by any open PR.
+- Reproduction: on Windows with `core.autocrlf=true`, check out `main` and run `python -m pytest "test/offline/test_evaluation_dataset.py::test_readme_corpus_hash_matches_file" -q` → FAILED. The test hashes the corpus with `hashlib.sha256(EVAL_PATH.read_bytes())` (test_evaluation_dataset.py:686) and asserts the digest appears in the eval README.
+- Classification: integration / environment (line-ending policy), not product logic
+- Root cause: no `.gitattributes` on `main`, so text files are checked out with CRLF on Windows (`core.autocrlf=true`); `read_bytes()` hashes working-copy bytes (CRLF) while the README records the LF blob digest — the assertion cannot pass on a CRLF checkout.
+- Fix: not applied here. Candidates: (a) `.gitattributes` pinning LF for corpus/fixture data (coordinate with the existing `chore/line-endings-policy` branch, `6e2daf6`); (b) hash the Git blob instead of working-copy bytes. Either needs a small PR plus a Windows-checkout verification note.
+- Invariant gap exposed: the corpus provenance digest ("REQ-INV-005: README records the actual generated corpus digest") assumes checkout-invariant bytes; the gate is only trustworthy on LF checkouts, so acceptance evidence is platform-dependent. Strengthening: pin line endings for corpus/fixture data so the recorded digest is reproducible on every platform.
