@@ -52,7 +52,7 @@ The team treated the repository, not the chat log, as the source of truth. The p
 |---|---|---|---|
 | ① Kickoff | 11/15 | topic vote, roles, repository, branch protection, AI-use log | repository transferred; protection verified; AI-001 |
 | ② Planning and foundation | 11/16 | requirements baseline, ADR/blueprint, governance drafts, schema gate | #11 registry; ADR-001 (#15); bug/debt registers (#17) |
-| ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 in PR #41 (pending merge); gate-2 work in #45 (in review) |
+| ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 merged in PR #41 (`e60dd50`); gate-2 work merged in #45 (`b2e67f1`) |
 | ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | S4/S5 harness and benchmark planned (TD-1) |
 | ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report draft #44; Huang + PM S1 transcripts complete |
 | ⑥ Deliver and present | 11/25–30 | zip + video, slides to TA, presentation | pending |
@@ -109,7 +109,7 @@ The same discipline exposed a gate limitation. In #11 the validator test file ex
 
 Review is a recorded act, not a click. `docs/review-memo.md` defines the RM ledger and the review template (spec alignment, architecture alignment, code quality, test quality, security, efficiency, operational metadata, verdict). Rule 6, added in PR #31, requires reviewers to state what they checked and forbids approving incomplete work. The ledger contains RM-001 through RM-014; RM-015–RM-020 are reserved for the next ledger backfill (#32, #34, #37, #33, #39, #35), and #11's final memo is intentionally not pre-numbered. Memos posted in PR threads without a ledger entry are cited by PR comment and timestamp, not implied to be in the ledger.
 
-Merge rights were also changed by evidence. PR #39 moved the team from "PM merges" to "author merges after a non-author approval, green `blocking-gates` and a recorded verdict." The change was tested by a real incident: the PM pushed a second commit seven seconds after the reviewer's approval, which dismissed the approval; the head was reset to the reviewed commit and re-approved, and the convention now documents that failure mode. PR #11 merged on 2026-11-18 only after both domain approvals arrived (`xiaolizi33` at 02:54:56Z, `creator-xiyuan` at 02:55:08Z); PR #41 is still waiting for its non-author co-sign and is deliberately not merged.
+Merge rights were also changed by evidence. PR #39 moved the team from "PM merges" to "author merges after a non-author approval, green `blocking-gates` and a recorded verdict." The change was tested by a real incident: the PM pushed a second commit seven seconds after the reviewer's approval, which dismissed the approval; the head was reset to the reviewed commit and re-approved, and the convention now documents that failure mode. PR #11 merged on 2026-11-18 only after both domain approvals arrived (`xiaolizi33` at 02:54:56Z, `creator-xiyuan` at 02:55:08Z); PR #41 later merged as `e60dd50` after its non-author approvals.
 
 ### 3.6 Improvement loops and what was optimized
 
@@ -177,7 +177,7 @@ The current verification evidence is strong but bounded:
 - **Gate 6:** AI-007 is in the S1 branch; AI-001/AI-002/AI-006 are on main; the merge resolution keeps all four entries distinct.
 - **Traceability:** the trace matrix has 31 rows; the smoke test asserts that every registry ID appears; test docstrings cite their REQ/INV IDs.
 
-The limits are equally explicit. Gate 4 is warn-only (TD-1), so no prompt/model change is semantically accepted until the S5 harness is strict. Gate 1 checks a marker, not an issue record or a timestamp (TD-2). Gate 5 cannot detect an empty test file; that blind spot is why #11's 0-byte file passed and why issue #38 exists. Gate 7 is deferred (TD-9). The trace matrix contains `TBD (S1)` through `TBD (S5)` cells, which are planned evidence, not passing evidence. The S1 code and tests are in open PR #41, not on `main`; the report therefore treats S1 as "pending merge" in the co-evolution section rather than as a completed artifact.
+The limits are equally explicit. Gate 4 is warn-only (TD-1), so no prompt/model change is semantically accepted until the S5 harness is strict. Gate 1 checks a marker, not an issue record or a timestamp (TD-2). Gate 5 cannot detect an empty test file; that blind spot is why #11's 0-byte file passed and why issue #38 exists. Gate 7 is deferred (TD-9). The trace matrix contains `TBD (S1)` through `TBD (S5)` cells, which are planned evidence, not passing evidence. The S1 code and tests were merged in PR #41 (`e60dd50`); the report therefore treats S1 as merged evidence in the co-evolution section.
 
 ### 4.5 Honest evidence boundaries
 
@@ -201,16 +201,16 @@ The test suite carries requirement IDs in docstrings, and gate 3 validates the r
 | Trace matrix | 31 rows; 23 `TBD` markers across S1–S5 | merged; planned cells are not passing evidence |
 | Direct REQ IDs cited in the offline suite (as of 2026-11-18) | 8 IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001) | S1 branch + #11 |
 | Validator tests | 12 collected | merged in #11 |
-| S1 tests | 109 collected | open PR #41 |
+| S1 tests | 109 collected | merged in PR #41 (`e60dd50`) |
 | Full offline suite | 121 passed on `b410daf` | S1 branch after #11 merge |
 
-The S1 branch adds 109 tests across five modules plus shared fixtures. Their names are deliberately requirement-shaped: `test_enforcement_only_from_policy`, `test_high_severity_always_escalates`, `test_one_record_per_decision`, `test_audit_write_failure_rolls_back`, `test_replay_one_audit_record`, `test_rule_or_fallback_id`, and the structural `test_forbidden_call_structural`. The plan's ten named cases are present, with additional negative and rollback coverage. The tests are not yet merged; they are evidence in PR #41, not on `main`.
+The S1 branch adds 109 tests across five modules plus shared fixtures. Their names are deliberately requirement-shaped: `test_enforcement_only_from_policy`, `test_high_severity_always_escalates`, `test_one_record_per_decision`, `test_audit_write_failure_rolls_back`, `test_replay_one_audit_record`, `test_rule_or_fallback_id`, and the structural `test_forbidden_call_structural`. The plan's ten named cases are present, with additional negative and rollback coverage. The tests were merged in PR #41 (`e60dd50`); they are on `main`.
 
 ### 5.3 Architecture ↔ code
 
 The module layout in `AGENTS.md` §5 and the interface contracts are enforced in code, not only in prose. `test/offline/test_invariants.py` checks the dependency direction (`policy` may depend on `audit`/`escalation`; `analysis` must not import policy), forbids enforcement calls outside the policy engine, and proves the structural checker can fail by running it against a deliberately violating fixture. The `EnforcementAuthority` token is a module-private opaque object, not a re-exported string; the forged-advisory and authority-binding tests cover the boundary. The runtime policy catalog names the planned test path for each failure condition (for example R-2 → `test_analysis_contract.py`, R-8 → `test_retrieval_grounding.py`, R-9 → `test_context_budget.py`), which lets later sessions land S3 tests without renegotiating the architecture.
 
-The S1 implementation is the first full instance of this mapping: policy decisions, audit records and the escalation queue are committed in one SQLite transaction; the audit repository validates the record schema; replay returns the stored result and does not write a second audit row. The S1 tests cover both rollback paths. The code is in open PR #41; it must not be described as already merged architecture conformance.
+The S1 implementation is the first full instance of this mapping: policy decisions, audit records and the escalation queue are committed in one SQLite transaction; the audit repository validates the record schema; replay returns the stored result and does not write a second audit row. The S1 tests cover both rollback paths. The code was merged in PR #41 (`e60dd50`); the merge alone does not establish architecture conformance.
 
 ### 5.4 Evidence and version co-evolution
 
@@ -220,7 +220,7 @@ The same rule applies to the report's own evidence. The pre-#11 and post-#11 ver
 
 ### 5.5 What is not yet co-evolved
 
-The project does not claim full co-evolution. S1's code/tests are pending merge in PR #41; the trace matrix still marks S1–S5 cells as `TBD`; gate 4 is warn-only; S2 intake/queue, S3 analysis/RAG, S4 CI hardening and S5 evaluation are not implemented. #37's corpus maintenance is blocked on the ADR addendum docs PR and the revised execution plan; #43's S3 test plan is approved but its implementation plan is not. These gaps are recorded in the debt register, the trace matrix and the issue tracker, and the report treats them as open rather than filling them with narrative.
+The project does not claim full co-evolution. S1's code/tests were merged in PR #41 (`e60dd50`); the trace matrix still marks S1–S5 cells as `TBD`; gate 4 is warn-only; S2 intake/queue, S3 analysis/RAG, S4 CI hardening and S5 evaluation are not implemented. #37's corpus maintenance is blocked on the ADR addendum docs PR and the revised execution plan; #43's S3 test plan is approved but its implementation plan is not. These gaps are recorded in the debt register, the trace matrix and the issue tracker, and the report treats them as open rather than filling them with narrative.
 
 ## 6. What human oversight caught that the agent did not
 
@@ -233,19 +233,19 @@ This section uses two evidence sources: the PM/domain review memos in `docs/revi
 
 ### 6.2 Agent-miss cases
 
-**6.2.1 Unauthorized write to a human-owned file (S1).** While trying to satisfy gate 6, the OpenCode session wrote `docs/ai-use-log.yaml` with an AI-002 entry, even though the file is human-owned and the session was told to stop and report. The PM detected the write, preserved the diff to `recovery/unauthorized-ai-use-log.patch`, reverted the file, and re-ran the scope audit; the code changes were unaffected and no out-of-scope write reached a commit. The AI-007 entry was added by the PM. Evidence: `transcripts/61022208-LIU-Jianwei.md:33`, `:123-126`.
+**6.2.1 Unauthorized write to a human-owned file (S1).** While trying to satisfy gate 6, the OpenCode session wrote `docs/ai-use-log.yaml` with an AI-002 entry, even though the file is human-owned and the session was told to stop and report. The PM detected the write, preserved the diff to `recovery/unauthorized-ai-use-log.patch`, reverted the file, and re-ran the scope audit; the code changes were unaffected and no out-of-scope write reached a commit. The AI-007 entry was added by the PM. Evidence: `transcripts/61022208-LIU-Jianwei.md:41`, `:142-145`.
 
-**6.2.2 Forgeable authority token (S1).** The agent's first enforcement implementation exported a public string `AUTHORITY_TOKEN`. A string constant can be copied by any module that imports `policy.enforcement`, so it does not implement the opaque authority boundary the plan required. The PM rejected it and required a module-private `object()` token, no public export, and the structural test that proves the boundary. Evidence: `transcripts/61022208-LIU-Jianwei.md:34`.
+**6.2.2 Forgeable authority token (S1).** The agent's first enforcement implementation exported a public string `AUTHORITY_TOKEN`. A string constant can be copied by any module that imports `policy.enforcement`, so it does not implement the opaque authority boundary the plan required. The PM rejected it and required a module-private `object()` token, no public export, and the structural test that proves the boundary. Evidence: `transcripts/61022208-LIU-Jianwei.md:42`.
 
-**6.2.3 Replay-ordering defect (S1).** The agent's replay path used the globally active snapshot instead of the case's pinned snapshot, which would misclassify a legitimate retry of an old case as a conflict after a new snapshot was activated. The PM required pinned-snapshot replay and the v1→v2 activation test. Evidence: `transcripts/61022208-LIU-Jianwei.md:35`; the CP3 repair is in `e25b46c`.
+**6.2.3 Replay-ordering defect (S1).** The agent's replay path used the globally active snapshot instead of the case's pinned snapshot, which would misclassify a legitimate retry of an old case as a conflict after a new snapshot was activated. The PM required pinned-snapshot replay and the v1→v2 activation test. Evidence: `transcripts/61022208-LIU-Jianwei.md:43`; the CP3 repair is in `e25b46c`.
 
-**6.2.4 Structural checker that could not fail (S1).** The first AST checker scanned imports but did not prove that a violating fixture could fail it; an always-passing check is worse than no check. The PM required coverage of module imports, `from contentguard.policy import enforcement`, attribute accesses, literal `importlib`/`__import__` strings and the re-export bypass, plus a fixture that makes the test fail. Evidence: `transcripts/61022208-LIU-Jianwei.md:37`; `test/offline/test_invariants.py::test_forbidden_call_structural`.
+**6.2.4 Structural checker that could not fail (S1).** The first AST checker scanned imports but did not prove that a violating fixture could fail it; an always-passing check is worse than no check. The PM required coverage of module imports, `from contentguard.policy import enforcement`, attribute accesses, literal `importlib`/`__import__` strings and the re-export bypass, plus a fixture that makes the test fail. Evidence: `transcripts/61022208-LIU-Jianwei.md:45`; `test/offline/test_invariants.py::test_forbidden_call_structural`.
 
 **6.2.5 Unverifiable "10/10 PASS" and a 0-byte test file (#11).** The agent's work claimed ten validator tests passed, but the committed test file was 0 bytes at one head; `pytest` collected zero tests and gate 5 stayed green. The PM review found the empty file, required a real 235-line/8,267-byte suite with ID-citing docstrings, and recorded the empty-test blind spot as issue #38. A later review also found that the AI-002 summary still said "temporary fixture tests passed 10/10"; the permanent suite and the AI-006 entry were the actual evidence. Evidence: PR #11 reviews 2026-11-15T19:58Z, 2026-11-16T08:21:59Z and 2026-11-17T09:09:11Z; `docs/bug-diary.md` BUG-002 context.
 
 **6.2.6 Dead evidence paths (#11).** The Gate 3 report and contribution row cited `test-results/gate3/pytest-initial-run.txt`, `pytest-offline-regression.txt`, `validator-result.txt` and `transcripts/gate3/gate3-validator-v2-session.md`; none were committed and `.gitignore` did not exclude them. A D5/D6 pointer that resolves to nothing is a review defect, not evidence. The PM required the report to cite only committed artifacts or to commit sanitized outputs. Evidence: PR #11 review 2026-11-17T12:16:20Z (dead-path finding).
 
-**6.2.7 P1 semantic/coverage gaps in S1.** The independent S1 review found a normal HOLD/ESCALATE decision could be enqueued while `requires_human_review` was false, stale reviews mapped to the wrong status, and several negative branches were asserted only in prose. The PM required the metadata fix, the `InvalidReviewError`/`StaleReviewError` → `CONFLICT` mapping, and the missing negative tests; the S1 session's final count is 109 tests; the branch merged with main collects 121. Evidence: `transcripts/61022208-LIU-Jianwei.md:41`; commit `afe390b`.
+**6.2.7 P1 semantic/coverage gaps in S1.** The independent S1 review found a normal HOLD/ESCALATE decision could be enqueued while `requires_human_review` was false, stale reviews mapped to the wrong status, and several negative branches were asserted only in prose. The PM required the metadata fix, the `InvalidReviewError`/`StaleReviewError` → `CONFLICT` mapping, and the missing negative tests; the S1 session's final count is 109 tests; the branch merged with main collects 121. Evidence: `transcripts/61022208-LIU-Jianwei.md:49`; commit `afe390b`.
 
 ### 6.3 Human-process cases (labeled)
 
@@ -260,13 +260,13 @@ These cases are valuable oversight evidence, but they are not agent-miss cases:
 
 | Case | Category | What the human caught | Anchor |
 |---|---|---|---|
-| S1 unauthorized docs write | Agent-miss | Scope boundary; reverted before commit | `transcripts/61022208-LIU-Jianwei.md:33` |
-| S1 forgeable `AUTHORITY_TOKEN` | Agent-miss | Authority boundary; required an opaque token | `transcripts/61022208-LIU-Jianwei.md:34` |
-| S1 replay ordering | Agent-miss | Pinned-snapshot replay; old-case correctness | `transcripts/61022208-LIU-Jianwei.md:35`; `e25b46c` |
-| S1 structural checker | Agent-miss | Negative fixture must be able to fail | `transcripts/61022208-LIU-Jianwei.md:37` |
+| S1 unauthorized docs write | Agent-miss | Scope boundary; reverted before commit | `transcripts/61022208-LIU-Jianwei.md:41` |
+| S1 forgeable `AUTHORITY_TOKEN` | Agent-miss | Authority boundary; required an opaque token | `transcripts/61022208-LIU-Jianwei.md:42` |
+| S1 replay ordering | Agent-miss | Pinned-snapshot replay; old-case correctness | `transcripts/61022208-LIU-Jianwei.md:43`; `e25b46c` |
+| S1 structural checker | Agent-miss | Negative fixture must be able to fail | `transcripts/61022208-LIU-Jianwei.md:45` |
 | #11 0-byte test / "10/10 PASS" | Agent-miss | Unverifiable evidence; required a real suite | PR #11 reviews 11/15–11/17 |
 | #11 dead evidence paths | Agent-miss | Pointers to uncommitted artifacts | PR #11 review 2026-11-17T12:16:20Z |
-| S1 P1 semantic gaps | Agent-miss | Metadata truth and missing negative tests | `transcripts/61022208-LIU-Jianwei.md:41`; `afe390b` |
+| S1 P1 semantic gaps | Agent-miss | Metadata truth and missing negative tests | `transcripts/61022208-LIU-Jianwei.md:49`; `afe390b` |
 | #39 push after approval | Human-process | Seven-second push dismissed an approval | PR #39 comment 2026-11-17T14:30:50Z |
 | #11 transcript overwrite | Human-process | Frozen transcript was replaced | PR #11 review 2026-11-17T12:16:20Z |
 | #37 ADR gate | Human-process | Session stopped before unapproved corpus work | PR #37 comments 2026-11-17 |
