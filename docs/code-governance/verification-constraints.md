@@ -79,6 +79,15 @@
   - empty denominators render as **`N/A`, never `0`** (`REQ-QUA-003`), so "no data" and
     "perfect" cannot be confused in the report.
   - rationale faithfulness/relevance ≥ agreed threshold (LLM-judge rubric, optional in v1)
+- **Decision vocabulary — policy terms vs scored terms.** The moderation policy
+  (`docs/policy/community-policy-v1.md` §3) speaks `approve / escalate / hold / reject`;
+  gate 4 scores `allow / block / escalate`. The replay mapping is:
+  policy `approve` → `allow`, `reject` → `block`, `escalate` → `escalate`.
+  **`hold` is never scored:** it is the runtime path taken when analysis, grounding or
+  recovery fails (`runtime-policy-catalog.md` R-4/R-8), not a judgement about the content — so
+  corpus rows must not carry it, and a replay artifact that emits `hold` for a content
+  judgement is a defect in the replay. Without this mapping the gate compares `approve`
+  against `allow` and reports a vocabulary mismatch as if it were a quality regression.
 - `--strict` flips gate 4 from warn to block. It turns on when (a) the eval set has ≥100
   labeled rows **and** (b) the recorded-replay path is green twice in a row — target S4
   (11/19–20), tracked as TD-1.
