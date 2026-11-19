@@ -125,9 +125,10 @@
 > - RM-033 is reserved for PR #62's final memo after its pending test fixes and
 >   re-review; the posted RM-021 changes-requested reviews (on `1ff2050`,
 >   re-issued on `8111850`) are superseded and not a final memo.
->   RM-034 is the approved #57 review memo at `72eb656` (ledger entry appended
->   after #57 merges); RM-035 is the approved #61 review memo at `7901e8c`
->   (ledger entry appended after #61 merges).
+>   RM-034 is the approved #57 review memo at `72eb656`; #57 squash-merged as
+>   `8e7e2af` on 2026-11-19 (entry in the next ledger update). RM-035 is the
+>   approved #61 review memo, re-issued at `6ffaecc` after the base update
+>   dismissed the `7901e8c` approval (entry after #61 merges).
 > - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
 >   RM-017.
 
