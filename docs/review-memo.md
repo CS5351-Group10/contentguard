@@ -125,8 +125,8 @@
 > - RM-033 is reserved for PR #62's final memo after its pending test fixes and
 >   re-review; the posted RM-021 changes-requested reviews (on `1ff2050`,
 >   re-issued on `8111850`) are superseded and not a final memo.
->   RM-034/RM-035 are the provisional labels for the PM's #57/#61 reviews
->   (final ledger entries after approval).
+>   RM-034 is the approved #57 review memo at `72eb656` (ledger entry appended
+>   after #57 merges); RM-035 remains provisional for #61 (final after approval).
 > - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
 >   RM-017.
 
