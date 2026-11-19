@@ -437,19 +437,22 @@
 ## RM-025 — PR #41: Architecture co-sign: S1 policy kernel + audit
 
 - Reviewer(s): xiaolizi33 (architecture owner; safety-critical co-sign)
-- Spec alignment: ADR-001 conformance and authority boundaries for `src/contentguard/policy/**`
-- Architecture alignment: co-sign required by D7; no architecture change in this review
-- Code quality / Test quality / Security / Efficiency: covered by RM-024; this memo records the mandatory architecture co-sign
-- Operational metadata: merged at `e60dd50`; posted memo 2026-11-18T06:30:15Z
+- Head reviewed: `b410daf` (the co-sign binds this head; governance RM-024 approved it)
+- Spec alignment: S1 follows ADR-001's advisory/authoritative boundary — policy owns evaluation and protected transitions; high-severity signals and typed analysis failures enter the deterministic review path
+- Architecture alignment: commit checks revision, content hash and pinned snapshot; atomic case/queue/audit persistence with rollback/replay tests; S2/API and S3 remain separate and full FUN-005/INV-2 integration is not claimed
+- Code quality / Test quality: 121 offline tests and `ruff` passed through delegated tooling (the memo explicitly does not assert the account holder personally ran them); code quality is otherwise covered by RM-024
+- Security / Efficiency: covered by RM-024; this memo records the mandatory architecture co-sign, not new security/efficiency evidence
+- Operational metadata: merged at `e60dd50`; posted memo 2026-11-18T06:30:15Z; co-sign covers the S1 scope/head, not future S2/S3 or live/semantic evidence
 - Verdict: APPROVE
 
 ## RM-026 — PR #46: Architecture review: ADR-001 corpus-maintenance addendum
 
 - Reviewer(s): xiaolizi33 (architecture owner)
-- Spec alignment: ADR-001 corpus-maintenance addendum; architecture review of the corpus version/hash/seed/raw-path binding
-- Architecture alignment: addendum is an ADR-001 extension, not a new architecture decision
-- Code quality / Test quality / Security / Efficiency: n/a (docs)
-- Operational metadata: merged at `7b0ee1e`; posted memo 2026-11-18T06:30:17Z
+- Head reviewed: `6f82a90`
+- Spec alignment: the documentation-only diff records the narrow maintenance scope authorized on 2026-11-17; it preserves seed, quotas and native labels, requires PII/provenance/reproducibility checks, records the 95-row fallback as below the ≥100 prerequisite, and binds new replay evidence to the new corpus revision
+- Architecture alignment: architecture approval, execution-plan approval, data review and PR review remain distinct; the addendum is an ADR-001 extension, not a new architecture decision
+- Code quality / Test quality / Security / Efficiency: n/a (docs; no implementation tests required)
+- Operational metadata: merged at `7b0ee1e`; posted memo 2026-11-18T06:30:17Z; approval records the narrow addendum and does not claim raw-data publication, runtime/model changes, or INV-5/TD-1 complete. Naming `test/eval/expectation_policy.yaml` after #47 lands is a nonblocking follow-up.
 - Verdict: APPROVE
 
 ## RM-027 — PR #47: gate 4 semantic-evaluation replay harness (warn-only)
