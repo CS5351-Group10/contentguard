@@ -38,6 +38,7 @@ EVAL_SET = eval_runner.DEFAULT_CORPUS
 POLICY = eval_runner.DEFAULT_POLICY
 EVAL_REPLAY: Path | None = None
 PROMPT_PREFIX = "prompts/"
+REPLAY_DIR = "test/eval/replay/"
 
 # The fixed evaluation baseline. A prompt/model change may NOT edit these in the same PR,
 # or a PR could weaken the ground truth it is being scored against (REQ-INV-005, TD-1).
@@ -49,6 +50,41 @@ GROUND_TRUTH_FILES = (
 
 class ReplayUsageError(Exception):
     """A malformed --replay flag; must fail rather than fall back to env/None."""
+
+
+class ReplayAmbiguityError(Exception):
+    """More than one replay artifact changed in the PR; the gate must not guess."""
+
+
+def replay_files_in_pr(files: list[str]) -> list[str]:
+    """Replay artifacts committed by this PR: paths under ``test/eval/replay/*.jsonl``."""
+    return [
+        f
+        for f in files
+        if f.startswith(REPLAY_DIR) and f.endswith(".jsonl") and "/" not in f[len(REPLAY_DIR):]
+    ]
+
+
+def select_pr_replay(files: list[str]) -> Path:
+    """Derive the replay artifact from the PR's changed files (no explicit --replay).
+
+    Exactly one ``test/eval/replay/*.jsonl`` changed -> use it. Zero -> ``ReplayMissing``.
+    More than one -> ``ReplayAmbiguityError`` (never guess which is the evidence). A shipped
+    fixture is never selected implicitly here: only the PR's own committed replay counts.
+    """
+    candidates = replay_files_in_pr(files)
+    if len(candidates) == 1:
+        return Path(candidates[0])
+    if not candidates:
+        raise ReplayMissing()
+    listing = ", ".join(sorted(candidates))
+    raise ReplayAmbiguityError(
+        f"multiple replay artifacts changed ({listing}); pass --replay explicitly to choose one"
+    )
+
+
+class ReplayMissing(Exception):
+    """No replay artifact changed in the PR and none was passed explicitly."""
 
 
 def prompt_or_model_files(files: list[str]) -> list[str]:
@@ -139,6 +175,23 @@ def main() -> int:
             print("GATE 4 FAIL (--strict): evaluation replay missing")
             return 1
         return 0
+
+    replay_source = "explicit"
+    if replay is None:
+        # No --replay / EVAL_REPLAY: derive the replay from the PR's own changed files.
+        # Exactly one committed test/eval/replay/*.jsonl -> that is the evidence. Zero ->
+        # actionable failure. More than one -> fail closed (never guess). No shipped fixture.
+        try:
+            replay = select_pr_replay(files)
+            replay_source = "pr"
+        except ReplayMissing:
+            replay = None
+        except ReplayAmbiguityError as exc:
+            print(f"GATE 4 FAIL: {exc}")
+            return 1
+
+    if replay is not None and replay_source == "pr":
+        print(f"GATE 4: replay artifact {replay} selected from the PR's changed files.")
 
     if replay is None:
         # Honest reporting: do NOT default to a fixture and print PASS.

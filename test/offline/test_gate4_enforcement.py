@@ -119,7 +119,7 @@ def test_strict_bad_replay_fails_naming_threshold(monkeypatch: pytest.MonkeyPatc
 # ------------------------------------------------------------- strict: good replay passes
 def test_strict_good_replay_passes(monkeypatch: pytest.MonkeyPatch) -> None:
     """REQ-INV-005: the shipped good replay clears the approved thresholds under --strict
-    (agreement >= 0.80 with zero safety escapes), so gate 4 PASSes and prints the table."""
+    (agreement >= 0.85 with zero safety escapes), so gate 4 PASSes and prints the table."""
     gate = _load("gate_g4_good_replay", GATE_PATH)
     code, out = _run_gate(
         monkeypatch,
@@ -276,3 +276,116 @@ def test_threshold_matches_registry() -> None:
         f"eval_runner.AGREEMENT_MIN ({runner.AGREEMENT_MIN:.2f}) != REQ-QUA-003 "
         f"registry target ({registry_pct}%); update the machine copy to match the registry"
     )
+
+
+# ------------------------------------------- PR-derived replay selection (no --replay in CI)
+def test_pr_derived_replay_single_changed_file_passes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005: with no --replay/EVAL_REPLAY, a prompt PR that committed exactly one
+    test/eval/replay/*.jsonl uses it as the evidence and PASSes under --strict (the behaviour
+    the CI step relies on: ci.yml passes only --strict)."""
+    gate = _load("gate_g4_pr_single", GATE_PATH)
+    code, out = _run_gate(
+        monkeypatch,
+        gate,
+        argv=["--strict"],
+        files=[
+            "prompts/prompt_v1.1.yaml",
+            "test/eval/replay/good_prompt.jsonl",
+        ],
+        replay_path=None,
+    )
+    assert code == 0, out
+    assert "selected from the pr" in out.lower()
+    assert "good_prompt.jsonl" in out
+    assert "GATE 4 PASS" in out
+
+
+def test_pr_derived_no_replay_fails_naming_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    """REQ-INV-005 / TD-1 *negative*: with no explicit replay and no test/eval/replay/*.jsonl
+    in the PR, the gate fails and names test/eval/replay/<tag>.jsonl + the converter."""
+    gate = _load("gate_g4_pr_none", GATE_PATH)
+    code, out = _run_gate(
+        monkeypatch,
+        gate,
+        argv=["--strict"],
+        files=["prompts/prompt_v1.1.yaml"],
+        replay_path=None,
+    )
+    assert code != 0, out
+    assert "GATE 4 FAIL" in out
+    assert "test/eval/replay/" in out
+    assert "<tag>.jsonl" in out
+    assert "record_replay.py" in out
+    assert "GATE 4 PASS" not in out
+
+
+def test_pr_derived_multiple_replays_fails_ambiguity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """REQ-INV-005 *negative*: more than one changed test/eval/replay/*.jsonl fails closed —
+    the gate names both and asks for an explicit --replay rather than guessing."""
+    gate = _load("gate_g4_pr_multi", GATE_PATH)
+    code, out = _run_gate(
+        monkeypatch,
+        gate,
+        argv=["--strict"],
+        files=[
+            "prompts/prompt_v1.1.yaml",
+            "test/eval/replay/good_prompt.jsonl",
+            "test/eval/replay/bad_prompt.jsonl",
+        ],
+        replay_path=None,
+    )
+    assert code != 0, out
+    assert "multiple replay artifacts changed" in out.lower()
+    assert "good_prompt.jsonl" in out and "bad_prompt.jsonl" in out
+    assert "--replay explicitly" in out
+
+
+# ------------------------------------- corpus sanity: >= 20 high-severity positives (P2)
+def test_too_few_high_severity_positives_fails(tmp_path: Path) -> None:
+    """REQ-QUA-003 / REQ-INV-005 *negative*: a corpus with fewer than 20 labeled high-severity
+    positives fails closed — the high-severity recall slice cannot be measured on it."""
+    runner = _load("eval_runner_highpos", SCRIPTS / "eval_runner.py")
+    policy = runner.load_policy(Path("test/eval/expectation_policy.yaml"))
+
+    rows = [
+        {
+            "eval_id": f"EV-{i:04d}",
+            "source": "jigsaw",
+            "source_split": None,
+            "source_language": "en",
+            "text": f"clean text {i}",
+            "label_scheme": "jigsaw-six-independent-binary-v1",
+            "labels": {
+                "toxic": 0, "severe_toxic": 0, "obscene": 0,
+                "threat": 0, "insult": 0, "identity_hate": 0,
+            },
+            "topic": None,
+            "selection_stratum": "jigsaw/clean",
+            "selection_seed": 5351,
+            "text_sha256": __import__("hashlib").sha256(
+                f"clean text {i}".encode()
+            ).hexdigest(),
+        }
+        for i in range(5)
+    ]
+    replay = {r["eval_id"]: "allow" for r in rows}
+    report = runner.score(rows, policy, replay)
+    assert report.high_positive_count == 0
+    fails = runner.check_thresholds(report)
+    assert any("high-severity positive" in f and "20" in f for f in fails)
+
+
+def test_shipped_corpus_clears_high_severity_minimum() -> None:
+    """REQ-QUA-003: the shipped corpus has >= 20 high-severity positives, so the sanity gate
+    stays green on real data (guards against an over-eager threshold)."""
+    runner = _load("eval_runner_highpos_ok", SCRIPTS / "eval_runner.py")
+    policy = runner.load_policy(Path("test/eval/expectation_policy.yaml"))
+    corpus = runner.load_corpus(Path("test/eval/moderation_eval.jsonl"))
+    replay = {r["eval_id"]: runner.derive_expectation(r, policy).expected_verdict for r in corpus}
+    report = runner.score(corpus, policy, replay)
+    assert report.high_positive_count >= runner.HIGH_SEVERITY_MIN_POSITIVES
+    assert not any("high-severity positive" in f for f in runner.check_thresholds(report))
