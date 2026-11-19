@@ -16,8 +16,13 @@ Fail-closed / honest-reporting contract (issue #26):
     "cannot evaluate: no replay artifact" and pass ONLY because the step is warn-only.
   - A high-severity safety escape or an unevaluable row is fatal regardless of ``--strict``.
 
-``--strict`` is warn-only-compatible by design while the corpus is off main; flipping the
-CI step to ``--strict`` is a follow-up once #37 lands (recorded as TD-1).
+Enforcement (TD-1): the corpus (#37) and the replay harness (#47) are on main, so the CI
+step now runs with ``--strict`` and gate 4 BLOCKS on a missing or failing replay. Under
+``--strict`` a prompt/model change with no replay artifact fails with an actionable message:
+record a replay for this prompt version and commit it under ``test/eval/replay/<tag>.jsonl``
+(produced from a live run by a human — see ``scripts/record_replay.py``; CI never calls a
+provider and never defaults to a shipped fixture). A prompt change with no evidence does not
+merge.
 """
 
 import os
@@ -143,9 +148,22 @@ def main() -> int:
             "the gate never defaults to a shipped fixture."
         )
         if strict:
-            print("GATE 4 FAIL (--strict): no replay artifact for this prompt version")
+            print(
+                "GATE 4 FAIL (--strict): no replay artifact for this prompt version — a prompt "
+                "change with no evidence does not merge. FIX: record a replay for this prompt "
+                "version and commit it under test/eval/replay/<tag>.jsonl (e.g. "
+                "test/eval/replay/prompt_v1.1.jsonl), then pass it via --replay. The replay is "
+                "produced from a live run by a human and converted with "
+                "`python scripts/record_replay.py --from <responses.jsonl> --out "
+                "test/eval/replay/<tag>.jsonl`; CI/offline never calls a provider and never "
+                "uses a shipped fixture."
+            )
             return 1
-        print("GATE 4 WARNING: passing only because this step is warn-only (TD-1).")
+        print(
+            "GATE 4 WARNING: passing only because this step is warn-only (TD-1). FIX under "
+            "--strict: commit a replay at test/eval/replay/<tag>.jsonl via "
+            "scripts/record_replay.py."
+        )
         return 0
 
     try:

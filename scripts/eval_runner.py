@@ -41,8 +41,10 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CORPUS = ROOT / "test" / "eval" / "moderation_eval.jsonl"
 DEFAULT_POLICY = ROOT / "test" / "eval" / "expectation_policy.yaml"
 
-# Approved thresholds (docs/code-governance/verification-constraints.md §Tier 3; issue #26).
-AGREEMENT_MIN = 0.80
+# Approved thresholds (REQ-QUA-003 release target; docs/code-governance/verification-constraints.md
+# §Tier 3; issue #26). REQ-QUA-003 is the source of truth for agreement (>= 85%); the registry
+# wins over any older drafting here. test_gate4_enforcement keeps this in lockstep with the registry.
+AGREEMENT_MIN = 0.85
 FALSE_BLOCK_MAX = 0.10
 SAFETY_ESCAPE_MAX = 0
 MIN_SLICE_DENOMINATOR = 10

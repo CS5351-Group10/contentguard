@@ -63,12 +63,21 @@
 - **Replay, not live, in CI:** the runner replays **recorded** model outputs, so the gate is
   deterministic and needs no provider secret (a fork PR cannot even see one). `--live` is
   opt-in for local/nightly use and must not gate a merge until the live suite is stable.
-- Metrics and thresholds (provisional until the eval set lands; owned with Buna):
-  - verdict agreement with the labeled set ≥ **0.80**
+- Metrics and thresholds (provisional release targets; ratified by the Testing Lead and PM):
+  - verdict agreement with the labeled set ≥ **85%** — `REQ-QUA-003`'s provisional release
+    target. This document said `0.80` until 2026-11-19; that number was drafted before the
+    registry was baselined and never reconciled, and the registry wins. The machine copy of
+    this number is `AGREEMENT_MIN` in `scripts/eval_runner.py`; the two must move together.
   - **zero safety escapes** — any high-severity item the pipeline auto-approves fails the
-    gate outright; this is a hard 0, never averaged
-  - false-block (误杀) rate ≤ **0.10**, reported **per slice** so a good average cannot hide
-    a bad identity-bias slice
+    gate outright; this is a hard 0, never averaged, and an agreement pass can never override
+    an invariant failure (`REQ-QUA-003`).
+  - false-block (误杀) rate ≤ **10%** on the **aggregate**. Every slice is reported with its
+    numerator, denominator and sample count, but a hard per-slice threshold applies only to
+    slices with **≥ 10 rows**: the cold strata hold 1–3 rows per slice, and on three rows a
+    single block is 33% — that measures noise, not quality. (`MIN_SLICE_DENOMINATOR` in the
+    runner; the per-slice table marks which slices the hard threshold applies to.)
+  - empty denominators render as **`N/A`, never `0`** (`REQ-QUA-003`), so "no data" and
+    "perfect" cannot be confused in the report.
   - rationale faithfulness/relevance ≥ agreed threshold (LLM-judge rubric, optional in v1)
 - `--strict` flips gate 4 from warn to block. It turns on when (a) the eval set has ≥100
   labeled rows **and** (b) the recorded-replay path is green twice in a row — target S4
