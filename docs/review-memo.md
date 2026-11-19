@@ -437,7 +437,7 @@
 ## RM-025 — PR #41: Architecture co-sign: S1 policy kernel + audit
 
 - Reviewer(s): xiaolizi33 (architecture owner; safety-critical co-sign)
-- Head reviewed: `b410daf` (the co-sign binds this head; governance RM-024 approved it)
+- Head reviewed: `b410daf` (the co-sign binds this head; the governance review is posted as RM-020 and appears in this ledger as RM-024)
 - Spec alignment: S1 follows ADR-001's advisory/authoritative boundary — policy owns evaluation and protected transitions; high-severity signals and typed analysis failures enter the deterministic review path
 - Architecture alignment: commit checks revision, content hash and pinned snapshot; atomic case/queue/audit persistence with rollback/replay tests; S2/API and S3 remain separate and full FUN-005/INV-2 integration is not claimed
 - Code quality / Test quality: 121 offline tests and `ruff` passed through delegated tooling (the memo explicitly does not assert the account holder personally ran them); code quality is otherwise covered by RM-024
