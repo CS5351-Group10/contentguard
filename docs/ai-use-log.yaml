@@ -282,7 +282,6 @@ entries:
       and label the bad-replay test as an already-passing regression guard rather than
       tests-first. (3) Proceed authorization for the approved plan.
     pr: 57   # opened 2026-11-19 from issue #26
-
   - id: AI-011
     date: 2026-11-19
     agent: opencode
@@ -329,6 +328,38 @@ entries:
   - id: AI-012
     date: 2026-11-19
     agent: opencode
+    model: opencode/deepseek-v4.1-flash-free
+    operator: DA Buna (60105888)
+    session_transcript: transcripts/60105888-DA-Buna-AI012.md
+    scope: >-
+      test/offline/test_release_invariants_acceptance.py,
+      test/offline/test_release_must_acceptance.py,
+      docs/ai-use-log.yaml
+    summary: >-
+      Added two focused release-acceptance test files (22 tests covering
+      REQ-INV-001 through REQ-INV-005 and the merged Must acceptance flows under
+      Test-Plan-Approved: #55) without modifying src/. After architecture review,
+      added HOLD/ESCALATE queue-mutation rollback scenarios with successful
+      counterparts and a no-review negative attempt for the failure-to-hold review
+      flow. Final offline suite: 229 passed; ruff, MYPYPATH=src mypy scripts test,
+      and Gate 3 clean. The trace-matrix and bug-diary updates in this PR are
+      human-authored follow-up documentation (the matrix requires architecture
+      co-sign) and are not attributed to this agent session. Documented findings on
+      authority token field binding and the unreferenced PENDING_UNCONFIRMED status.
+    human_interventions: 5
+    intervention_summary: >-
+      (1) Required a read-only audit and plan first before writing code;
+      (2) redirected scope from 7 granular S1 unit-test files to 2 focused
+      release-acceptance files, keeping the agent out of src/ and protected docs;
+      (3) approved the implemented tests for full gate verification with no further
+      edits; (4) required the two architecture-review P2 gaps to be fixed in the
+      two test files only, with no docs or ai-use-log edits by the agent; (5)
+      requested a separate read-only full verification run with exact exit codes.
+    pr: 62   # opened 2026-11-19 from Issue #55
+
+  - id: AI-013
+    date: 2026-11-19
+    agent: opencode
     model: cityucs/CS5351/DeepSeek-V4-Flash
     operator: HUANG Hongwei (60368210)
     session_transcript: transcripts/60368210-HUANG-Hongwei-td4.md
@@ -362,5 +393,5 @@ entries:
       acceptance of implementation start before @xiaolizi33's architecture co-sign, on the
       record, because the change is additive and does not touch the ADR-001 element set,
       module tree or dependency matrix; co-sign remains a merge precondition.
-    pr: REPLACE_WITH_PRNUMBER
+    pr: 69   # opened 2026-11-19, issue #66
 
