@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 import asyncio
+import json
 
+import pytest
 from fakes import analysis as fa
 
 from contentguard.analysis.contracts import AdvisoryResult, AnalysisFailure, Usage
 from contentguard.analysis.service import analyze, project_handoff
 
 
-def run_analyze(retriever_mode: str = "normal", provider_mode: str = "normal"):
+def run_analyze(
+    retriever_mode: str = "normal",
+    provider_mode: str = "normal",
+    raw_json: str | None = None,
+):
     """Run the advisory slice with deterministic injectors (REQ-FUN-002, REQ-FUN-005)."""
     clauses = (fa.make_clause("c-01"), fa.make_clause("c-02"))
     snapshot = fa.build_snapshot(clauses)
@@ -24,7 +30,7 @@ def run_analyze(retriever_mode: str = "normal", provider_mode: str = "normal"):
             fa.FakeTrustRegistry(fa.make_anchor(snapshot)),
             fa.FakeRetriever(retriever_mode),
             fa.FakeTokenizer(),
-            fa.FakeProvider(provider_mode),
+            fa.FakeProvider(provider_mode, raw_json=raw_json),
             fa.FakeClock(),
             fa.make_capsule(),
             fa.make_config(),
@@ -37,6 +43,19 @@ def test_analyze_returns_advisory_result_on_valid_path():
     result = run_analyze()
     assert isinstance(result, AdvisoryResult)
     assert result.verdict == "review"
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("verdict", []), ("verdict", {}), ("severity", []), ("severity", {})],
+)
+def test_analyze_returns_typed_failure_for_unhashable_wire_fields(field, value):
+    """Unhashable wire fields produce typed failures across analyze (REQ-FUN-002, REQ-INV-002)."""
+    payload = {"verdict": "review", "severity": "high", "rationale": "r", "citations": []}
+    payload[field] = value
+    result = run_analyze(raw_json=json.dumps(payload))
+    assert isinstance(result, AnalysisFailure)
+    assert result.code == "invalid_response"
 
 
 def test_grounding_failure_preserves_known_severity():

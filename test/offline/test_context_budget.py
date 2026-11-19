@@ -23,7 +23,8 @@ def test_fits_budget_returns_recounted_package():
     snapshot = fa.build_snapshot(clauses)
     config = fa.make_config()
     package = context.assemble_context(
-        fa.make_attempt(), "high", snapshot, retrieved(8), fa.make_capsule(), config, fa.FakeTokenizer()
+        fa.make_attempt(), "high", snapshot, retrieved(8), fa.make_capsule(), config, fa.FakeTokenizer(),
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
     assert not isinstance(package, AnalysisFailure)
     assert 8 <= package.total_input_tokens <= config.input_cap_tokens
@@ -35,7 +36,8 @@ def test_input_cap_failure_is_typed():
     snapshot = fa.build_snapshot(clauses)
     config = fa.make_config(input_cap_tokens=30, compaction_trigger_tokens=20)
     package = context.assemble_context(
-        fa.make_attempt(), "high", snapshot, retrieved(40), fa.make_capsule(), config, fa.FakeTokenizer()
+        fa.make_attempt(), "high", snapshot, retrieved(40), fa.make_capsule(), config, fa.FakeTokenizer(),
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
     assert not isinstance(package, AnalysisFailure)
     result = context.compact_context(
@@ -51,7 +53,8 @@ def test_serialized_context_stays_within_provider_limit():
     snapshot = fa.build_snapshot(clauses)
     config = fa.make_config(input_cap_tokens=40, compaction_trigger_tokens=20)
     package = context.assemble_context(
-        fa.make_attempt(), "high", snapshot, retrieved(8), fa.make_capsule(), config, fa.FakeTokenizer()
+        fa.make_attempt(), "high", snapshot, retrieved(8), fa.make_capsule(), config, fa.FakeTokenizer(),
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
     assert not isinstance(package, AnalysisFailure)
     assert fa.FakeTokenizer().count_tokens(context.serialize_context(package)) <= config.provider_context_limit_tokens
@@ -64,7 +67,8 @@ def test_clause_text_is_never_truncated():
     package = context.assemble_context(
         fa.make_attempt(), "high", snapshot,
         (RetrievedClause(clauses[0], 1.0), RetrievedClause(clauses[1], 0.5)),
-        fa.make_capsule(), fa.make_config(), fa.FakeTokenizer()
+        fa.make_capsule(), fa.make_config(), fa.FakeTokenizer(),
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
     assert isinstance(package, ContextPackage)
     compacted = context.compact_context(

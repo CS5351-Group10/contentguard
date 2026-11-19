@@ -125,6 +125,7 @@ async def analyze(
         submitted_text=query.text,
         critical_evidence=query.critical_evidence,
         history_refs=query.history_refs,
+        corpus_revision=grounded.binding.corpus_revision,
     )
     if isinstance(package, AnalysisFailure):
         return _normalize_failure(package, query, trusted)
@@ -143,7 +144,13 @@ async def analyze(
     if isinstance(response, AnalysisFailure):
         return _normalize_failure(response, query, trusted)
     validated = validation.validate_advisory(
-        response.raw_json, tuple(reinjected.retained_clauses), reloaded, query.attempt, response.usage, trusted
+        response.raw_json,
+        tuple(reinjected.retained_clauses),
+        reloaded,
+        query.attempt,
+        response.usage,
+        trusted,
+        corpus_revision=grounded.binding.corpus_revision,
     )
     if isinstance(validated, AnalysisFailure):
         return _normalize_failure(validated, query, trusted)

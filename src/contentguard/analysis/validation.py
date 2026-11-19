@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from typing import cast
 
 from .contracts import (
     AdvisoryResult,
+    AdvisorySeverity,
     AnalysisFailure,
     AttemptIdentity,
     Citation,
@@ -18,6 +20,10 @@ from .contracts import (
     PolicyClause,
     PolicySnapshot,
     Usage,
+    Verdict,
+    encode_citation,
+    parse_full_citation,
+    parse_short_citation,
 )
 from .errors import ModelValidationError
 from .snapshot import canonical_clause_digest
@@ -59,33 +65,19 @@ def parse_model_wire(raw_json: str) -> ModelWireResponse | ModelValidationError:
     severity = payload["severity"]
     rationale = payload["rationale"]
     citations = payload["citations"]
-    if verdict not in {"allow", "review", "violate"}:
+    if not isinstance(verdict, str) or verdict not in {"allow", "review", "violate"}:
         return ModelValidationError("invalid_response", "invalid verdict")
-    if severity not in _SEVERITY_ORDER:
+    if not isinstance(severity, str) or severity not in _SEVERITY_ORDER:
         return ModelValidationError("invalid_response", "invalid severity")
     if not isinstance(rationale, str) or not rationale.strip():
         return ModelValidationError("invalid_response", "rationale required")
     if not isinstance(citations, (list, tuple)) or not all(isinstance(item, str) and item for item in citations):
         return ModelValidationError("invalid_response", "citations must be non-empty strings")
     return ModelWireResponse(
-        verdict=verdict,
-        severity=severity,
+        verdict=cast(Verdict, verdict),
+        severity=cast(AdvisorySeverity, severity),
         rationale=rationale,
         citations=tuple(citations),
-    )
-
-
-def encode_citation(
-    clause: PolicyClause,
-    snapshot_id: str,
-    snapshot_revision: int,
-    corpus_id: str,
-    corpus_revision: int,
-) -> str:
-    """Canonicalize a validated citation against pinned artifacts (REQ-FUN-005)."""
-    return (
-        f"{corpus_id}@{corpus_revision}:{snapshot_id}@{snapshot_revision}:"
-        f"{clause.clause_id}@{clause.clause_revision}#sha256:{clause.clause_digest}"
     )
 
 
@@ -96,6 +88,8 @@ def validate_advisory(
     attempt: AttemptIdentity,
     usage: Usage,
     known_severity: KnownSeverity,
+    *,
+    corpus_revision: int,
 ) -> AdvisoryResult | AnalysisFailure:
     """Return an internal advisory DTO or a typed failure (REQ-FUN-002, REQ-INV-002)."""
     parsed = parse_model_wire(raw_json)
@@ -109,23 +103,43 @@ def validate_advisory(
         (clause.clause_id, clause.clause_revision): clause
         for clause in snapshot.clauses
     }
-    citations = []
+    citations: list[Citation] = []
     for raw in parsed.citations:
-        identity = raw.split("#", 1)[0].split(":")[-1]
-        parts = identity.split("@")
-        if len(parts) != 2 or not parts[1].isdigit():
-            return AnalysisFailure("invalid_response", f"invalid citation: {raw}", attempt, usage, known_severity)
-        key = (parts[0], int(parts[1]))
+        full = parse_full_citation(raw)
+        if full is not None:
+            if (
+                full.corpus_id != snapshot.corpus_id
+                or full.corpus_revision != corpus_revision
+                or full.snapshot_id != snapshot.snapshot_id
+                or full.snapshot_revision != snapshot.revision
+                or full.snapshot_id != attempt.snapshot_id
+                or full.snapshot_revision != attempt.snapshot_revision
+            ):
+                return AnalysisFailure(
+                    "invalid_response", f"invalid citation prefix: {raw}", attempt, usage, known_severity
+                )
+            key = (full.clause_id, full.clause_revision)
+        else:
+            short = parse_short_citation(raw)
+            if short is None:
+                return AnalysisFailure("invalid_response", f"invalid citation: {raw}", attempt, usage, known_severity)
+            key = short
         clause = pinned.get(key)
         if clause is None or clause not in supplied_clauses:
             return AnalysisFailure("invalid_response", f"unknown citation: {raw}", attempt, usage, known_severity)
         expected = canonical_clause_digest(clause.text)
         if clause.clause_digest != expected:
             return AnalysisFailure("invalid_response", f"tampered citation: {raw}", attempt, usage, known_severity)
+        if full is not None:
+            canonical = encode_citation(
+                clause, snapshot.snapshot_id, snapshot.revision, snapshot.corpus_id, corpus_revision
+            )
+            if raw != canonical:
+                return AnalysisFailure("invalid_response", f"invalid citation: {raw}", attempt, usage, known_severity)
         citations.append(
             Citation(
                 corpus_id=snapshot.corpus_id,
-                corpus_revision=snapshot.revision,
+                corpus_revision=corpus_revision,
                 clause_id=clause.clause_id,
                 clause_revision=clause.clause_revision,
                 clause_digest=clause.clause_digest,

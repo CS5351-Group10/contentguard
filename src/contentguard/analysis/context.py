@@ -79,14 +79,16 @@ def _capsule_sections(capsule: TrustedCapsule) -> tuple[ContextSection, ...]:
     )
 
 
-def _clause_section(item: RetrievedClause, snapshot: PolicySnapshot) -> ContextSection:
+def _clause_section(
+    item: RetrievedClause, snapshot: PolicySnapshot, corpus_revision: int
+) -> ContextSection:
     """Render one complete clause with pinned provenance metadata (REQ-FUN-005, REQ-INV-001)."""
     clause = item.clause
     text = "\n".join(
         (
             "POLICY_CLAUSE",
             f"clause: {clause.clause_id}@{clause.clause_revision}",
-            f"corpus: {snapshot.corpus_id}@{snapshot.revision}",
+            f"corpus: {snapshot.corpus_id}@{corpus_revision}",
             f"snapshot: {snapshot.snapshot_id}@{snapshot.revision}",
             f"source_ref: {clause.source_ref}",
             f"digest: {clause.clause_digest}",
@@ -155,6 +157,8 @@ def assemble_context(
     submitted_text: str = "",
     critical_evidence: tuple[str, ...] = (),
     history_refs: tuple[str, ...] = (),
+    *,
+    corpus_revision: int,
 ) -> ContextPackage | AnalysisFailure:
     """Assemble prioritized context without truncating pinned content (ADR-001, REQ-INV-001)."""
     if not _config_valid(config):
@@ -170,7 +174,7 @@ def assemble_context(
         )
     )
     included = clauses[: config.max_complete_clauses]
-    sections.extend(_clause_section(item, snapshot) for item in included)
+    sections.extend(_clause_section(item, snapshot, corpus_revision) for item in included)
     sections.append(
         ContextSection(
             "critical_evidence",

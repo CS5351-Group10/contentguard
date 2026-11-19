@@ -46,6 +46,16 @@ def test_advisory_projection_excludes_enforcement_fields():
         assert forbidden not in payload
 
 
+def test_advisory_projection_uses_single_sha256_prefix():
+    """S1 citations carry exactly one sha256 digest prefix (REQ-FUN-002, REQ-SEC-001)."""
+    payload = advisory_result().to_s1_payload()
+    digest = fa.canonical_digest("rule c-01 <TOKENS:8>")
+    assert payload["citations"] == (
+        f"corpus-synthetic@1:snap-synthetic-v1@1:c-01@1#{digest}",
+    )
+    assert "sha256:sha256:" not in str(payload["citations"])
+
+
 def test_unknown_usage_never_masquerades_as_zero():
     """Unknown usage is explicit and distinct from real zero usage (REQ-COS-001)."""
     assert Usage(0, 0, True) != Usage(0, 0, False)
@@ -76,7 +86,13 @@ def test_validate_advisory_returns_internal_dto():
     snapshot = fa.build_snapshot((clause,))
     raw = json.dumps({"verdict": "review", "severity": "high", "rationale": "r", "citations": ["c-01@1"]})
     result = validation.validate_advisory(
-        raw, (clause,), snapshot, fa.make_attempt(), Usage(3, 2, False), "high"
+        raw,
+        (clause,),
+        snapshot,
+        fa.make_attempt(),
+        Usage(3, 2, False),
+        "high",
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
     assert not isinstance(result, AnalysisFailure)
     assert result.verdict == "review"
@@ -95,3 +111,15 @@ def test_validate_advisory_returns_internal_dto():
 def test_strict_shape_rejects_bool_nan_and_empty_citation(raw):
     """Strict model shape rejects booleans, NaN and empty citations (REQ-SEC-001, REQ-FUN-002)."""
     assert isinstance(validation.parse_model_wire(raw), ModelValidationError)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("verdict", []), ("verdict", {}), ("severity", []), ("severity", {})],
+)
+def test_unhashable_verdict_or_severity_returns_typed_validation_error(field, value):
+    """Non-string verdict or severity is a typed invalid response, never a crash (REQ-FUN-002, REQ-INV-002)."""
+    raw = json.dumps({"verdict": "review", "severity": "high", "rationale": "r", "citations": []})
+    payload = json.loads(raw)
+    payload[field] = value
+    assert isinstance(validation.parse_model_wire(json.dumps(payload)), ModelValidationError)

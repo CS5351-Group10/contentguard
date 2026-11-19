@@ -67,6 +67,7 @@ def package_for(
         submitted_text=submitted_text,
         critical_evidence=critical_evidence,
         history_refs=history_refs,
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
 
 

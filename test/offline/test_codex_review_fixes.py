@@ -68,10 +68,12 @@ def test_non_power_of_two_envelope_and_larger_provider_limit_are_accepted():
         compaction_trigger_tokens=4608,
     )
     clauses = (fa.make_clause("c-01", tokens=8),)
+    snapshot = fa.build_snapshot(clauses)
     package = context.assemble_context(
-        fa.make_attempt(), "high", fa.build_snapshot(clauses),
+        fa.make_attempt(), "high", snapshot,
         (RetrievedClause(clauses[0], 1.0),),
         fa.make_capsule(), config, fa.FakeTokenizer(),
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
     assert not isinstance(package, AnalysisFailure)
 

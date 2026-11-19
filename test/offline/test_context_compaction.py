@@ -21,6 +21,7 @@ def package_with_evidence() -> ContextPackage:
         (RetrievedClause(clauses[0], 1.0), RetrievedClause(clauses[1], 0.5)),
         fa.make_capsule(), fa.make_config(), fa.FakeTokenizer(),
         critical_evidence=("evidence-A",), history_refs=("h-1",),
+        corpus_revision=fa.make_anchor(snapshot).corpus_revision,
     )
     assert not isinstance(package, AnalysisFailure)
     return package

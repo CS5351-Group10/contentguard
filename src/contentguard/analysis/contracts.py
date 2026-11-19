@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal
@@ -38,6 +39,16 @@ ContextSectionKind = Literal[
     "resumable_state",
     "delimiter",
 ]
+
+_FULL_CITATION_RE = re.compile(
+    r"(?P<corpus_id>[^@:#\s]+)@(?P<corpus_revision>[0-9]+):"
+    r"(?P<snapshot_id>[^@:#\s]+)@(?P<snapshot_revision>[0-9]+):"
+    r"(?P<clause_id>[^@:#\s]+)@(?P<clause_revision>[0-9]+)"
+    r"#(?P<clause_digest>sha256:[0-9a-f]{64})"
+)
+_SHORT_CITATION_RE = re.compile(
+    r"(?P<clause_id>[^@:#\s]+)@(?P<clause_revision>[0-9]+)"
+)
 
 
 @dataclass(frozen=True)
@@ -171,6 +182,67 @@ class Citation:
 
 
 @dataclass(frozen=True)
+class FullCitationParts:
+    """Parsed full-form citation fields before provenance checks (REQ-FUN-005, REQ-SEC-001)."""
+
+    corpus_id: str
+    corpus_revision: int
+    snapshot_id: str
+    snapshot_revision: int
+    clause_id: str
+    clause_revision: int
+    clause_digest: str
+
+
+def encode_citation(
+    clause: PolicyClause | Citation,
+    snapshot_id: str,
+    snapshot_revision: int,
+    corpus_id: str,
+    corpus_revision: int,
+) -> str:
+    """Canonicalize a validated citation with exactly one digest prefix (REQ-FUN-005)."""
+    return (
+        f"{corpus_id}@{corpus_revision}:{snapshot_id}@{snapshot_revision}:"
+        f"{clause.clause_id}@{clause.clause_revision}#{clause.clause_digest}"
+    )
+
+
+def parse_full_citation(raw: str) -> FullCitationParts | None:
+    """Parse a strict full-form citation without inferring missing prefixes (REQ-SEC-001)."""
+    match = _FULL_CITATION_RE.fullmatch(raw)
+    if match is None:
+        return None
+    try:
+        corpus_revision = int(match.group("corpus_revision"))
+        snapshot_revision = int(match.group("snapshot_revision"))
+        clause_revision = int(match.group("clause_revision"))
+    except ValueError:
+        return None
+    return FullCitationParts(
+        corpus_id=match.group("corpus_id"),
+        corpus_revision=corpus_revision,
+        snapshot_id=match.group("snapshot_id"),
+        snapshot_revision=snapshot_revision,
+        clause_id=match.group("clause_id"),
+        clause_revision=clause_revision,
+        clause_digest=match.group("clause_digest"),
+    )
+
+
+def parse_short_citation(raw: str) -> tuple[str, int] | None:
+    """Parse a short clause-only citation resolved from trusted context (REQ-FUN-005)."""
+    match = _SHORT_CITATION_RE.fullmatch(raw)
+    if match is None:
+        return None
+    try:
+        revision = int(match.group("clause_revision"))
+    except ValueError:
+        return None
+    return match.group("clause_id"), revision
+
+
+@dataclass(frozen=True)
 class AdvisoryResult:
     """Internal advisory DTO; adapter projects nine fields to S1 (REQ-FUN-002, ADR-001)."""
 
@@ -190,9 +262,13 @@ class AdvisoryResult:
             "severity": self.severity,
             "rationale": self.rationale,
             "citations": tuple(
-                f"{item.corpus_id}@{item.corpus_revision}:"
-                f"{self.attempt.snapshot_id}@{self.attempt.snapshot_revision}:"
-                f"{item.clause_id}@{item.clause_revision}#sha256:{item.clause_digest}"
+                encode_citation(
+                    item,
+                    self.attempt.snapshot_id,
+                    self.attempt.snapshot_revision,
+                    item.corpus_id,
+                    item.corpus_revision,
+                )
                 for item in self.citations
             ),
             "prompt_version": self.attempt.prompt_version,
