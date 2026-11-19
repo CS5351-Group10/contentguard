@@ -106,6 +106,28 @@
 >   **RM-013** below, added in the 2026-11-16 backfill. PR #11 remains unnumbered
 >   until its final head is re-reviewed and merged; its current verdict is CHANGES
 >   REQUIRED and is not a final memo.
+>
+> **2026-11-19 ledger backfill note (RM-015–RM-032).** This backfill fills the gap
+> left by the post-#39 review burst. The rule is the same as 2026-11-16: the ledger
+> number matches the reviewer's posted label where that label is unique; where
+> labels collided, the ledger number below is authoritative. Mapping:
+> - RM-015 #32; RM-016 #34; RM-017 #37 final (the author-side timing record
+>   originally in this slot is folded into the same entry); RM-018 #33;
+>   RM-019 #39 (the governance/CI review posted as RM-018 is folded in);
+>   RM-020 #35; RM-021 #44; RM-022 #46 governance/CI.
+> - RM-023 #11 (posted RM-019; #39's PM memo is earlier); RM-024 #41
+>   (posted RM-020; #35 is earlier); RM-025 #41 architecture co-sign (Li);
+>   RM-026 #46 architecture co-sign (Li); RM-027 #47 final (the provisional
+>   RM-024 on #47 is superseded and void, following the RM-003 void-draft
+>   precedent); RM-028 #45; RM-029 #53; RM-030 #54.
+> - RM-031 #40 (posted RM-025; #41's Li memo is earlier); RM-032 #59
+>   (posted RM-020; #35 is earlier).
+> - RM-033 is reserved for PR #62's final memo after its pending test fixes and
+>   re-review; the posted RM-021 changes-requested review on `1ff2050` is
+>   superseded and not a final memo. RM-034/RM-035 are the provisional labels
+>   for the PM's #57/#61 reviews (final ledger entries after approval).
+> - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
+>   RM-017.
 
 <!-- Append memos below, newest last. -->
 
@@ -294,22 +316,202 @@
 - Oversight case: yes — PM checked the diff scope (only `docs/review-memo.md` §Review process), confirmed the rule matches the cited PR #2 incident, and verified the existing RM ledger/numbering note was untouched.
 - Verdict: APPROVE
 
+## RM-015 — PR #32: docs(governance): align AGENTS §5 and structural rule 5 with ADR-001
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI)
+- Spec alignment: docs-only; `AGENTS.md` §5 and structural rule 5 aligned with ADR-001; no registry change
+- Architecture alignment: the new pointers resolve; the section-ref fix is right; dependency direction matches `architecture-blueprint.md` L126–127
+- Code quality: n/a (docs)
+- Test quality: docs-only; the gate claim holds — files touched are `AGENTS.md` and `docs/code-governance/**`, neither on a gate path
+- Security / Efficiency: n/a
+- Operational metadata: merged at `5846363`; posted memo 2026-11-16T15:36:47Z
+- Verdict: APPROVE
+
+## RM-016 — PR #34: docs(governance): backfill post-merge RM memos and fix section refs
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI)
+- Spec alignment: ledger backfill; numbering checked against `main` (RM-012 #30, RM-013 #15, RM-014 #31) and the §1/§2 split of `Report.md`
+- Architecture alignment: n/a (docs)
+- Code quality: n/a
+- Test quality: docs-only
+- Security / Efficiency: n/a
+- Operational metadata: merge SHAs verified — `d5ec877` #30, `8747723` #15, `3bda2ed` #31; merged at `e3e88cd`; posted memo 2026-11-16T15:36:49Z
+- Oversight case: yes — reviewer audited the ledger against commits, branch protection and `Report.md`, and flagged the RM-009 rewrite and RM-006 note for correction
+- Verdict: APPROVE
+
 ## RM-017 — PR #37: test(eval): add fixed moderation evaluation corpus
 
-> Author-side timing record only. This is not the independent review memo or
-> verdict; the non-author reviewer must complete those against the final PR head.
+- Reviewer(s): PM LIU Jianwei @swordnew123 (the testing owner is the author, so the PM reviews); governance/CI sign-off by @creator-xiyuan at `826dcfd`
+- Head reviewed: `826dcfdb35014b44aa1b63aa8fc68ac9fadea85b`
+- Spec alignment: corpus is 100 records (80 Jigsaw / 20 COLD), seed `5351`, native label schemes preserved (no cross-scheme mapping), no source row IDs; committed file 75,817 bytes with SHA-256 `37a1135e…8ed1`
+- Architecture alignment: fixed evaluation set is INV-5 evidence; the PR supplies the corpus only and does not enable strict gate 4 (strict is #57/TD-1); the ADR addendum is #46
+- Code quality: no `src/` change; 10 files, corpus/docs/tests/transcripts only
+- Test quality: data-contract tests cover PII negatives, README/NOTICE assertions, digest checks and fallback; **204 passed** at `826dcfd`
+- Security: PII sweep re-run at this head — IPv4, email, `@handle`, `User:` forms: 0 hits; NOTICE records Jigsaw CC0 1.0 / Wikipedia CC BY-SA 3.0 / COLD Apache-2.0 with source URLs and retrieval evidence
+- Efficiency: n/a
+- Operational metadata: `AI-003` and `AI-004` entries plus transcripts are present; gate 6 green. Timing deviation: first implementation commit `0c742340` (2026-11-16 19:55:02Z) preceded PM conditional approval by **7h26m** and governance/CI co-approval by **9h44m**; recorded as a process deviation, not waived. Draft-state toggle did not take effect; the standing CHANGES_REQUESTED held the merge until re-review. Merge landed after the 09:00 HKT target; the #49 triage must record the actual time rather than moving it silently.
+- Oversight case: yes — reviewer independently re-checked corpus shape, PII, licensing, AI-use evidence and the 204-test result at the final head
+- Verdict: APPROVE; merged at `539ae7cf` (2026-11-19 12:48 HKT)
 
-- First implementation commit: `0c742340`, 2026-11-16 19:55:02 UTC
-  (2026-11-17 03:55:02 HKT).
-- PM conditional approval of the revised test plan on #36: 2026-11-17
-  03:21:08 UTC (11:21:08 HKT), 7 hours 26 minutes 6 seconds after the
-  implementation commit.
-- Governance/CI co-approval on #36: 2026-11-17 05:39:42 UTC
-  (13:39:42 HKT), 9 hours 44 minutes 40 seconds after the implementation
-  commit.
-- Timing deviation: the first implementation preceded both required approvals.
-  The later approvals do not retroactively satisfy the pre-implementation
-  approval requirement. Record this as a process deviation; do not imply that
-  the later approval changed the chronology.
-- Final independent review, AI-use-log/transcript verification, and verdict:
-  pending review of the final PR head.
+## RM-018 — PR #33: docs(governance): align verification & structural constraints with CI reality (TD-1/2/4/8)
+
+- Reviewer(s): PM LIU Jianwei (non-author; governance/CI owner is the author)
+- Spec alignment: D4 verification governance and D7 blocking-gate truthfulness; docs-only — no `src/`, `test/`, `prompts/`, `scripts/` or workflow change
+- Architecture alignment: enforcement-status table correctly marks rule 7 machine-enforced via CODEOWNERS, rules 1/4/5 TD-4 pending, rule 6 review-only, dependency check TD-8 pending
+- Code quality: n/a (docs)
+- Test quality: docs-only; `blocking-gates` green on `57c9efc`; branch rebased onto `5846363`
+- Security / Efficiency: n/a
+- Operational metadata: merged at `1d23218`; posted memo 2026-11-17T05:55:24Z
+- Verdict: APPROVE
+
+## RM-019 — PR #39: docs(governance): author merges after review verdict
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI; posted RM-018, folded here because #33's memo posted RM-018 earlier); PM LIU Jianwei (PR-comment memo, posted RM-019)
+- Spec alignment: moves the team from "PM merges" to "author merges after a non-author approval, green `blocking-gates` and a recorded verdict"; no requirement change
+- Architecture alignment: n/a (process docs)
+- Code quality: n/a
+- Test quality: docs-only; CI green
+- Security: reviewer verified `enforce_admins: true` — "no push restrictions" does not mean admin direct push
+- Efficiency: n/a
+- Operational metadata: records the push-after-approval incident (second commit 7 seconds after approval dismissed it; head reset and re-approved); merged at `ab57937`
+- Oversight case: yes — the failure mode was tested by a real incident, not only asserted
+- Verdict: APPROVE
+
+## RM-020 — PR #35: roster: add 60105888
+
+- Reviewer(s): PM LIU Jianwei (non-author; docs-only roster change)
+- Spec alignment: adds Buna DA (60105888) to the roster that feeds `Report.md` §1 and D6; card matches `docs/team/_TEMPLATE.md` and the naming convention
+- Architecture / Code quality: n/a (docs)
+- Test quality: docs-only; `blocking-gates` green
+- Security: student ID + GitHub handle are the roster's required fields (repo public by decision); no email or other PII
+- Efficiency: n/a
+- Operational metadata: PR body placeholders replaced with `n/a`; `docs/team/README.md` index update deferred to the next roster batch; merged at `8bb799a`
+- Oversight case: no (routine roster card); template conformance and public-ID decision checked
+- Verdict: APPROVE
+
+## RM-021 — PR #44: docs(report): draft process report sections 3–6 (D6)
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI)
+- Spec alignment: D6 report sections 3–6; no registry change
+- Architecture / Code quality: n/a (docs)
+- Test quality: docs-only; the posted memo verified the 121-test figure and the gate-status claims
+- Security / Efficiency: n/a
+- Operational metadata: merged at `a74ff70`; posted memo 2026-11-18T04:28:22Z (re-issued 06:56:12Z)
+- Verdict: APPROVE
+
+## RM-022 — PR #46: docs(architecture): record ADR-001 addendum for corpus maintenance
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI)
+- Spec alignment: ADR-001 addendum for corpus maintenance; the ≥100 condition matches the verification constraints; the 95-record fallback is recorded
+- Architecture alignment: the addendum does not overclaim — it does not close TD-1 or establish a blocking replay; the AI-004/AI-003 split and raw-path restriction match the #37 ruling
+- Code quality / Test quality: n/a (docs)
+- Security / Efficiency: n/a
+- Operational metadata: merged at `7b0ee1e`; posted memo 2026-11-18T04:28:24Z
+- Verdict: APPROVE
+
+## RM-023 — PR #11: feat(req): baseline requirements registry v1.0 + validator gate-3 check
+
+- Reviewer(s): domain CR creator-xiyuan (code-owner review; posted RM-019 — renumbered because #39's PM memo posted RM-019 earlier)
+- Spec alignment: requirements registry v1.0 + gate-3 validator; all 31 requirements valid
+- Architecture alignment: registry IDs and fit criteria match the D2 trace matrix; REQ-GOV-003 fit criterion rewritten during review
+- Code quality: validator and gate-3 script reviewed; no unresolved blocking issue
+- Test quality: reviewer ran gate 3 and the offline suite at the final head; three non-blocking records
+- Security / Efficiency: no secrets; no runtime path
+- Operational metadata: merged at `25ddd8a` (2026-11-18); the Report's earlier "intentionally not pre-numbered" note is resolved by this backfill entry
+- Oversight case: yes — reviewer ran the checks instead of trusting the PR body, and recorded a schema misread
+- Verdict: APPROVE
+
+## RM-024 — PR #41: feat(policy): S1 deterministic policy kernel + audit subsystem (#25)
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI; posted RM-020 — renumbered because #35's memo posted RM-020 earlier)
+- Spec alignment: S1 policy kernel + audit; safety-critical path (`src/contentguard/policy/**`)
+- Architecture alignment: ADR-001 / invariants; architecture co-sign is RM-025 (Li)
+- Code quality: deterministic policy kernel, atomic SQLite transaction, exactly one audit record per committed decision
+- Test quality: reviewer ran the 121-test suite and verified the ten planned cases
+- Security: authority token is a module-private opaque object; forged-advisory and authority-binding tests
+- Efficiency: n/a
+- Operational metadata: merged at `e60dd50`; posted memo 2026-11-18T04:28:21Z
+- Verdict: APPROVE
+
+## RM-025 — PR #41: Architecture co-sign: S1 policy kernel + audit
+
+- Reviewer(s): xiaolizi33 (architecture owner; safety-critical co-sign)
+- Spec alignment: ADR-001 conformance and authority boundaries for `src/contentguard/policy/**`
+- Architecture alignment: co-sign required by D7; no architecture change in this review
+- Code quality / Test quality / Security / Efficiency: covered by RM-024; this memo records the mandatory architecture co-sign
+- Operational metadata: merged at `e60dd50`; posted memo 2026-11-18T06:30:15Z
+- Verdict: APPROVE
+
+## RM-026 — PR #46: Architecture review: ADR-001 corpus-maintenance addendum
+
+- Reviewer(s): xiaolizi33 (architecture owner)
+- Spec alignment: ADR-001 corpus-maintenance addendum; architecture review of the corpus version/hash/seed/raw-path binding
+- Architecture alignment: addendum is an ADR-001 extension, not a new architecture decision
+- Code quality / Test quality / Security / Efficiency: n/a (docs)
+- Operational metadata: merged at `7b0ee1e`; posted memo 2026-11-18T06:30:17Z
+- Verdict: APPROVE
+
+## RM-027 — PR #47: gate 4 semantic-evaluation replay harness (warn-only)
+
+- Reviewer(s): PM LIU Jianwei (non-author)
+- Spec alignment: TD-1 / REQ-INV-005 harness, warn-only scope; not a claim that gate 4 blocks yet
+- Architecture alignment: replay-only, no provider secret; policy first-match and uncovered-row hard failure preserved
+- Code quality: A1 verified — `load_policy` rejects uppercase `HIGH`/`BLOCK`, unknown/empty `when` keys, duplicate/blank rule ids and YAML errors; seven `test_load_policy_rejects_*` negatives. A2 verified — a prompt PR that also changes `expectation_policy.yaml` or `moderation_eval.jsonl` fails even without `--strict`; three tests cover it
+- Test quality: CI green; cheap items verified (`--replay=PATH` / bare-flag exit 2, `EVAL_REPLAY` cleanup, false-block N/A, AI-009 count 19)
+- Security: no provider secret; replay-only
+- Efficiency: n/a
+- Operational metadata: gate 6 entry AI-009; gate 1 cites #26; merged at `1f7f20c`
+- Oversight case: yes — reviewer ran both suites, the good/bad/no-replay/quality demos and the policy-typo negative
+- Verdict: APPROVE (warn-only merge scope; #47's provisional RM-024 is superseded by this final memo)
+
+## RM-028 — PR #45: TD-3 scaffold regeneration + gate 2 dependency/safety tier
+
+- Reviewer(s): PM LIU Jianwei (non-author)
+- Spec alignment: TD-3 scaffold regeneration and gate 2 dependency/safety tier; no requirement change
+- Architecture alignment: scaffold-regeneration provenance recorded; no module/ADR change
+- Code quality: P1① verified — `requirements.txt` ranges span the observed toolchains (pytest 8.4.2–9.2.0, mypy 1.20.2–2.4.1); CI installs from the manifest
+- Test quality: P1② verified — gate 2d documents the gate-5 substitution for the policy-test half of #42 and adds a visibility test; scoped policy-test step remains a TD-4 follow-up after #41
+- Security / Efficiency: n/a
+- Operational metadata: merged at `b2e67f1`; posted memo 2026-11-18T11:02:03Z
+- Verdict: APPROVE
+
+## RM-029 — PR #53: docs(transcripts): inline D5 stage-3/4 intervention markers (PM transcript)
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI)
+- Spec alignment: D5 transcript evidence for the PM transcript; additive-only marker insertion
+- Architecture / Code quality: n/a (docs)
+- Test quality: docs-only; convention check and marker-rationale spot-check
+- Security / Efficiency: n/a
+- Operational metadata: merged at `621b076`; posted memo 2026-11-19T04:39:09Z
+- Verdict: APPROVE
+
+## RM-030 — PR #54: docs(contribution-log): LIU Jianwei phase-③ man-hours backfill (rule 6)
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI)
+- Spec alignment: rule 6 man-hours backfill; 11/17 3.0h + 11/18 8.5h = 11.5h, with 8.5h = 2.0 + 3.5 + 3.0
+- Architecture / Code quality: n/a (docs)
+- Test quality: docs-only
+- Security / Efficiency: n/a
+- Operational metadata: anchors exist — PR #41 comments `6987656202` and `6988443555`; the deadline claim (first batch extended to 2026-11-19) is supported; merged at `06db68d` (2026-11-19T11:03:03Z)
+- Verdict: APPROVE
+
+## RM-031 — PR #40: docs(governance): phase-② man-hours first batch + roster ID fixes
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI; posted RM-025 — renumbered because #41's architecture co-sign posted RM-025 earlier)
+- Spec alignment: phase-② man-hours first batch + roster ID fixes; rule 6 arithmetic checked against the reviewer's own posted comments
+- Architecture / Code quality: n/a (docs)
+- Test quality: docs-only
+- Security / Efficiency: n/a
+- Operational metadata: two body-level wording fixes requested before merge (no new commit needed); merged at `f1d889d`; posted memo 2026-11-18T10:45:16Z
+- Verdict: APPROVE
+
+## RM-032 — PR #59: docs(report): realign §6 transcript citations after #53
+
+- Reviewer(s): domain CR creator-xiyuan (governance & CI; posted RM-020 — renumbered because #35's memo posted RM-020 earlier)
+- Spec alignment: §6 transcript citations realigned after #53; docs-only
+- Architecture alignment: n/a
+- Code quality: n/a
+- Test quality: reviewer took both files (pre-#53 `539ae7cf`, post-#53 head) and compared line by line: 11 transcript refs all map (33→41, 34→42, 35→43, 37→45, 41→49, 123-126→142-145) with identical text; 7 #41 status refs at L55/L112/L180/L204/L207/L213/L223; 33 headings / ~6.4k words / `git diff --check` clean
+- Security / Efficiency: n/a
+- Operational metadata: reviewer flagged `Report.md:141`/`:142` as still "in review" and left them for the next docs pass (now PR #63); merged at `c5d42bf` (2026-11-19T11:00:36Z)
+- Verdict: APPROVE
