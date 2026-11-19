@@ -126,7 +126,8 @@
 >   re-review; the posted RM-021 changes-requested reviews (on `1ff2050`,
 >   re-issued on `8111850`) are superseded and not a final memo.
 >   RM-034 is the approved #57 review memo at `72eb656` (ledger entry appended
->   after #57 merges); RM-035 remains provisional for #61 (final after approval).
+>   after #57 merges); RM-035 is the approved #61 review memo at `7901e8c`
+>   (ledger entry appended after #61 merges).
 > - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
 >   RM-017.
 
