@@ -54,7 +54,7 @@ The team treated the repository, not the chat log, as the source of truth. The p
 | ② Planning and foundation | 11/16 | requirements baseline, ADR/blueprint, governance drafts, schema gate | #11 registry; ADR-001 (#15); bug/debt registers (#17) |
 | ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 merged in PR #41 (`e60dd50`); gate-2 work merged in #45 (`b2e67f1`) |
 | ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | S4/S5 harness and benchmark planned (TD-1) |
-| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report draft #44; Huang + PM S1 transcripts complete |
+| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report draft #44; 9 of 11 session transcripts annotated (canonical set 2/5 — see `transcripts/README.md`) |
 | ⑥ Deliver and present | 11/25–30 | zip + video, slides to TA, presentation | pending |
 
 Three constraints shaped the work:
@@ -85,7 +85,7 @@ flowchart LR
     end
     API["api/ — intake + review interface"] --> A
     API --> P
-    A -. "advisory only — never executes enforcement (INV-1)" .-> P
+    A -.->|"advisory only — never executes enforcement (INV-1)"| P
     P --> E
     P --> AU
 ```
@@ -123,12 +123,12 @@ flowchart LR
 - **Gate 2a/2b** — `ruff check src scripts test` and the CI-form `mypy --ignore-missing-imports scripts test`.
 - **Gate 3** — `python scripts/validate_requirements.py` validates the registry against its schema; the current main reports `GATE 3 PASS: 31 requirements`.
 - **Gate 4** — semantic evaluation for prompt/model changes. Warn-only at the S1 merge (TD-1); since PR #57 it blocks on a `--strict` replay of the fixed evaluation set, so a green replay is semantic acceptance evidence for prompt/model changes.
-- **Gate 5** — the full offline suite (`pytest test/offline -v`); on the S1 branch merged with main it collects and passes 121 tests (109 S1 + 12 from #11). At the 2026-11-20 consistency pass the suite collects 260 offline tests on `6f47cc2` (259 pass + the pre-existing Windows corpus-digest environment failure, BUG-005); counts are per-head by design (§5.4).
+- **Gate 5** — the full offline suite (`pytest test/offline -v`); on the S1 branch merged with main it collects and passes 121 tests (109 S1 + 12 from #11). At the 2026-11-20 consistency pass the suite collects 260 offline tests on `6f47cc2` (259 pass + the pre-existing Windows corpus-digest environment failure, recorded as BUG-005 in PR #70); counts are per-head by design (§5.4).
 - **Gate 6** — `docs/ai-use-log.yaml` must change when code, tests or prompts change.
 
-| Gate | What it checks | Evidence on 2026-11-18 | Limit |
+| Gate | What it checks | Evidence (11-18 snapshot → status 11-20) | Limit |
 |---|---|---|---|
-| 1 | Test-plan marker in the PR body | #25/#24/#36/#42/#43 records | Marker only; no issue/timestamp resolution (TD-2) |
+| 1 | Test-plan marker in the PR body | #25/#24/#36/#42/#43 records | Marker-only at the snapshot; tightened by #61 (issue + timestamp resolution) |
 | 2a/2b | Lint and type check | clean on `b410daf`; PM re-ran both mypy forms | CI form covers `scripts test`, not `src`; the extra `src scripts test` form is a local PM check |
 | 3 | Registry against its schema | `GATE 3 PASS: 31 requirements` | Schema validity, not requirement correctness |
 | 4 | Semantic evaluation for prompt/model changes | not triggered by S1 (no prompt/model change yet); `--strict` since #57 | TD-1 closed; strict replay is acceptance evidence |
@@ -141,7 +141,7 @@ The same discipline exposed a gate limitation. In #11 the validator test file ex
 
 ### 3.5 Review and merge discipline
 
-Review is a recorded act, not a click. `docs/review-memo.md` defines the RM ledger and the review template (spec alignment, architecture alignment, code quality, test quality, security, efficiency, operational metadata, verdict). Rule 6, added in PR #31, requires reviewers to state what they checked and forbids approving incomplete work. The ledger contains RM-001 through RM-032 after the 2026-11-19 backfill (PR #64); the posted-label collisions are mapped in the ledger's 2026-11-19 note, and #11's final memo is RM-023. Memos posted in PR threads without a ledger entry are cited by PR comment and timestamp, not implied to be in the ledger.
+Review is a recorded act, not a click. `docs/review-memo.md` defines the RM ledger and the review template (spec alignment, architecture alignment, code quality, test quality, security, efficiency, operational metadata, verdict). Rule 6, added in PR #31, requires reviewers to state what they checked and forbids approving incomplete work. The ledger contains RM-001 through RM-039 after the PR #64 backfill (RM-015–RM-032 recorded with the 2026-11-19 backfill note, RM-033–RM-039 appended 2026-11-20); the posted-label collisions are mapped in the ledger's 2026-11-19 note, and #11's final memo is RM-023. Memos posted in PR threads without a ledger entry are cited by PR comment and timestamp, not implied to be in the ledger.
 
 Merge rights were also changed by evidence. PR #39 moved the team from "PM merges" to "author merges after a non-author approval, green `blocking-gates` and a recorded verdict." The change was tested by a real incident: the PM pushed a second commit seven seconds after the reviewer's approval, which dismissed the approval; the head was reset to the reviewed commit and re-approved, and the convention now documents that failure mode. PR #11 merged on 2026-11-18 only after both domain approvals arrived (`xiaolizi33` at 02:54:56Z, `creator-xiyuan` at 02:55:08Z); PR #41 later merged as `e60dd50` after its non-author approvals.
 
@@ -175,7 +175,7 @@ The registry moved from a scaffold with eight traceable IDs to a 31-requirement 
 | Corpus maintenance proposal (#37) | fixed evaluation set, INV-5 evidence | ADR addendum + separate execution plan | #37 (merged `539ae7cf`); ADR PR #46 (merged `7b0ee1e`) |
 | Prompt v1.0 regeneration (#45) | analysis prompt contract | gate 4 (warn-only) + review | PR #45 (merged `b2e67f1`) |
 
-Volatility is therefore not treated as a failure by itself. The quality question is whether each change carries its downstream artifacts. The evidence shows both a positive and a negative example: #11 eventually carried the registry, schema, validator tests and matrix together, while BUG-002 is the recorded cost of the period before that alignment. The trace matrix still contains 23 `TBD` markers across S1–S5, and the project reports them as planned rather than as passing evidence.
+Volatility is therefore not treated as a failure by itself. The quality question is whether each change carries its downstream artifacts. The evidence shows both a positive and a negative example: #11 eventually carried the registry, schema, validator tests and matrix together, while BUG-002 is the recorded cost of the period before that alignment. The trace matrix still carries `TBD` planned cells across S1–S5, and the project reports them as planned rather than as passing evidence.
 
 ### 4.2 Defects and review findings
 
@@ -232,7 +232,7 @@ The test suite carries requirement IDs in docstrings, and gate 3 validates the r
 | Layer | Evidence | Status |
 |---|---|---|
 | Registry | 31 requirements | merged in #11 |
-| Trace matrix | 31 rows; 23 `TBD` markers across S1–S5 | merged; planned cells are not passing evidence |
+| Trace matrix | 31 rows; `TBD` planned cells across S1–S5 | merged; planned cells are not passing evidence |
 | Direct REQ IDs cited in the offline suite (as of 2026-11-18) | 8 IDs (FUN-004, GOV-003, GOV-004, INV-001, INV-003, INV-004, INV-005, QUA-001) | S1 branch + #11 |
 | Validator tests | 12 collected | merged in #11 |
 | S1 tests | 109 collected | merged in PR #41 (`e60dd50`) |
@@ -254,7 +254,7 @@ The same rule applies to the report's own evidence. The pre-#11 and post-#11 ver
 
 ### 5.5 What is not yet co-evolved
 
-The project does not claim full co-evolution. S1's code/tests were merged in PR #41 (`e60dd50`); the trace matrix still marks unimplemented slices as `TBD`; gate 4 is strict since #57; S2 intake/queue and S5 evaluation are not implemented, S3 analysis is in flight (draft PR #52), and S4's CI hardening landed as #47/#57/#61/#62. #37's corpus and the ADR addendum (#46) are merged; the S3 offline slice is open as draft PR #52 with changes requested. These gaps are recorded in the debt register, the trace matrix and the issue tracker, and the report treats them as open rather than filling them with narrative.
+The project does not claim full co-evolution. S1's code/tests were merged in PR #41 (`e60dd50`); the trace matrix still marks unimplemented slices as `TBD`; gate 4 is strict since #57; S2 intake/queue and S5 evaluation are not implemented, S3 analysis is in flight (draft PR #52), and S4's CI hardening landed as #45/#47/#57/#61/#62. #37's corpus and the ADR addendum (#46) are merged; the S3 offline slice is open as draft PR #52 with changes requested. These gaps are recorded in the debt register, the trace matrix and the issue tracker, and the report treats them as open rather than filling them with narrative.
 
 ## 6. What human oversight caught that the agent did not
 
