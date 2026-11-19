@@ -548,7 +548,7 @@ The audit record should contain:
 | timestamp | Decision time |
 | review_status | Pending, reviewed, confirmed, or reversed |
 
-The audit subsystem must preserve the relationship between advisory AI analysis, the authoritative policy revision and state, the authorized transition, and subsequent human review. Linked replay identity and payload-binding evidence must be available for reconciliation without unnecessarily duplicating raw identifiers in audit records;only committed transitions may be described as confirmed. Every logical transition requires exactly one committed audit record under §4.3.
+The audit subsystem must preserve the relationship between advisory AI analysis, the authoritative policy revision and state, the authorized transition, and subsequent human review. Linked replay identity and payload-binding evidence must be available for reconciliation without unnecessarily duplicating raw identifiers in audit records; only committed transitions may be described as confirmed. Every logical transition requires exactly one committed audit record under §4.3.
 
 Sensitive personal information should not be unnecessarily duplicated in audit records.
 
