@@ -122,16 +122,27 @@
 >   precedent); RM-028 #45; RM-029 #53; RM-030 #54.
 > - RM-031 #40 (posted RM-025; #41's Li memo is earlier); RM-032 #59
 >   (posted RM-020; #35 is earlier).
-> - RM-033 is reserved for PR #62's final memo after its pending test fixes and
->   re-review; the posted RM-021 changes-requested reviews (on `1ff2050`,
->   re-issued on `8111850`) are superseded and not a final memo.
+> - RM-033 is PR #62's final memo, written in the 2026-11-20 append below
+>   (transcribed from the APPROVED reviews on head `a4a1840`: creator-xiyuan
+>   12:55:55Z, swordnew123 13:16:20Z); #62 squash-merged as `6f47cc2`. The
+>   posted RM-021 changes-requested reviews (on `1ff2050`, re-issued on
+>   `8111850`) are superseded and not a final memo.
 >   RM-034 is the approved #57 review memo at `72eb656`; #57 squash-merged as
 >   `8e7e2af` on 2026-11-19. RM-035 is the approved #61 review memo, re-issued
 >   at `6ffaecc` after the base update dismissed the `7901e8c` approval; #61
->   squash-merged as `6264e89` on 2026-11-19. Both entries go in the next
->   ledger update.
+>   squash-merged as `6264e89` on 2026-11-19. Both entries are written in the
+>   2026-11-20 append below.
 > - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
 >   RM-017.
+>
+> **2026-11-20 ledger append note (RM-033–RM-039).** This append writes the
+> entries reserved above and closes the documented deferrals in the PM reviews
+> of #56 and #67 (CONTRIBUTING step 6; both review bodies are the memos of
+> record, transcribed below). RM-036/037 keep PM's posted labels (unique);
+> RM-038/039 are PM review memos written before merge with CHANGES REQUIRED
+> verdicts (process §4). Numbering follows the chain reserved in PR #64, not
+> merge order: #56 (RM-036) merged at 13:41Z, before #62 (RM-033) at 14:20Z —
+> during a backfill the reserved chain is authoritative.
 
 <!-- Append memos below, newest last. -->
 
@@ -522,3 +533,83 @@
 - Security / Efficiency: n/a
 - Operational metadata: reviewer flagged `Report.md:141`/`:142` as still "in review" and left them for the next docs pass (now PR #63); merged at `c5d42bf` (2026-11-19T11:00:36Z)
 - Verdict: APPROVE
+
+## RM-033 — PR #62: test(acceptance): add release invariant and must acceptance tests (#55)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; posted RM-021 — renumbered because ledger RM-021 is PR #44); PM swordnew123 (LIU Jianwei)
+- Spec alignment: 22 offline tests covering REQ-INV-001..REQ-INV-005 and the merged Must acceptance flows under Test-Plan-Approved: #55; `docs/architecture/trace-matrix.md` updated to reference the two new test files (5 invariant rows + 3 must rows)
+- Architecture alignment: no `src/` change; the only architecture-file edit is the trace matrix, byte-unchanged since Li's co-sign on `211ff1e`
+- Code quality: n/a (tests + docs)
+- Test quality: final re-review on `a4a1840` replaced the empty-assertion rollback test with parametrized HOLD/ESCALATE failure paths where a queue row would have been written before the injected ABORT, so `_queue_count == 0` now genuinely proves rollback; offline suite green
+- Security: two findings documented rather than patched in-scope — the authority-token tamper path (BUG-003, needs an ADR addendum) and the declared-but-unreachable PENDING_UNCONFIRMED status (BUG-004)
+- Efficiency: n/a
+- Operational metadata: ai-use-log `AI-012` (renumbered from the posted AI-010 on the domain CR's instruction — AI-010/011 belong to #57/#61), transcript `transcripts/60105888-DA-Buna-AI012.md`; bug-diary BUG-003/BUG-004; PM delta check: `a4a1840` touches only the yaml (32+/31−, the AI-012 block byte-identical after the move)
+- Verdict: APPROVE (final head `a4a1840`; squash `6f47cc2` 2026-11-19T14:20:06Z)
+
+## RM-034 — PR #57: feat(ci): gate 4 blocks on semantic evaluation (--strict) + replay converter (TD-1, REQ-INV-005)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; posted RM-034, unique)
+- Spec alignment: TD-1 — gate 4 blocks on semantic evaluation under REQ-INV-005; replay converter accepts a replay committed in the same PR
+- Architecture alignment: n/a (CI + scripts; no element/ADR change)
+- Code quality: `select_pr_replay()` fails closed — exactly-one replay is used, zero actionable → fail, multiple → fail — instead of silently skipping
+- Test quality: single/zero/multiple replay-selection tests + success-path test; PM reproduced the CI path "prompt PR + 1 committed replay → PASS"; strictness parity locked (eval_runner and test both 0.85, registry parity test retained)
+- Security / Efficiency: n/a
+- Operational metadata: provisional CHANGES REQUIRED at 11:00:56Z (P0: CI could not reach a committed replay — `resolve_replay()` saw neither CLI nor env) fixed on `72eb656`; ai-use-log `AI-010`; squash `8e7e2af` 2026-11-19T12:07:51Z
+- Verdict: APPROVE (final review at `72eb656`, 11:44:21Z)
+
+## RM-035 — PR #61: test(gate1): verify the cited test plan exists, is independently approved, and predates implementation (TD-2, REQ-GOV-002)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; posted RM-035 provisional, re-issued final — unique)
+- Spec alignment: gate 1 verifies the cited test plan exists, is independently approved (non-issue-author, non-PR-author), and predates the first implementation commit (author.date, UTC-normalized)
+- Architecture alignment: n/a (scripts + tests)
+- Code quality: fail-closed contract held — `_qualified_approval()` converts missing/illegal timestamps into `RuntimeError` at the parse boundary; `_parse_time`'s `ValueError` can no longer escape as a traceback
+- Test quality: 16 offline gate-1 tests incl. `test_marker_comment_with_none_timestamp_fails_closed`; the per-commit file-list size cap is recorded as a documented known limitation instead of a promised truncation check
+- Security / Efficiency: n/a
+- Operational metadata: provisional CHANGES REQUIRED at 11:01:05Z (P1 traceback escape); an intermediate approval was dismissed by `dismiss_stale_reviews` as bookkeeping on a base update; the re-issued final at `6ffaecc` verified the own diff unchanged (5 files, +1721/−13) and gate-1 logic byte-identical to the approved `7901e8c`; ai-use-log `AI-011`; squash `6264e89` 2026-11-19T12:35:44Z
+- Verdict: APPROVE (re-issued final review at `6ffaecc`, 12:20:39Z)
+
+## RM-036 — PR #56: docs(governance): `scripts/**` is agent-writable code, not CI configuration; countersign fallback
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; posted label RM-036, unique)
+- Spec alignment: no requirement change; corrects D3 documentation to match `AGENTS.md` §4 and the permission model — `scripts/` is ordinary agent-writable code, not CI configuration; `prompts/` still triggers gate 4
+- Architecture alignment: no element/ADR/invariant change; `.github/workflows/` remains the CI-configuration red line
+- Code quality: n/a (docs-only; the two files are byte-identical between the reviewed head and the update)
+- Test quality: docs-only; blocking-gates green on `00e7358`
+- Security: no new authority — `.opencode/permissions.jsonc` already allowlists `scripts/` for the code agent; the manifest had narrowed it incorrectly; human-only paths untouched
+- Efficiency: n/a
+- Operational metadata: docs-only, gate 1/6 n/a per CONTRIBUTING; the countersign fallback makes an absent PM countersign explicit (pending/absent with reason); the ledger entry was deferred per CONTRIBUTING step 6 (recorded in the review) and is written here; P2 follow-ups noted (gate 1 also applies to scripts PRs via CODE_PREFIXES; the quoted wording belongs to permission-model.md); squash `344b376` 2026-11-19T13:41:33Z
+- Verdict: APPROVE (review at `00e7358`, 13:15:20Z)
+
+## RM-037 — PR #67: docs(governance): enforcement table matches gate 5's actual AST coverage (TD-4)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; posted label RM-037, unique)
+- Spec alignment: no requirement change; the enforcement table now states exactly what gate 5 runs — rule 4's INV-1 half and rule 5's named prohibitions are machine-enforced by `test_invariants.py`; rule 1, the analysis→policy edge and element cycles remain planned in #66; contract/API/call-graph checks do not exist and are not claimed
+- Architecture alignment: no element/ADR change; rule 6's inline note now says review rule + the narrow #66 guard for `.opencode/`/`.agent/`, explicitly not `transcripts/`
+- Code quality: n/a (docs-only, 1 file)
+- Test quality: the table's claims were verified against `test_invariants.py:174/181/233`, `check_safety_paths.py:8-12` and `ci.yml:36-49`; blocking-gates green on `34c6d1a`
+- Security: no new authority; the table no longer implies a nonexistent call-graph check
+- Efficiency: n/a
+- Operational metadata: docs-only, gate 1/6 n/a; the ledger entry was deferred per CONTRIBUTING step 6 and is written here; P2 noted (the rule 5 row omits the mutation-repository import check — the table understates, not overstates); squash `d8d1346` 2026-11-19T13:42:51Z
+- Verdict: APPROVE (review at `34c6d1a`, 13:34:32Z)
+
+## RM-038 — PR #68: docs(evidence): record Li stage-2 candidate evaluation and human decision (#50)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei)
+- Spec alignment: D5 evidence entry for transcript #1 (Li stage-2 candidate evaluation and the human decision); content spot-checks all verified (7 code/document line references, REQ IDs, COS-001 numbers, hygiene check)
+- Architecture alignment: n/a (evidence docs)
+- Code quality: two governance gaps block approval — (P1-1) the new `docs/evidence/` directory is not registered in the repository layout table (`README.md:23-32`); (P1-2) the document cites `src/contentguard/analysis/` files and `transcripts/60938585-LI-Shiyi.md` that exist only in unmerged PR #52, and after #52's rebase the pinned commit `7206e06` becomes unreachable — the reference must name PR #52
+- Test quality: n/a (docs)
+- Security / Efficiency: n/a
+- Operational metadata: P2 follow-ups — dual H1 headings; intervention marker format; a stale "gate 4 warn-only" wording; optional evaluation-logbook row; review at head `836f7ea`
+- Verdict: CHANGES REQUIRED (review 2026-11-19T15:13:26Z = 23:13 HKT; github.com/CS5351-Group10/contentguard/pull/68#pullrequestreview-5977229159)
+
+## RM-039 — PR #69: feat(ci): structural checks — element set, import cycles, frozen paths (TD-4, gate 2e)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; non-author, governance/CI line)
+- Spec alignment: TD-4 per issue #66 Revision 2 (REQ-INV-001); gate-1 ordering verified from raw timestamps (approval 13:34:16Z < architecture co-sign 14:21:11Z < first implementation commit `75b8569` at 14:46:13Z)
+- Architecture alignment: Revision-2 co-sign conditions verified in code one by one — element set exactly five, package-only detection with `__pycache__` ignored, declared-but-absent INFO, cycle detection naming the path, frozen guard limited to `.opencode/`+`.agent/` with transcripts exempt, docs-only pass only after the changed-file list resolves, missing token fails closed, stdlib only
+- Code quality: independent local run on head `fd17f6d` — push-event simulation `GATE 2E PASS` + 2 INFO (matches the author's record); ruff clean; suite 270 passed + 1 failed, and the failure also fails on clean `main` (`6f47cc2`), environmental (Windows CRLF; BUG-005), not introduced here
+- Test quality: 10 deterministic offline tests; P2-1 — the claimed "API failure listing changed files also fails" is implemented but has no negative test
+- Security / Efficiency: n/a
+- Operational metadata: P1-1 — the body cites ai-use-log `AI-012` but the yaml entry is `AI-013` (main's AI-012 is DA Buna, #62); P1-2 — the body's "Implementation started after both records" contradicts the transcript/yaml (session started 13:50:57Z, before the co-sign); PM ruling recorded in the review: the early start is accepted as additive-only, the body must state the true timeline; #52 must renumber its drafted AI-013 to AI-014; review at head `fd17f6d`
+- Verdict: CHANGES REQUIRED (review 2026-11-19T15:47:55Z; github.com/CS5351-Group10/contentguard/pull/69#pullrequestreview-5978319174)
