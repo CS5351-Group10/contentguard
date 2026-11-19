@@ -1,7 +1,7 @@
 # AI-Use Log (D1; enforced by CI gate 6)
 #
 # Every use of the AI coding agent (OpenCode) that produces or changes code, tests,
-# or prompts must be recorded here — in the SAME PR as the change (gate 6 blocks
+# or prompts must be recorded here 鈥?in the SAME PR as the change (gate 6 blocks
 # code/prompt PRs that do not touch this file).
 #
 # Entry format (one entry per agent session):
@@ -233,7 +233,7 @@ entries:
       bad-prompt blocked; honest cannot-evaluate-without-replay case). Follow-up at the PM's
       warn-only scope decision (2026-11-18): load_policy validation (+7 negative tests),
       gate-4 ground-truth protection (+3 tests), --replay=PATH + usage errors (+4 tests),
-      false-block N/A aggregate (+1 test) — 34 test functions total after the follow-up.
+      false-block N/A aggregate (+1 test) 鈥?34 test functions total after the follow-up.
       Session: OpenCode gate-4 session, 2026-11-18.
     human_interventions: 2
     intervention_summary: >-
@@ -242,6 +242,87 @@ entries:
       to follow evidence. (2) Plan approval: corrected the stale REQ-QUA-003 "provisional" marking
       (it is baselined on main), accepted the fail-closed reading (absent corpus warn-only,
       evaluated uncovered row fatal), and required that gate 4 never reports PASS from a shipped
-      fixture — an explicit replay path and an honest "cannot evaluate" case.
+      fixture 鈥?an explicit replay path and an honest "cannot evaluate" case.
     pr: 47   # opened 2026-11-18 from issue #26
+
+  - id: AI-010
+    date: 2026-11-19
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-gate4-strict.md
+    scope: >-
+      .github/workflows/ci.yml, scripts/check_semantic_eval.py,
+      scripts/record_replay.py, test/offline/test_gate4_enforcement.py,
+      docs/ai-use-log.yaml
+    summary: >-
+      TD-1 enforcement: flipped CI gate 4 to blocking (--strict) now that the corpus (#37)
+      and the replay harness (#47) are on main. Under --strict a prompt/model change with no
+      replay artifact fails with an actionable message naming the fix (commit a replay at
+      test/eval/replay/<tag>.jsonl, converted with scripts/record_replay.py); the gate still
+      never defaults to a shipped fixture. Hardened check_semantic_eval.py's no-replay branch
+      and its module docstring; the warn-only (non-strict) path is unchanged. Added
+      scripts/record_replay.py: a PURE converter/validator (--from <responses.jsonl> --out
+      <replay.jsonl>) that validates eval_id/verdict per row, rejects unknown/duplicate ids,
+      refuses an artifact that leaves any corpus eval_id uncovered, and opens no network
+      connection (no provider SDK, no credential env, no --live mode). Added
+      test/offline/test_gate4_enforcement.py (9 tests): strict+no-replay fails naming the
+      artifact, strict+bad replay fails naming the safety-escape threshold (regression
+      guard), strict+good replay passes, non-strict keeps the warn behaviour, docs-only PR
+      unaffected, plus four converter tests including a socket-blocking proof it never
+      touches the network. Job name "blocking-gates" and per-step env are unchanged. Supports
+      REQ-INV-005; closes TD-1. Session: OpenCode gate-4 strict session, 2026-11-19.
+    human_interventions: 3
+    intervention_summary: >-
+      (1) Task brief: fixed the deliverables, forbade touching the human-owned corpus artifacts
+      and the Tier-3 docs, and required the two strict demos in the PR body. (2) Plan approval
+      with three corrections: drop the live-recording design (make record_replay.py a pure
+      converter/validator with no provider SDK/credentials/network and no --live mode), do not
+      modify test/eval/README.md (recording instructions live in the script docstring/--help),
+      and label the bad-replay test as an already-passing regression guard rather than
+      tests-first. (3) Proceed authorization for the approved plan.
+    pr: 57   # opened 2026-11-19 from issue #26
+
+  - id: AI-011
+    date: 2026-11-19
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-td2.md
+    scope: >-
+      scripts/check_test_approval.py, test/offline/test_gate1_approval.py,
+      .github/workflows/ci.yml, docs/ai-use-log.yaml
+    summary: >-
+      TD-2 gate 1 tightening (REQ-GOV-002), per issue #58 + its PM sign-off + the
+      2026-11-19 amendments (A1 self-approval, A2 pagination/UTC/bot-detection), and the
+      PR #61 review changes. Gate 1 resolves the cited number via GET /issues/{n}
+      (404 = "issue not found"; a pull_request key = "cited number is a pull request, not
+      an issue"), reads the issue's comments (paginated per_page=100 + Link) and takes the
+      earliest qualifying approval (marker body; human = not user.type=="Bot" and not a
+      "[bot]" login; not the issue author; not the PR author; edited comments use
+      updated_at). It selects the first non-merge implementation commit from
+      GET /pulls/{n}/commits (paginated, returned order; merges with >1 parent skipped;
+      per-commit GET /commits/{sha} file list, first commit touching a CODE_PREFIXES path)
+      and compares the approval's effective time to that commit's commit.author.date (never
+      committer), both normalised to UTC. Fails closed (GATE 1 FAIL: <reason>, exit 1, no
+      traceback) on any API/parse problem, a missing commit file list, or no non-merge code
+      commit. PR #61 P1: _parse_time ValueError is converted to RuntimeError inside
+      _qualified_approval, so a marker comment with created_at=None yields GATE 1 FAIL and
+      exit 1 with no traceback (new test test_marker_comment_with_none_timestamp_fails_closed).
+      PR #61 P2: the test header names the fetch helper _json_load (was _api_json), and the
+      per-commit file-list docstring states GitHub's file-list size cap as a documented
+      known limitation instead of promising a truncation check the code lacks. Added
+      test/offline/test_gate1_approval.py (16 tests) and issues: read to ci.yml permissions
+      (per-step env only; job name unchanged). Stdlib only (urllib + re); approval authority
+      out of scope.
+    human_interventions: 2
+    intervention_summary: >-
+      (1) Task brief: scope fixed to issue #58 + sign-off; required commit.author.date not
+      committer, merge skipping, fail closed, four distinct messages, rewritten docstring;
+      then two amendments (A1 self-approval, A2 pagination/UTC/bot). (2) PR #61 changes
+      requested by the PM: P1 — convert the parse ValueError to RuntimeError at the parsing
+      boundary inside _qualified_approval and add a created_at=None fail-closed test; P2 —
+      fix the _api_json/_json_load name and stop the docstring promising a truncation check
+      the code lacks (state it as a known limitation). Count matches the transcript.
+    pr: 61   # opened 2026-11-19 from issue #58
 
