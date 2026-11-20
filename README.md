@@ -27,6 +27,7 @@ CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking
 | `docs/code-governance/` | Structural constraints, verification constraints, MCP tool manifest | D3/D4 |
 | `docs/ai-use-log.yaml` | Mandatory AI-use log (updated with every code/prompt change) | D1, gate 6 |
 | `docs/review-memo.md` | One review memo per pull request, ending in a verdict | D4 |
+| `docs/evidence/` | D5 evaluation and supporting evidence extracts | D5 |
 | `docs/team/` | Team roster cards (one per member) + first-PR exercise guide (feeds `Report.md` §1) | D6 |
 | `docs/debt-register.md` | AI-era technical debt tracker | D4 |
 | `docs/bug-diary.md` | Diary entry per significant bug | D4 |
