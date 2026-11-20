@@ -135,15 +135,17 @@
 > - #47's provisional RM-024 is void; #37's draft RM-015 is superseded by
 >   RM-017.
 >
-> **2026-11-20 ledger append note (RM-033–RM-039).** This append writes the
+> **2026-11-20 ledger append note (RM-033–RM-040).** This append writes the
 > entries reserved above and closes the documented deferrals in the PM reviews
 > of #56 and #67 (CONTRIBUTING step 6; both review bodies are the memos of
 > record, transcribed below). RM-036 keeps PM's posted label (proposed in the
-> #56 review); RM-037 is chain-assigned after it (no label was posted on #67);
-> RM-038/039 are PM review memos written before merge with CHANGES REQUIRED
-> verdicts (process §4). Numbering follows the chain reserved in PR #64, not
-> merge order: #56 (RM-036) merged at 13:41Z, before #62 (RM-033) at 14:20Z —
-> during a backfill the reserved chain is authoritative.
+> #56 review); RM-037 is chain-assigned after it (no label was posted on #67).
+> RM-038/039 were first posted as CHANGES REQUIRED and are rewritten here to
+> their final APPROVE verdicts after the fixes (`26eaabf` / body-only
+> `fd17f6d`). RM-040 is the #52 final memo. Numbering follows the chain
+> reserved in PR #64, not merge order: #56 (RM-036) merged at 13:41Z, before
+> #62 (RM-033) at 14:20Z — during a backfill the reserved chain is
+> authoritative.
 
 <!-- Append memos below, newest last. -->
 
@@ -598,19 +600,30 @@
 - Reviewer(s): PM swordnew123 (LIU Jianwei)
 - Spec alignment: D5 evidence entry for transcript #1 (Li stage-2 candidate evaluation and the human decision); content spot-checks all verified (7 code/document line references, REQ IDs, COS-001 numbers, hygiene check)
 - Architecture alignment: n/a (evidence docs)
-- Code quality: two governance gaps block approval — (P1-1) the new `docs/evidence/` directory is not registered in the repository layout table (`README.md:23-32`); (P1-2) the document cites `src/contentguard/analysis/` files and `transcripts/60938585-LI-Shiyi.md` that exist only in unmerged PR #52, and after #52's rebase the pinned commit `7206e06` becomes unreachable — the reference must name PR #52
+- Code quality: initial review found two governance gaps — (P1-1) the new `docs/evidence/` directory was not registered in the repository layout table (`README.md:23-32`); (P1-2) the document cited `src/contentguard/analysis/` files and `transcripts/60938585-LI-Shiyi.md` that existed only in unmerged PR #52, and the pinned commit `7206e06` would become unreachable after #52's rebase. Final head `26eaabf` resolves both: the README row is present; the evidence doc links `7206e06` and names PR #52 as provenance.
 - Test quality: n/a (docs)
 - Security / Efficiency: n/a
-- Operational metadata: P2 follow-ups — dual H1 headings; intervention marker format; a stale "gate 4 warn-only" wording; optional evaluation-logbook row; review at head `836f7ea`
-- Verdict: CHANGES REQUIRED (review 2026-11-19T15:13:26Z = 23:13 HKT; github.com/CS5351-Group10/contentguard/pull/68#pullrequestreview-5977229159)
+- Operational metadata: P2 follow-ups (dual H1 headings, intervention-marker format, stale "gate 4 warn-only" wording) were addressed at `1bc56b6`; initial review at `836f7ea`, final approval at `26eaabf` (main merge of #52). Squash-merged as `b5d8460` on 2026-11-20.
+- Verdict: APPROVE (final) — initial CHANGES REQUIRED (review 2026-11-19T15:13:26Z, github.com/CS5351-Group10/contentguard/pull/68#pullrequestreview-5977229159) resolved; final PM approval 2026-11-20T08:14:09Z (github.com/CS5351-Group10/contentguard/pull/68#pullrequestreview-5989454526)
 
 ## RM-039 — PR #69: feat(ci): structural checks — element set, import cycles, frozen paths (TD-4, gate 2e)
 
 - Reviewer(s): PM swordnew123 (LIU Jianwei; non-author, governance/CI line)
-- Spec alignment: TD-4 per issue #66 Revision 2 (REQ-INV-001); gate-1 ordering verified from raw timestamps (approval 13:34:16Z < architecture co-sign 14:21:11Z < first implementation commit `75b8569` at 14:46:13Z)
+- Spec alignment: TD-4 per issue #66 Revision 2 (REQ-INV-001); gate-1 ordering verified from raw timestamps (approval 13:34:16Z < session start 13:50:57Z < architecture co-sign 14:21:11Z < first implementation commit `75b8569` at 14:46:13Z)
 - Architecture alignment: Revision-2 co-sign conditions verified in code one by one — element set exactly five, package-only detection with `__pycache__` ignored, declared-but-absent INFO, cycle detection naming the path, frozen guard limited to `.opencode/`+`.agent/` with transcripts exempt, docs-only pass only after the changed-file list resolves, missing token fails closed, stdlib only
 - Code quality: independent local run on head `fd17f6d` — push-event simulation `GATE 2E PASS` + 2 INFO (matches the author's record); ruff clean; suite 270 passed + 1 failed, and the failure also fails on clean `main` (`6f47cc2`), environmental (Windows CRLF; BUG-005), not introduced here
-- Test quality: 10 deterministic offline tests; P2-1 — the claimed "API failure listing changed files also fails" is implemented but has no negative test
+- Test quality: 10 deterministic offline tests; P2-1 — the claimed "API failure listing changed files also fails" is implemented but has no negative test (optional, not blocking); P2-2 (the `_dependency_direction_violations` signature) remains with the testing owner
 - Security / Efficiency: n/a
-- Operational metadata: P1-1 — the body cites ai-use-log `AI-012` but the yaml entry is `AI-013` (main's AI-012 is DA Buna, #62); P1-2 — the body's "Implementation started after both records" contradicts the transcript/yaml (session started 13:50:57Z, before the co-sign); PM ruling recorded in the review: the early start is accepted as additive-only, the body must state the true timeline; #52 must renumber its drafted AI-013 to AI-014; review at head `fd17f6d`
-- Verdict: CHANGES REQUIRED (review 2026-11-19T15:47:55Z; github.com/CS5351-Group10/contentguard/pull/69#pullrequestreview-5978319174)
+- Operational metadata: the initial body's two P1s were corrected by the author on 2026-11-20 12:27 HKT, body-only with the head unchanged: the ai-use-log reference is `AI-013` (with the AI-012 origin note), and the timeline now records the accepted early start; #52 renumbered its drafted AI-013 to AI-014. Final approval on `fd17f6d` at 2026-11-20T04:29:23Z; squash-merged as `6b91946` on 2026-11-20; #66 closed.
+- Verdict: APPROVE (final) — initial CHANGES REQUIRED (review 2026-11-19T15:47:55Z, github.com/CS5351-Group10/contentguard/pull/69#pullrequestreview-5978319174) resolved; final PM approval (github.com/CS5351-Group10/contentguard/pull/69#pullrequestreview-5987504428)
+
+## RM-040 — PR #52: feat(analysis): offline S3 advisory slice and session evidence (#43)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; non-author, code-owner)
+- Spec alignment: REQ-FUN-002/005, REQ-SEC-001, REQ-INV-001/002 (supporting checks for INV-003/004 and provisional COS-001), per test plan #43. Offline scope only; live provider, runtime snapshot, semantic replay and S1/S2 integration remain pending.
+- Architecture alignment: `analysis/` stays advisory; no import of policy internals and no enforcement authority. The three P1 fixes verified at `7206e06` remain unchanged at `c95fce3`: unhashable JSON fields return typed failures; exactly one `#sha256:` prefix; full citations validate the pinned corpus/snapshot IDs, revisions and digest.
+- Code quality: per-file verification at `c95fce3`: the analysis source and test files are byte-identical to the PM-reviewed `7206e06`; the only PR delta is `docs/ai-use-log.yaml` (+2 lines: the AI-014 supersedes note) plus the main merges `6f47cc2` (#62) and `6b91946` (#69). No duplicate AI IDs; AI-012 (Buna/#62) and AI-013 (Huang/#69) preserved; S3 is AI-014 with `pr: 52`.
+- Test quality: hosted `blocking-gates` green on `c95fce3`; the PR records 458 local passed, ruff clean, full-source mypy clean (67 files) and 31 requirements valid. Historical 188/406/422 counts are disclosed as historical, not final-head evidence.
+- Security / Efficiency: no credentials or secrets; transcript sanitized; no new dependencies; context budget/usage accounting bounded; no live-provider claim.
+- Operational metadata: head `c95fce3`, base `6b91946`; squash-merged as `397e002` on 2026-11-20; #43 closed. D5 note: the merged transcript is the S3 build session (stage-4 supporting evidence); the canonical Li stage-2 file remains a separate #50 deliverable, and this file should be renamed `60938585-LI-Shiyi-s3.md` when that lands.
+- Verdict: APPROVE (final) — review 2026-11-20T07:35:54Z; github.com/CS5351-Group10/contentguard/pull/52#pullrequestreview-5989077588
