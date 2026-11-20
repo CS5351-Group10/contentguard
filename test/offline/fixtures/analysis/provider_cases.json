@@ -1,0 +1,7 @@
+[
+  {"id":"normal","mode":"normal","expect":"response"},
+  {"id":"unavailable","mode":"unavailable","expect":"provider_unavailable"},
+  {"id":"invalid","mode":"invalid","expect":"invalid_response"},
+  {"id":"cancel_suppressing","mode":"cancel_suppressing","expect":"timeout"},
+  {"id":"unknown_usage","mode":"unknown_usage","expect":"response"}
+]
