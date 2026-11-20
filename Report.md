@@ -173,7 +173,7 @@ The registry moved from a scaffold with eight traceable IDs to a 31-requirement 
 | REQ-GOV-003 fit criterion rewritten during review | validator tests, PR body | review memo + gate 1 plan | #11 review 2026-11-17T09:09Z |
 | ADR-001 context values provisional | blueprint, evaluation logbook, S3 test plan | explicit "provisional/not measured" labels | ADR-001; #43 |
 | Corpus maintenance proposal (#37) | fixed evaluation set, INV-5 evidence | ADR addendum + separate execution plan | #37 (merged `539ae7cf`); ADR PR #46 (merged `7b0ee1e`) |
-| Prompt v1.0 regeneration (#45) | analysis prompt contract | gate 4 (warn-only) + review | PR #45 (merged `b2e67f1`) |
+| Prompt v1.0 regeneration (#45) | analysis prompt contract | gate 4 (warn-only at the time; strict since #57) + review | PR #45 (merged `b2e67f1`) |
 
 Volatility is therefore not treated as a failure by itself. The quality question is whether each change carries its downstream artifacts. The evidence shows both a positive and a negative example: #11 eventually carried the registry, schema, validator tests and matrix together, while BUG-002 is the recorded cost of the period before that alignment. The trace matrix still carries `TBD` planned cells across S1–S5, and the project reports them as planned rather than as passing evidence.
 
