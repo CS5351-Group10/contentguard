@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from .models import AuditView, CaseView, ProcessingResult, QueueView
+from .schemas import AuditView, CaseView, ProcessingResult, QueueView
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS intake_intents (

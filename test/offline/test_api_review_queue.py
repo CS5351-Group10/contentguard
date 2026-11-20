@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 from contentguard.api.app import create_app
 from contentguard.api.config import ActorConfig, ApiConfig
 from contentguard.api.errors import MandatoryRuleViolation
-from contentguard.api.models import CaseView, ProcessingResult, QueueView
+from contentguard.api.schemas import CaseView, ProcessingResult, QueueView
 
 GRANTED_MODERATOR_TOKEN = "granted-reviewer-token"
 UNGRANTED_MODERATOR_TOKEN = "ungranted-reviewer-token"

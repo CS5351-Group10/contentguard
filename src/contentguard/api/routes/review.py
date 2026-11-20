@@ -11,7 +11,7 @@ from ..authz import may_review_case
 from ..deps import require_actor
 from ..errors import MandatoryRuleViolation
 from ..intake_projection import committed_body
-from ..models import RequestContext, ReviewRequestBody
+from ..schemas import RequestContext, ReviewRequestBody
 
 router = APIRouter(prefix="/v1")
 

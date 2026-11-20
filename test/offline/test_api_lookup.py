@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 
 from contentguard.api.app import create_app
 from contentguard.api.config import ActorConfig, ApiConfig
-from contentguard.api.models import AuditView, CaseView
+from contentguard.api.schemas import AuditView, CaseView
 
 OWNER_TOKEN = "owner-token"
 OUTSIDER_TOKEN = "outsider-token"

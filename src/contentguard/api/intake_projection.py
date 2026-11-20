@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .models import ProcessingResult
+from .schemas import ProcessingResult
 
 
 def committed_body(result: ProcessingResult) -> dict[str, object]:

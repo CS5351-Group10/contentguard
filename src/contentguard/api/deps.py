@@ -7,7 +7,7 @@ from hmac import compare_digest
 
 from fastapi import HTTPException, Request, status
 
-from .models import RequestContext
+from .schemas import RequestContext
 
 
 def require_actor(request: Request) -> RequestContext:

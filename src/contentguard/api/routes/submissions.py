@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from ..deps import require_actor
 from ..intake_projection import committed_body, pending_body
 from ..logging import log_event
-from ..models import ProcessingResult, RequestContext, SubmissionRequest
+from ..schemas import ProcessingResult, RequestContext, SubmissionRequest
 from ..reconciliation import reconcile
 from ..storage import IdempotencyConflict
 

@@ -6,7 +6,7 @@ from typing import Protocol
 
 from .config import ApiConfig
 from .logging import log_event
-from .models import ProcessingResult, ProcessingUnavailable
+from .schemas import ProcessingResult, ProcessingUnavailable
 from .storage import IntakeIntent, IntakeRepository
 
 

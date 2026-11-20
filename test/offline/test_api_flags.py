@@ -22,7 +22,7 @@ from contentguard.api.config import (
     ConfigurationError,
     FeatureFlags,
 )
-from contentguard.api.models import ProcessingResult
+from contentguard.api.schemas import ProcessingResult
 
 TOKEN = "flag-test-token"
 

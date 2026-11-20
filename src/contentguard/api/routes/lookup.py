@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from ..authz import may_read_audit, may_read_case
 from ..deps import require_actor
 from ..intake_projection import committed_body, pending_body
-from ..models import RequestContext
+from ..schemas import RequestContext
 
 router = APIRouter(prefix="/v1")
 

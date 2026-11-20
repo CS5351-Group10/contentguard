@@ -19,7 +19,7 @@ from fastapi.testclient import TestClient
 
 from contentguard.api.app import create_app
 from contentguard.api.config import ActorConfig, ApiConfig
-from contentguard.api.models import ProcessingResult, ProcessingUnavailable
+from contentguard.api.schemas import ProcessingResult, ProcessingUnavailable
 from contentguard.api.storage import IntakeRepository
 
 TOKEN = "submitter-secret-token"
