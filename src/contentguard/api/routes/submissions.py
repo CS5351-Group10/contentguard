@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import sqlite3
 import time
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -12,10 +13,9 @@ from fastapi.responses import JSONResponse
 from ..deps import require_actor
 from ..intake_projection import committed_body, pending_body
 from ..logging import log_event
-from ..models import RequestContext, SubmissionRequest
+from ..models import ProcessingResult, RequestContext, SubmissionRequest
 from ..reconciliation import reconcile
 from ..storage import IdempotencyConflict
-
 
 router = APIRouter(prefix="/v1")
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/v1")
 def submit(
     body: SubmissionRequest,
     request: Request,
-    actor: RequestContext = Depends(require_actor),
+    actor: Annotated[RequestContext, Depends(require_actor)],
     idempotency_key: str = Header(alias="Idempotency-Key", min_length=1),
 ) -> JSONResponse:
     """Accept text, reconcile replay, and report only durable confirmed state."""
@@ -96,16 +96,16 @@ def submit(
     return _result_response(result, replay=not created)
 
 
-def _result_response(result: object, *, replay: bool) -> JSONResponse:
-    status = getattr(result, "status")
+def _result_response(result: ProcessingResult, *, replay: bool) -> JSONResponse:
+    status = result.status
     if status == "committed":
         return JSONResponse(
             status_code=200 if replay else 201,
             content=committed_body(result),
         )
     if status == "conflict":
-        raise HTTPException(status_code=409, detail=getattr(result, "message"))
-    raise HTTPException(status_code=503, detail=getattr(result, "message"))
+        raise HTTPException(status_code=409, detail=result.message)
+    raise HTTPException(status_code=503, detail=result.message)
 
 
 __all__ = ["router"]

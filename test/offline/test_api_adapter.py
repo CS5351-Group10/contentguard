@@ -90,7 +90,7 @@ def _s3_failure(code: str = "provider_unavailable") -> S3Failure:
         detail="analysis unavailable",
         attempt=_attempt(),
         usage=AnalysisUsage(input_tokens=0, output_tokens=0, usage_unknown=True),
-        known_severity=None,
+        known_severity="unknown",
     )
 
 

@@ -135,13 +135,14 @@ def test_effective_flag_is_pinned_in_intake_and_operational_audit(
     flags = FeatureFlags(reconsideration_enabled=True)
     processor = FakeProcessor()
     config = _config(tmp_path, flags)
-    with TestClient(create_app(config=config, processor=processor)) as client:
+    app = create_app(config=config, processor=processor)
+    with TestClient(app) as client:
         response = client.post(
             "/v1/submissions",
             headers=_headers(),
             json={"text": "content with configured reconsideration"},
         )
-        assert client.app.state.api_config.feature_flags.as_dict() == flags.as_dict()
+        assert app.state.api_config.feature_flags.as_dict() == flags.as_dict()
 
     assert response.status_code == 201
     with sqlite3.connect(config.database_path) as conn:

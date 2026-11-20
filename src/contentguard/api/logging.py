@@ -6,7 +6,6 @@ import json
 import logging
 from collections.abc import Mapping
 
-
 LOGGER = logging.getLogger("contentguard.api")
 
 

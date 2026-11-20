@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -11,14 +13,13 @@ from ..errors import MandatoryRuleViolation
 from ..intake_projection import committed_body
 from ..models import RequestContext, ReviewRequestBody
 
-
 router = APIRouter(prefix="/v1")
 
 
 @router.get("/review-queue")
 def list_review_queue(
     request: Request,
-    actor: RequestContext = Depends(require_actor),
+    actor: Annotated[RequestContext, Depends(require_actor)],
 ) -> JSONResponse:
     """List only queue entries granted to the authenticated moderator."""
 
@@ -51,7 +52,7 @@ def review_case(
     case_id: str,
     body: ReviewRequestBody,
     request: Request,
-    actor: RequestContext = Depends(require_actor),
+    actor: Annotated[RequestContext, Depends(require_actor)],
 ) -> JSONResponse:
     """Submit current human evidence to the policy-owned review entry point."""
 

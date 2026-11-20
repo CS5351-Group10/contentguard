@@ -16,7 +16,6 @@ from pathlib import Path
 
 from .models import AuditView, CaseView, ProcessingResult, QueueView
 
-
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS intake_intents (
     handoff_id TEXT PRIMARY KEY,

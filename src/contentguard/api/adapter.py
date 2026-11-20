@@ -10,11 +10,17 @@ from typing import Protocol
 
 from contentguard.analysis.contracts import (
     AdvisoryResult as AnalysisAdvisory,
-    AnalysisFailure as AnalysisFailure,
+)
+from contentguard.analysis.contracts import (
+    AnalysisFailure,
 )
 from contentguard.policy.contracts import (
     AdvisoryResult as PolicyAdvisory,
+)
+from contentguard.policy.contracts import (
     AnalysisFailure as PolicyFailure,
+)
+from contentguard.policy.contracts import (
     CaseSnapshot,
     CommitResult,
     FailureCode,

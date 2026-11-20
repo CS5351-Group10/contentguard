@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -10,7 +12,6 @@ from ..deps import require_actor
 from ..intake_projection import committed_body, pending_body
 from ..models import RequestContext
 
-
 router = APIRouter(prefix="/v1")
 
 
@@ -18,7 +19,7 @@ router = APIRouter(prefix="/v1")
 def get_case(
     case_id: str,
     request: Request,
-    actor: RequestContext = Depends(require_actor),
+    actor: Annotated[RequestContext, Depends(require_actor)],
 ) -> JSONResponse:
     """Return an authorized case or a truthful API-owned reconciliation state."""
 
@@ -51,7 +52,7 @@ def get_case(
 def get_audit(
     audit_id: str,
     request: Request,
-    actor: RequestContext = Depends(require_actor),
+    actor: Annotated[RequestContext, Depends(require_actor)],
 ) -> JSONResponse:
     """Return immutable decision evidence after owner/grant authorization."""
 

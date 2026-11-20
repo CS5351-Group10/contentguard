@@ -7,7 +7,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr, field_validator
 
-
 ProcessingStatus = Literal["committed", "pending_unconfirmed", "failed", "conflict"]
 
 
