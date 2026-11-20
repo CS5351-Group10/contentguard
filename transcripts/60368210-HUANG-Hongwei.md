@@ -2,6 +2,10 @@
 
 - **Student:** HUANG Hongwei (60368210)
 - **Main line:** Governance & CI (D3 governance files, D7 blocking gates, README, ai-use-log)
+- **D5 pipeline stages demonstrated:** **3** (plan approval before code — the agent produced a
+  traceability/interface/scope/testing plan and was stopped before writing anything) and **4**
+  (build + verification compliance — tests written first and seen failing, then the fix, then
+  the full self-verification set)
 - **Task:** fix the CI defect that made every pull request red — gates 1/4/6 fetched the PR file
   list from the GitHub API with an empty `Authorization: Bearer ` header (401), because only
   gate 6 received `GITHUB_TOKEN` in `.github/workflows/ci.yml`
@@ -13,13 +17,17 @@
 - **Outcome:** PR #7 «fix(ci): gate 1/4/6 PR-file fetch 401 (token plumbing) — TD-3», merged as
   `9cd38f7`
 
-## Annotated interventions
+## Interventions at a glance
 
-| # | Phase | Type | What the human did | Why |
-|---|---|---|---|---|
-| 1 | Plan approval | **Approve with corrections** | Rejected the agent's recommended option A (hoist `GITHUB_TOKEN` to job level); required an explicit `permissions:` block; required every new test to cite its requirement/invariant/debt ID in the docstring | Least privilege is a graded governance property — a job-level token hands the repo token to lint/mypy/pytest steps that never need it. `AGENTS.md` §6.2 requires ID-citing tests; the plan had omitted it. |
-| 2 | Mid-session | **Accidental interruption** | The terminal was closed by mistake; the session was resumed with "刚才不小心关闭了，继续" | Not a governance decision. Recorded honestly rather than dressed up as a deliberate interrupt — the agent had to re-establish state and re-check its background installs, which cost ~6 minutes. |
-| 3 | Self-verification | **Scope guard (pre-approved)** | Kept the fix to the error path only; gate decision logic, job name `blocking-gates`, and `docs/req`/`docs/architecture`/`src` untouched | Branch protection depends on the job name; changing gate outcomes would have required a separate test-plan approval. |
+Four human turns, each marked inline with `>>> [INTERVENTION]` at the point where it happened.
+The rationale lives with the marker, not here.
+
+| # | When | Type | What |
+|---|---|---|---|
+| 1 | 22:41 | redirect | Task brief: which defect, which red lines, and "plan before code" |
+| 2 | 23:07 | interrupt | Terminal closed by accident; resumed in the same session (recorded as accident) |
+| 3 | 23:13 | approve | Plan approved with three corrections (least privilege, explicit `permissions:`, ID-citing tests) |
+| 4 | 23:48 | reject | Rejected the ai-use-log operator (wrong student ID) and the self-authored review memo |
 
 ## How to read this transcript
 
@@ -36,6 +44,16 @@
 ---
 
 ### Human — 2026-11-15 22:41:38
+
+>>> [INTERVENTION] type: redirect — by: HUANG Hongwei (60368210)
+    rationale: Pointed the agent at one specific defect (the empty-Bearer 401 that had every PR
+    red) instead of letting it choose a task, and fixed the red lines up front: no edits under
+    docs/req or docs/architecture, the job name `blocking-gates` is untouchable, CI config only
+    through the agent. Wrote the plan-before-code requirement into the brief so the approval
+    point would exist as evidence. The least-privilege limit is stated here on purpose — in
+    earlier planning the same agent had recommended hoisting GITHUB_TOKEN to job level, so the
+    constraint went in before it could propose that again.
+
 Project: ContentGuard — CS5351 Group 10. You are the coding agent; I am the human
 operator and owner of the Governance & CI line (D3 governance files, D7 blocking
 gates, branch protection, README, ai-use-log). Start by reading AGENTS.md and
@@ -206,6 +224,15 @@ Downloads are slow here. `ruff`/`mypy` aren't needed for defect reproduction; I'
 ---
 
 ### Human — 2026-11-15 23:07:16
+
+>>> [INTERVENTION] type: interrupt — by: HUANG Hongwei (60368210)
+    rationale: Accidental, not a decision — the terminal window was closed. Resumed in the same
+    session so the D5 evidence stays one continuous chain rather than being stitched from two
+    exports; the cost was that the agent had to re-establish state (background pip installs,
+    repro artifacts under /tmp/opencode) before continuing. Marked as an interruption because
+    that is what happened, and saying so is cheaper than pretending it was a deliberate check.
+
+
 刚才不小心关闭了，继续
 
 ---
@@ -349,6 +376,18 @@ Stopping here per `Prompt.md` Stage 2 and `AGENTS.md` §7 — no code generated 
 ---
 
 ### Human — 2026-11-15 23:13:42
+
+>>> [INTERVENTION] type: approve — by: HUANG Hongwei (60368210)
+    rationale: Approved the execution plan but corrected three things first. (1) Rejected the
+    agent's recommended option A (hoisting GITHUB_TOKEN to job level): least privilege is a
+    graded governance property, and lint/mypy/pytest have no business holding a repo token —
+    the per-step `env:` already used by gate 6 is the pattern. (2) Required an explicit
+    `permissions:` block instead of inheriting the repository default, because "what rights do
+    we actually hand this job" has to be readable in the workflow. (3) Required every new test
+    docstring to cite the REQ/INV/debt ID it verifies (AGENTS.md §6.2); the plan had omitted
+    it, and an uncited test is not evidence of coverage.
+
+
 Plan approved with three corrections:
 
 1. Reject decision A. Do NOT hoist GITHUB_TOKEN to job level — least privilege is a
@@ -752,6 +791,16 @@ Already written into the file (spec/architecture/code/test/security/efficiency/o
 ---
 
 ### Human — 2026-11-15 23:48:39
+
+>>> [INTERVENTION] type: reject — by: HUANG Hongwei (60368210)
+    rationale: Rejected two artifacts before the PR could exist. (1) The ai-use-log entry named
+    LIU Jianwei (61022208) as this session's operator — wrong person, and a fabricated
+    attribution inside a D5 evidence file is worse than a missing one. (2) The agent had written
+    the review memo for its own PR, which `docs/review-memo.md` rule 1 forbids; the memo has to
+    come from the non-author reviewer (the PM). Also pinned the gate-1 marker to a real
+    test-plan issue (#6) rather than leaving `#<issue-number>` as a placeholder.
+
+
 Corrections before this PR is opened. Change nothing else.
 
 1. docs/ai-use-log.yaml — the operator is wrong. This session's operator is

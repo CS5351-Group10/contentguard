@@ -1,0 +1,19 @@
+{
+  "snapshot_id": "snap-synthetic-v1",
+  "revision": 1,
+  "corpus_id": "corpus-synthetic",
+  "approval": {
+    "status": "approved",
+    "approver_ref": "synthetic-approver",
+    "approval_revision": "ar-1",
+    "evidence_ref": "approval://synthetic/1",
+    "approved_at": "2026-01-01T00:00:00Z"
+  },
+  "clauses": [
+    {"clause_id": "c-01", "clause_revision": 1, "text": "rule c-01 <TOKENS:8>", "category": "safety", "severity_hint": "high", "source_ref": "synthetic://clauses/c-01/1"},
+    {"clause_id": "c-02", "clause_revision": 1, "text": "rule c-02 <TOKENS:8>", "category": "safety", "severity_hint": "medium", "source_ref": "synthetic://clauses/c-02/1"},
+    {"clause_id": "c-03", "clause_revision": 1, "text": "rule c-03 <TOKENS:8>", "category": "safety", "severity_hint": "medium", "source_ref": "synthetic://clauses/c-03/1"},
+    {"clause_id": "c-04", "clause_revision": 1, "text": "rule c-04 <TOKENS:8>", "category": "safety", "severity_hint": "low", "source_ref": "synthetic://clauses/c-04/1"},
+    {"clause_id": "c-05", "clause_revision": 1, "text": "rule c-05 <TOKENS:8>", "category": "safety", "severity_hint": "low", "source_ref": "synthetic://clauses/c-05/1"}
+  ]
+}
