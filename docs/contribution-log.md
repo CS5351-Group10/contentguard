@@ -88,6 +88,7 @@ entry, so nothing below rewrites any recorded hours.
 | LI Shiyi | ② | 5.0 | 11-16 architecture blueprint, ADR-001, module interface contracts; anchor: PR #15 body |
 | HUANG Hongwei | ② | 4.25 | 11-16 PR #8 re-review 2.0h + PR #17 domain review/debt register 2.0h + PR #30 review follow-up 0.25h; anchors: PR #8/#17/#30 comments |
 | HUANG Hongwei | ③ | 1.0 | 11-17 #33 rebase/review fixes 0.5h + #37 data-governance answers 0.5h; anchors: PR #33/#37 comments |
+| LIU Jianwei | ③ | 11.5 | 11-17 PM coordination 3.0h (test-plan approval #36, data strategy #37, RM-015 #32, cross-checks #26/#27/#28; #34 merge 23:30) + 11-18 8.5h (supervised S1 build session 2.0h, #41 review/merge 3.5h, endgame 3.0h); anchors: PR #41 man-hours comment (backfill rule 6, member-authorized estimate from GitHub timestamps) |
 
 > Aggregated by the PM on 2026-11-18 00:50 HKT from anchored, member-reported entries.
 > LIU's 16.0h covers the #8/#9/#10 report through early 11/16; later phase-②/③ PM work
@@ -95,6 +96,7 @@ entry, so nothing below rewrites any recorded hours.
 > anchored phase ①/② entry), HUANG Hongwei phase ①, LI Shiyi phase ①, Buna DA phases
 > ①/②/③ (onboarding 11-17; no anchored entry). First-batch deadline: 2026-11-18 18:00
 > HKT (issue #28). No end-of-phase estimates are inserted here.
+> Aggregated by the PM on 2026-11-19 02:55 HKT: LIU Jianwei phase-③ backfill row (11/17 3.0h + 11/18 8.5h = 11.5h) appended per rule 6 (≤48h, anchored, member-authorized net-hours estimate; spans from GitHub activity timestamps; supervised S1 session 01:50–03:40 per `transcripts/61022208-LIU-Jianwei.md`). First-batch deadline was extended to 2026-11-19 12:00 HKT per issue #28. Still not reported: HAN Mei phase ①/②, LI Shiyi phase ① and phase ③ (S3 build 11/18 not yet reported), Buna DA phases ①/②/③, HUANG Hongwei phase ①; phase ③ remains open for all members.
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
