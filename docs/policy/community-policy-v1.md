@@ -1,13 +1,13 @@
-# ContentGuard — Community Content Policy v1.0-draft.2
+# ContentGuard — Community Content Policy v1.0
 
-**Document ID:** CG-POL-001
-**Version:** 1.0-draft.2
-**Status:** Draft — Cross-review pending
-**Project:** ContentGuard
-**Document Type:** Community Moderation Policy
-**Owner:** Requirements Engineering Team
-**Created:** 2026-11-17
-**Last revised:** 2026-11-19
+**Document ID:** CG-POL-001  
+**Version:** 1.0  
+**Status:** Agreed v1 baseline — cross-reviewed 2026-11-19/20  
+**Project:** ContentGuard  
+**Document Type:** Community Moderation Policy  
+**Owner:** Requirements Engineering Team  
+**Created:** 2026-11-17  
+**Last revised:** 2026-11-20  
 **Related Requirements:** REQ-INV-001–005, REQ-FUN-001–007, REQ-SEC-001–005, REQ-QUA-001–003
 
 ---
@@ -295,6 +295,9 @@ The system must not treat an AI model's unsupported assessment as proof that a f
 ---
 
 # 3. Severity Classification
+
+Gate 4 evaluation vocabulary and outcome mapping are defined in
+`test/eval/expectation_policy.yaml`; §4.1 records the corresponding runtime-policy mapping.
 
 ContentGuard uses three severity levels. The following canonical severity and routing rules supersede any illustrative enforcement guidance in §2. If a category's guidance mentions warning, hide/remove, posting restrictions, or account sanctions, those are future or manual guidance only under §5; they are not automated MVP outcomes.
 
@@ -627,8 +630,9 @@ This document follows a version-controlled revision process.
 
 | Version | Date | Changes | Status |
 |---|---|---|---|
-| 1.0 | 2026-11-17 | Initial policy categories, severity levels, decision framework, enforcement guidance, and audit requirements | Draft |
-| 1.0-draft.2 | 2026-11-19 | Aligned outcomes and severity routing with ADR-001; clarified MVP boundaries, atomic commit semantics, contextual examples, escalation criteria and deterministic-policy scope following Issue #48 review | Draft — cross-review pending |
+| 1.0-draft.1 | 2026-11-17 | Initial policy categories, severity levels, decision framework, enforcement guidance, and audit requirements | Superseded by 1.0-draft.2 |
+| 1.0-draft.2 | 2026-11-19 | Aligned outcomes and severity routing with ADR-001; clarified MVP boundaries, atomic commit semantics, contextual examples, escalation criteria and deterministic-policy scope following Issue #48 review | Superseded by v1.0 |
+| 1.0 | 2026-11-20 | Final v1 baseline after Issue #48 cross-review (architecture, QA/testing, PM) | Agreed v1 |
 | 1.1 | TBD | Incorporate initial user interview findings | Planned |
 | 2.0 | TBD | Revise policy based on user feedback, moderation evaluation, and team review | Planned |
 
@@ -656,4 +660,7 @@ The following materials are used as research references. ContentGuard does not c
 2. Reddit. *Reddit Rules.*
    https://redditinc.com/policies/reddit-rules
 
-3. YouTube
+3. YouTube. *YouTube Community Guidelines.*
+   https://support.google.com/youtube/answer/9288567
+
+**End of Document — ContentGuard Community Content Policy v1.0**
