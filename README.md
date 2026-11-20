@@ -8,10 +8,11 @@ This advisory-vs-authoritative split is the safety-relevant boundary required by
 CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking gates).
 
 > **Status:** Phase ③ build (2026-11-20) — policy kernel + audit/escalation merged with
-> release-acceptance tests (#41, #62); six blocking gates active: gate 4 strict on the
-> fixed evaluation set (#57), gate 1 timestamp-verified (#61). In flight: S3 analysis
-> slice (PR #52) and S2 api session (2026-11-20). D5 transcript annotation lock 11-21
-> 23:59; submission 11-25 (see `docs/contribution-log.md`, `docs/debt-register.md`).
+> release-acceptance tests (#41, #62); S3 analysis merged (#52, `397e002`); six blocking
+> gates active: gate 4 strict on the fixed evaluation set (#57), gate 1 timestamp-verified
+> (#61), and gate 2 now includes 2e structural checks (#69). In flight: S2 api session and
+> S5 evaluation. D5 transcript annotation lock 11-21 23:59; submission 11-25 (see
+> `docs/contribution-log.md`, `docs/debt-register.md`).
 
 ## Repository organization
 
@@ -78,9 +79,9 @@ authoritative rules live in `docs/review-memo.md`).
 | # | Gate | What it enforces | Where implemented | Status |
 |---|---|---|---|---|
 | 1 | Test approval | No code change merges unless its tests were approved before implementation began; PR must cite the approved test plan, which must exist, be independently approved, and predate implementation | `scripts/check_test_approval.py` (PR body marker + issue/timestamp resolution) | Active — tightened (#61) |
-| 2 | Static analysis | Lint + type-check on every commit; extra checks on safety-relevant paths | `ruff` + `mypy` in `ci.yml` | Active |
+| 2 | Static analysis | Lint + type-check on every commit; extra checks on safety-relevant paths | gates 2a–2e in `ci.yml` (`ruff`, `mypy`, `check_dependencies.py`, `check_safety_paths.py`, `check_structural.py`) | Active |
 | 3 | Schema | Requirements registry validates against `docs/req/req-schema.json` | `scripts/validate_requirements.py` | Active |
-| 4 | Semantic evaluation | Prompt/model changes replay a fixed evaluation set against quality thresholds | `scripts/check_semantic_eval.py` + replay harness (#47) | Active (strict) — bad/missing replay blocks merge (#57); tracked in debt register |
+| 4 | Semantic evaluation | Prompt/model changes replay a fixed evaluation set against quality thresholds | `scripts/check_semantic_eval.py` + replay harness (#47) | Active (strict) — bad/missing replay blocks merge (#57); TD-1 closed |
 | 5 | Regression | Every change runs all prior test suites; any regression blocks merge | `pytest test/offline` in `ci.yml` | Active |
 | 6 | AI-use log | PR changing code/prompts without updating `docs/ai-use-log.yaml` is blocked | `scripts/check_ai_use_log.py` | Active |
 

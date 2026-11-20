@@ -28,7 +28,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: structural-check
-    evidence: test/offline/test_invariants.py (structural call-graph + forged-action negative test) and test/offline/test_release_invariants_acceptance.py (forged decision rejected before any write, PR #62); executed by gate 5
+    evidence: test/offline/test_invariants.py (structural call-graph + forged-action negative test) and test/offline/test_release_invariants_acceptance.py (forged decision rejected before any write, PR #62); executed by gate 5; structural element/cycle/path checks in scripts/check_structural.py + test/offline/test_structural_check.py (gate 2e, PR #69)
   source:
     origin: "Team kickoff discussion 2026-11-15; CS5351 project sheet p.3 advisory/authoritative boundary"
     links:
@@ -56,7 +56,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: unit-test
-    evidence: PENDING
+    evidence: test/offline/test_release_invariants_acceptance.py (all five typed failure codes hold/escalate and commit to a durable human queue, PR #62); S3 typed-failure contract test/offline/test_analysis_contract.py + test_analysis_handoff.py (PR #52); S2 durable transaction/queue tests remain TBD (S2)
   source:
     origin: "Team kickoff discussion 2026-11-15"
     links:
@@ -194,7 +194,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: unit-test
-    evidence: PENDING
+    evidence: PARTIAL — offline contract fixtures test/offline/test_analysis_contract.py, test_analysis_provider.py and test_analysis_handoff.py are on main via PR #52 (`397e002`); live configured-LLM invocation evidence remains pending (no test/live/test_analysis_live.py on main)
   source:
     origin: "Team kickoff discussion 2026-11-15"
     links:
@@ -216,7 +216,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: PENDING
+    evidence: PARTIAL — test/offline/test_release_must_acceptance.py (failure→hold→review finalization at the policy/queue boundary, PR #62); S2 API review queue test/offline/test_review_queue.py remains TBD (S2)
   source:
     origin: "Team kickoff discussion 2026-11-15"
     links:
@@ -271,7 +271,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: PENDING
+    evidence: test/offline/test_retrieval_grounding.py (authentic/forged/stale/conflicting/injection/no-match), test_citation_binding.py and test_context_trust.py are on main via PR #52; the 100-case pinned synthetic fixture set (40 match / 60 tampering-error) meets the sampling minima, while Testing/PM ratification of the provisional targets and live acceptance remain pending
   source:
     origin: "Contribution-log build plan and blueprint §11"
     links:
@@ -333,7 +333,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: PENDING
+    evidence: test/offline/test_context_trust.py (direct/indirect injection + forged citations) and test_analysis_authority.py are on main via PR #52; live/integration injection acceptance remains pending
   source:
     origin: "Derived from REQ-INV-001 with OWASP LLM01/LLM05 supporting review"
     links:
@@ -561,7 +561,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: PENDING
+    evidence: test/offline/test_context_budget.py (context envelope) and test_analysis_provider.py (usage-accounting fixtures) are on main via PR #52; the ≥100-request benchmark and provider-reported usage coverage remain pending
   source:
     origin: "Attachment 1 §4K and blueprint §11"
     links:
@@ -580,7 +580,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: manual-review
-    evidence: PENDING
+    evidence: PARTIAL — docs/ai-use-log.yaml entries + docs/review-memo.md review records + transcripts/ session evidence; the five canonical transcripts are not yet locked (lock 2026-11-21 23:59)
   source:
     origin: "Team plan §1.3 and repo Prompt.md"
     links:
@@ -680,7 +680,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: ci-gate
-    evidence: ci.yml gates 2a-2d (ruff, mypy, dependency manifest + pip check, safety-path ADR reference) with test/offline/test_gate2_safety.py
+    evidence: ci.yml gates 2a–2e (ruff, mypy, dependency manifest + pip check, safety-path ADR reference, structural checks) with test/offline/test_gate2_safety.py and test/offline/test_structural_check.py (#69)
   source:
     origin: "Repository CI gate 2 and D4"
     links:
@@ -699,7 +699,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: ci-gate
-    evidence: PENDING
+    evidence: ci.yml gate 5 runs pytest test/offline on every PR; blocking-gates fails on any offline regression (the full offline suite, including test/offline/test_smoke.py)
   source:
     origin: "Repository CI gate 5 and D4"
     links:
@@ -719,7 +719,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: ci-gate
-    evidence: PENDING
+    evidence: ci.yml gate 6 scripts/check_ai_use_log.py blocks covered code/prompt PRs without a docs/ai-use-log.yaml update
   source:
     origin: "Repository AGENTS.md §6 and CI gate 6"
     links:
@@ -740,7 +740,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: manual-review
-    evidence: PENDING
+    evidence: hosted branch protection on main (inspected 2026-11-20) — blocking-gates required, 1 non-author code-owner approval, dismiss stale reviews, strict up-to-date, enforce_admins, linear history
   source:
     origin: "Team plan §1.2 and repository README"
     links:

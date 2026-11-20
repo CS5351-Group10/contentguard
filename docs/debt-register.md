@@ -9,7 +9,7 @@
 | TD-1 | evaluation debt | Semantic evaluation harness + fixed eval set not yet implemented; CI gate 4 currently warns instead of blocking | prompt/model changes reach merge without behavioral evidence | S4/S5 (11/19–20): eval set (Buna) + self-built `scripts/eval_runner.py` (stdlib + JSONL — **harness selected 2026-11-16**; rationale, replay-vs-live split and thresholds in `docs/code-governance/verification-constraints.md` §Tier 3); flip gate 4 to `--strict` once ≥100 labeled rows and the recorded-replay path is green twice in a row | scaffold, 2026-11-15 | closed via PR #57 (merged 2026-11-19) |
 | TD-2 | guardrail debt | Gate 1 (test approval) checks only the PR-body marker; issue-existence and before-implementation timestamp checks not yet enforced | weak enforcement of tests-before-code | S4 (11/19): tighten `scripts/check_test_approval.py` to resolve the cited issue and compare timestamps | scaffold, 2026-11-15 | closed via PR #61 (merged 2026-11-19) |
 | TD-3 | guardrail debt | Scaffold seed files (`ci.yml`, `scripts/**`, `test/offline/test_smoke.py`, `prompts/prompt_v1.0.yaml`, `pytest.ini`, `src/README.md`) were human-drafted pre-arrangement references — per the agentic red line (proposal §1.3) they must be regenerated through OpenCode sessions before counting as agent-generated baseline | red-line compliance; D5 transcript coverage for the governance/CI line | S4 (11/19): regenerate the remaining scaffold seed through an OpenCode session (AI-001 already covered `ci.yml` + `scripts/**`) | PM, 2026-11-15 | partial |
-| TD-4 | guardrail debt | CI structural check not implemented (module boundaries, permission conformance, INV-1 call-graph fitness function) — permission-model/GR-1/structural-constraints referenced it before it exists | ghost enforcement claims (D7 consistency); INV-1 structural verification missing | S4 (11/19): implement the structural check and wire it into `blocking-gates` | audit, 2026-11-15 | open |
+| TD-4 | guardrail debt | CI structural check was missing (module boundaries, permission conformance, INV-1 call-graph fitness function) — permission-model/GR-1/structural-constraints referenced it before it existed; implemented as gate 2e in PR #69 | ghost enforcement claims (D7 consistency); INV-1 structural verification missing | S4 (11/19): implement the structural check and wire it into `blocking-gates` | audit, 2026-11-15 | closed via PR #69 (merged 2026-11-20) |
 | TD-5 | prompt rot | `prompt_v1.1.yaml` is reserved; the first prompt change must be versioned and pass gate 4 before merge | stale/untested prompt wording reaches the app | S3/S4: version the prompt, run the eval set, record the result in `evaluation-logbook.md` | Phase ② review, 2026-11-16 | open |
 | TD-6 | human/cognitive debt | Five transcripts + a growing memo backlog are due in a short window; the PM is the default reviewer | missed D5/D4 evidence; review bottleneck | Daily checkpoints from 11/17; delegate domain reviews/memos; transcript lock 11/21 | Phase ② review, 2026-11-16 | open |
 | TD-7 | agent-induced bloat | Build sessions may add unnecessary abstractions, flags, or dependencies | review/maintenance cost; scope creep | ADR-001 abstraction limits; small PRs; PM/test-owner review | Phase ② review, 2026-11-16 | open |
@@ -49,11 +49,13 @@
   (`scripts/check_dependencies.py`). TD-4 (partial): path-conditional safety tier
   (`scripts/check_safety_paths.py`) requires an ADR/invariant reference on policy/eval PRs;
   contract diff, API-surface diff and the structural call-graph check remain TODO(TD-4).
-  Statuses leave the register only on the follow-up merge-and-verify PR, so TD-3/TD-4/TD-8
-  stay **partial/open** here.
+  Statuses leave the register only on the follow-up merge-and-verify PR, so TD-3/TD-8
+  stay **partial/open** here; TD-4 is closed by #69 (2026-11-20).
 - **2026-11-20 (docs consistency pass):** TD-1 closed — gate 4 is `--strict` blocking on
   the fixed eval set + replay converter (squash `8e7e2af`, PR #57), and the release
   acceptance tests assert strict blocking (PR #62). TD-2 closed — gate 1 resolves the
   cited test-plan issue and verifies the approval predates implementation (squash
-  `6264e89`, PR #61). TD-10 added for the gate-1/6 path-scope gap. TD-4 remains open
-  pending PR #69.
+  `6264e89`, PR #61). TD-10 added for the gate-1/6 path-scope gap. TD-4 closed — the
+  structural checks are active as gate 2e (`scripts/check_structural.py`, PR #69, merged
+  `6b91946`); the INV-1 scan and dependency-direction checks stay in gate 5, and the
+  semantic authority boundary plus rule-6 authorship remain review duties.

@@ -30,8 +30,8 @@ the MVP; anything else is out of scope unless a human explicitly changes the reg
 ## 3. Code baseline
 
 - `src/contentguard/` implements the baseline modules: `policy/` (authoritative kernel),
-  `audit/`, `escalation/`. The `analysis/` module lands via PR #52 (S3 slice) and the
-  `api/` module via the S2 session (2026-11-20) — see ADR-001 and
+  `audit/`, `escalation/`, and `analysis/` (merged via #52, `397e002`). The `api/`
+  module lands via the S2 session (2026-11-20, in flight) — see ADR-001 and
   `docs/code-governance/structural-constraints.md`. Do not create modules outside the
   ADR-001 layout.
 - **Scaffold seed compliance note:** the whole scaffold seed — CI workflow,
