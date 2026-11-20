@@ -53,6 +53,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/check_safety_paths.py
 
+      # Gate 2, structural tier (TD-4, REQ-INV-001): module-set vs ADR-001 (undeclared
+      # directory FAIL, declared-but-absent element INFO), element import cycles, the
+      # frozen-path guard (.opencode/** and .agent/** only — never transcripts/**), and a
+      # docs-only pass. The INV-1 enforcement scan and dependency direction stay in gate 5;
+      # this gate does not re-run them. On a PR the step fails closed if GITHUB_TOKEN is
+      # missing rather than silently skipping.
+      - name: "Gate 2e — structural checks"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/check_structural.py
+
       # ---------------- Gate 3 — schema (registry validity) --------------------
       - name: "Gate 3 — requirements registry validates against its JSON schema"
         run: python scripts/validate_requirements.py
