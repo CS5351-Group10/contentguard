@@ -29,8 +29,10 @@
    depend on read-only DTOs, not protected mutation internals. Aligned with
    `architecture-blueprint.md` §Components and dependencies and ADR-001.
 6. **Frozen / human-owned paths** per `AGENTS.md` §4 — an agent PR touching them
-   without a human co-author is rejected in review; CI cannot see authorship, so this one
-   stays a review rule (TD-4 note below).
+   without a human co-author is rejected in review; a code scan cannot see authorship, so this
+   stays a review rule. Issue #66 plans a narrow guard for `.opencode/**` and `.agent/**` only —
+   deliberately **not** `transcripts/**`, because human transcripts are committed legitimately
+   (see the enforcement table below).
 7. **Safety-critical change rule:** any change under `src/contentguard/policy/**` or to
    a file named in `docs/architecture/invariants.md` requires: (a) an architecture
    decision (new/updated ADR), and (b) human review approval — machine-enforced through
@@ -38,15 +40,23 @@
    branch protection's `require_code_owner_reviews` (project sheet §6). Note that
    CODEOWNERS resolves **last-match**, so the broad `*` rule must stay first in that file.
 
-## Enforcement status (2026-11-16)
+## Enforcement status (2026-11-19)
 
 | Rule | Enforced by | Status |
 |---|---|---|
 | 7 (policy/** needs architecture co-sign) | `.github/CODEOWNERS` + `require_code_owner_reviews` | **machine-enforced** |
-| 1, 4, 5 (module mapping, authority boundaries, dependency direction) | review memos today; CI structural check | **TD-4, pending** |
-| 6 (frozen / human-owned paths) | review memos; authorship is invisible to CI | review rule |
-| lint / type / dependency hygiene | CI gate 2 | lint + type enforced; **dependency check pending (TD-8)** |
+| 4 — the INV-1 half (enforcement reachable only from `policy/`) | `test/offline/test_invariants.py::test_enforcement_only_from_policy` (gate 5), proven on the `fixtures/forbidden_enforcement/` fixture by `test_forbidden_call_structural` | **machine-enforced (gate 5)** |
+| 5 — the named prohibitions (`audit`/`escalation` → `policy`, `policy` → `analysis`) | `test/offline/test_invariants.py::test_dependency_direction` (gate 5) | **machine-enforced (gate 5)**; the `analysis` → `policy` edge and element-to-element cycles are **planned (issue #66)** |
+| 1 (element↔module mapping) | review memos | **review only**; planned in issue #66 |
+| 4 — the rest (authority boundary as a semantic property) | review memos | review only — a static check cannot decide "advisory vs authoritative" |
+| 6 (frozen / human-owned paths) | review memos; authorship is invisible to a code scan | review rule; issue #66 plans a narrow `.opencode/**` + `.agent/**` guard only (not `transcripts/**`: human transcripts are committed legitimately) |
+| lint / type / dependency hygiene | CI gate 2a/2b/2c | **machine-enforced** (`ruff`, `mypy`, `check_dependencies.py` against `requirements.txt`) |
+| safety-path ADR/invariant reference | CI gate 2d (`check_safety_paths.py`) | **machine-enforced**, and only that tier: contract diffs, API-surface diffs and a structural call-graph check **do not exist** (the file itself says so) |
 
-Once TD-4 lands, rules 1/4/5 become a CI job rather than a reviewer's memory — which is the
-honest framing: today "structural constraints" are enforced by people reading this file.
+**Honest reading:** rules 4 (INV-1 half) and 5 (named prohibitions) are already machine-enforced by
+gate 5, not "pending TD-4" as the earlier version of this table said. Rule 1 is still a reviewer's
+memory; issue #66 (`Test plan: CI structural checks`) would close that plus the missing
+`analysis → policy` edge, cycles and the narrow frozen-path guard. Everything not listed above
+stays a review duty, and this table is the place to say so rather than implying a CI job covers it.
+
 

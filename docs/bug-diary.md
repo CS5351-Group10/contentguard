@@ -39,3 +39,23 @@
 - Root cause: the requirements baseline changed in PR #11, but the trace matrix is architecture-owned and was not updated in the same change; the only cross-domain check was the offline coverage assertion.
 - Fix: add 31 trace-matrix rows (component / test-evidence / runtime monitor) in PR #11; keep the ID-coverage assertion; add a review-checklist item for registry changes and consider extending the existing smoke test to reject `TBD` in released rows (do not add a separate script before deciding).
 - Invariant gap exposed: REQ-GOV-004 (trace acceptance evidence) was only partially enforced; the registry and matrix could drift. Strengthened by the same-PR co-evolution rule and the CI coverage test.
+
+## BUG-003 — Engine-minted decision can be tampered after minting and still commit
+
+- Date found: 2026-11-19 | Found by: DA Buna (60105888) / PR #62 review | Fixed in: not fixed — requires separate safety-critical ADR/PR
+- Symptom: A `PolicyDecision` returned by `PolicyEngine.evaluate` carries the private authority token. Replacing its outcome/reason via `dataclasses.replace` while preserving `_authority_token` still commits, and the audit row records the tampered outcome.
+- Reproduction: mint an `allow/low` decision with `PolicyEngine.evaluate`; run `dataclasses.replace(decision, outcome=Outcome.REJECT, reason_id="RULE-REJECT-VIOLATE", reason_text="tampered")`; call `EnforcementAuthority.commit(...)` with the original case revision and a fresh replay key. Observed result: `COMMITTED`, stored outcome `reject`, reason `RULE-REJECT-VIOLATE`.
+- Classification: security / authority boundary / safety-critical
+- Root cause: `EnforcementAuthority.commit` verifies only that `_authority_token is _AUTHORITY_TOKEN` (`src/contentguard/policy/enforcement.py:65`); it does not rebind the decision's identity/fields to an engine-produced decision, and `decision_id` remains the pre-tamper digest.
+- Fix: Not applied in PR #62 (deliberately out of scope). Proposed: bind the full decision payload at mint time and verify it at commit (recompute/compare `decision_id` or use an opaque minted envelope), or re-evaluate inside the protected write path. Requires ADR addendum + explicit human approval and a negative test proving a replaced token-bearing decision is rejected before any write.
+- Invariant gap exposed: REQ-INV-001 was verified for token absence and forged object construction, but not for post-mint field mutation. Add a negative test for `dataclasses.replace` tampering.
+
+## BUG-004 — CommitStatus.PENDING_UNCONFIRMED is declared but unreachable
+
+- Date found: 2026-11-19 | Found by: DA Buna (60105888) / PR #62 review | Fixed in: not fixed — contract decision required
+- Symptom: `CommitStatus.PENDING_UNCONFIRMED` exists in `src/contentguard/policy/contracts.py:104`, but no code path emits it; commit returns only `COMMITTED`, `CONFLICT`, or `FAILED`.
+- Reproduction: `rg -n 'PENDING_UNCONFIRMED' src test scripts .github` returns only the enum declaration; exercise commit success/conflict/failure paths and observe no `PENDING_UNCONFIRMED` result.
+- Classification: contract drift / dead code / audit-status semantics
+- Root cause: the enum mirrors the interface-contract status set, but the current persistence path has no "write succeeded but confirmation pending" state; the value was never wired or removed.
+- Fix: Not applied in PR #62. Decide with the architecture/policy owner: either implement the pending-confirmation path and document exactly when it is returned, or remove the value and update `docs/architecture/interface-contracts.md`; add a contract test so the enum and emitted statuses stay in lockstep.
+- Invariant gap exposed: REQ-INV-004 / REQ-GOV-004 — commit status and audit evidence must be complete and traceable; a declared-but-unreachable status weakens the status contract used by callers and evidence checks.

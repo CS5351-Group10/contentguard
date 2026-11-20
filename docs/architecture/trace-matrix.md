@@ -14,15 +14,15 @@ The table below maps all 31 requirements in the v1.0 registry. A test file or ev
 
 | Req ID | Type | Enforcing component | Test / evidence | Runtime monitor |
 |---|---|---|---|---|
-| REQ-INV-001 | invariant | policy engine + module boundary | `test/offline/test_invariants.py` — structural call-graph + forged-action negative test `TBD (S1)` | CI structural check (TD-4) |
-| REQ-INV-002 | invariant | escalation queue + policy default rule | S2: `test/offline/test_failsafe_hold.py` and `test/offline/test_transaction_replay.py` — durable queue persistence/replay and provider failure handling; S3: `test/offline/test_analysis_contract.py` — typed failure contract `TBD (S2/S3)` | queue depth + audit anomaly alert |
-| REQ-INV-003 | invariant | policy routing rules | `test/offline/test_escalation_routing.py` — severity × policy matrix `TBD (S1)` | daily audit reconciliation |
-| REQ-INV-004 | invariant | audit subsystem | `test/offline/test_audit_completeness.py` — exactly one record per decision + write-failure rollback `TBD (S1)` | audit write-path health |
-| REQ-INV-005 | invariant | CI gate 4 | `.github/workflows/ci.yml` gate 4 + replay in `test/eval/` `TBD (S4)` | gate 4 on prompt/model PRs |
+| REQ-INV-001 | invariant | policy engine + module boundary | `test/offline/test_invariants.py` — structural call-graph + forged-action negative test; `test/offline/test_release_invariants_acceptance.py` — forged decision rejected before any write (PR #62) `TBD (S1)` | CI structural check (TD-4) |
+| REQ-INV-002 | invariant | escalation queue + policy default rule | `test/offline/test_release_invariants_acceptance.py` — all five typed failure codes hold/escalate and commit to a durable human queue (PR #62); S2 planned (not yet on main): `test_failsafe_hold.py`, `test_transaction_replay.py` `TBD (S2)`; S3: `test_analysis_contract.py` — typed failure contract `TBD (S3)` | queue depth + audit anomaly alert |
+| REQ-INV-003 | invariant | policy routing rules | `test/offline/test_escalation_routing.py` — severity × policy matrix; `test/offline/test_release_invariants_acceptance.py` — high severity cannot finalize without a current review (PR #62) `TBD (S1)` | daily audit reconciliation |
+| REQ-INV-004 | invariant | audit subsystem | `test/offline/test_audit_completeness.py` — exactly one record per decision + write-failure rollback; `test/offline/test_release_invariants_acceptance.py` — late-write failure rolls back audit/case/queue (PR #62) `TBD (S1)` | audit write-path health |
+| REQ-INV-005 | invariant | CI gate 4 | `.github/workflows/ci.yml` gate 4 + replay in `test/eval/`; `test/offline/test_release_invariants_acceptance.py` — bad/missing replay blocked under `--strict` (PR #62) `TBD (S4)` | gate 4 on prompt/model PRs |
 | REQ-FUN-001 | functional | API intake | `test/offline/test_intake.py` — four outcomes + resolvable audit id + incomplete-state cases `TBD (S2)` | request/outcome logging |
 | REQ-FUN-002 | functional | analysis (LLM advisory) | `test/offline/test_analysis_contract.py` + `test/live/test_analysis_live.py` `TBD (S3)` | response-schema failures |
-| REQ-FUN-003 | functional | escalation queue + API review | `test/offline/test_review_queue.py` — held/escalated review + attributable commit `TBD (S2)` | queue depth |
-| REQ-FUN-004 | functional | policy engine + audit | `test/offline/test_policy_justification.py` — rule/fallback id + old decision retrieval after policy change `TBD (S1)` | decision reason in audit |
+| REQ-FUN-003 | functional | escalation queue + API review | `test/offline/test_release_must_acceptance.py` — failure→hold→review finalization at the policy/queue boundary (PR #62); S2 `test/offline/test_review_queue.py` — API review `TBD (S2)` | queue depth |
+| REQ-FUN-004 | functional | policy engine + audit | `test/offline/test_policy_justification.py` — rule/fallback id; `test/offline/test_release_must_acceptance.py` — attribution pinned across a policy change (PR #62) `TBD (S1)` | decision reason in audit |
 | REQ-FUN-005 | functional | analysis retrieval | `test/offline/test_retrieval_grounding.py` — authentic/forged/stale/conflicting/injection/no-match `TBD (S3)` | grounding failure metric |
 | REQ-FUN-006 | functional | none (wont; ADR extension seam) | Scope decision in registry + ADR seam `TBD (S5)` | n/a (deferred) |
 | REQ-FUN-007 | functional | demo harness / feature flags | `test/offline/test_demo_flags.py` — comparable baseline/enhanced runs, conditional on S5 capacity under Issue #23 `TBD (S5)` | flag configuration audit |
@@ -31,8 +31,8 @@ The table below maps all 31 requirements in the v1.0 registry. A test file or ev
 | REQ-SEC-003 | security | API auth + policy review | `test/offline/test_moderator_auth.py` — authorized/unauthorized/stale/mandatory-rule `TBD (S2)` | 401/403 audit |
 | REQ-SEC-004 | security | audit/evidence access | `test/offline/test_evidence_access.py` — owner/assigned/unauthorized + retention clock `TBD (S5)` | access log |
 | REQ-SEC-005 | security | release/zip scan | release checklist + secret scan `TBD (S4)` | SEC-005 release gate |
-| REQ-QUA-001 | quality | policy engine | `test/offline/test_policy_determinism.py` — repeat/reorder fixed fixtures `TBD (S1)` | n/a |
-| REQ-QUA-002 | quality | policy + DB transaction | `test/offline/test_transaction_replay.py` — opposite actions, duplicate delivery, lost ack `TBD (S2)` | conflict/duplicate metric |
+| REQ-QUA-001 | quality | policy engine | `test/offline/test_policy_determinism.py` — repeat/reorder fixed fixtures; `test/offline/test_release_must_acceptance.py` — replay returns the same audit id (PR #62) `TBD (S1)` | n/a |
+| REQ-QUA-002 | quality | policy + DB transaction | S2 planned (not yet on main): `test/offline/test_transaction_replay.py` — opposite actions, duplicate delivery, lost ack `TBD (S2)` | conflict/duplicate metric |
 | REQ-QUA-003 | quality | eval harness | Partial evaluation evidence: `test/eval/` report + `evaluation-logbook.md`; full evaluation deferred under Issue #23 `TBD (S5)` | eval dashboard |
 | REQ-PER-001 | performance | metrics/log | Full benchmark (≥100 requests) deferred under Issue #23; performance measurement remains limited to available logging evidence `TBD (S5)` | p50/p95 latency |
 | REQ-COS-001 | cost | provider usage accounting + analysis context budget | `test/offline/test_usage_accounting.py` + `test/offline/test_context_budget.py` — usage accounting and context-budget checks; aggregate logical-request budget remains OPEN and separate from the 8192-token envelope; full benchmark deferred under Issue #23 | token usage counter |
