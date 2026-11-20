@@ -395,3 +395,35 @@ entries:
       module tree or dependency matrix; co-sign remains a merge precondition.
     pr: 69   # opened 2026-11-19, issue #66
 
+  - id: AI-014
+    date: 2026-11-18
+    agent: opencode
+    model: opencode/big-pickle
+    operator: LI Shiyi (60938585)
+    session_transcript: transcripts/60938585-LI-Shiyi.md
+    scope: >-
+      src/contentguard/analysis/**, src/contentguard/__init__.py,
+      test/offline/conftest.py, test/offline/fakes/**,
+      test/offline/fixtures/analysis/**, test/offline/test_analysis_*.py,
+      test/offline/test_context_*.py, test/offline/test_retrieval_grounding.py,
+      test/offline/test_codex_review_fixes.py
+    # Supersedes the drafted AI-013 identifier per PM guidance comment 7015590913;
+    # AI-013 is reserved for Huang TD-4 / PR #69. Original session facts unchanged.
+    summary: >-
+      Session ses_e1351be96ffeMljTs8j9txX6om implemented the offline S3
+      advisory slice under test plan #43 and the S1 interface confirmation.
+      Includes synthetic snapshot authorization, retrieval/provenance and citation
+      validation, context assembly/compaction/reinjection, bounded provider port
+      and typed failures. Independent offline verification: 188 passed; ruff,
+      mypy with MYPYPATH=src and 31-requirement validation passed.
+      Real provider, runtime snapshot, semantic replay and S1/S2 integration
+      acceptance remain pending. Codex relayed requests and technical checks
+      under Shiyi's direction; those redirects are not counted as human actions.
+    human_interventions: 4
+    intervention_summary: >-
+      Shiyi required recorded OpenCode work, requested plan review before approval,
+      explicitly authorized the offline build, and later instructed continuation.
+      Transcript distinguishes these supervising-conversation instructions from
+      automated orchestration. Stubs preceded behavioral tests; functional fixes
+      followed recorded RED runs. A mypy.ini write was blocked; no config changed.
+    pr: 52

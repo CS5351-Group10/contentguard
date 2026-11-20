@@ -1,0 +1,9 @@
+[
+  {"id":"valid-high","raw":{"verdict":"review","severity":"high","rationale":"grounded rationale","citations":["c-01@1"]},"expect":"result"},
+  {"id":"privileged-action","raw":{"verdict":"review","severity":"high","rationale":"r","citations":["c-01@1"],"action":"block"},"expect":"failure"},
+  {"id":"privileged-actor","raw":{"verdict":"review","severity":"high","rationale":"r","citations":["c-01@1"],"actor_id":"attacker"},"expect":"failure"},
+  {"id":"unknown-clause","raw":{"verdict":"review","severity":"high","rationale":"r","citations":["c-99@1"]},"expect":"failure"},
+  {"id":"empty-rationale","raw":{"verdict":"review","severity":"high","rationale":"","citations":["c-01@1"]},"expect":"failure"},
+  {"id":"severity-escalation","raw":{"verdict":"review","severity":"low","rationale":"r","citations":["c-01@1"]},"expect":"failure"},
+  {"id":"usage-unknown","raw":{"verdict":"review","severity":"high","rationale":"r","citations":["c-01@1"]},"expect":"result","usage":"unknown"}
+]
