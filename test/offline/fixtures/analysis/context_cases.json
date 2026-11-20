@@ -1,0 +1,6 @@
+[
+  {"id":"fits","clause_tokens":8,"expect":"result"},
+  {"id":"overflow","clause_tokens":9000,"expect":"failure"},
+  {"id":"evidence-preserved","clause_tokens":8,"expect":"result"},
+  {"id":"history-preserved","clause_tokens":8,"expect":"result"}
+]

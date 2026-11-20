@@ -1,0 +1,1 @@
+{"corpus_digest": "sha256:tampered", "clause_text_override": "rule c-01 TAMPERED", "reason": "self-hash marker changed after approval"}

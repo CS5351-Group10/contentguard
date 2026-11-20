@@ -1,7 +1,7 @@
 # AI-Use Log (D1; enforced by CI gate 6)
 #
 # Every use of the AI coding agent (OpenCode) that produces or changes code, tests,
-# or prompts must be recorded here 鈥?in the SAME PR as the change (gate 6 blocks
+# or prompts must be recorded here — in the SAME PR as the change (gate 6 blocks
 # code/prompt PRs that do not touch this file).
 #
 # Entry format (one entry per agent session):
@@ -233,7 +233,7 @@ entries:
       bad-prompt blocked; honest cannot-evaluate-without-replay case). Follow-up at the PM's
       warn-only scope decision (2026-11-18): load_policy validation (+7 negative tests),
       gate-4 ground-truth protection (+3 tests), --replay=PATH + usage errors (+4 tests),
-      false-block N/A aggregate (+1 test) 鈥?34 test functions total after the follow-up.
+      false-block N/A aggregate (+1 test) — 34 test functions total after the follow-up.
       Session: OpenCode gate-4 session, 2026-11-18.
     human_interventions: 2
     intervention_summary: >-
@@ -242,7 +242,7 @@ entries:
       to follow evidence. (2) Plan approval: corrected the stale REQ-QUA-003 "provisional" marking
       (it is baselined on main), accepted the fail-closed reading (absent corpus warn-only,
       evaluated uncovered row fatal), and required that gate 4 never reports PASS from a shipped
-      fixture 鈥?an explicit replay path and an honest "cannot evaluate" case.
+      fixture — an explicit replay path and an honest "cannot evaluate" case.
     pr: 47   # opened 2026-11-18 from issue #26
 
   - id: AI-010
@@ -356,3 +356,74 @@ entries:
       two test files only, with no docs or ai-use-log edits by the agent; (5)
       requested a separate read-only full verification run with exact exit codes.
     pr: 62   # opened 2026-11-19 from Issue #55
+
+  - id: AI-013
+    date: 2026-11-19
+    agent: opencode
+    model: cityucs/CS5351/DeepSeek-V4-Flash
+    operator: HUANG Hongwei (60368210)
+    session_transcript: transcripts/60368210-HUANG-Hongwei-td4.md
+    scope: >-
+      scripts/check_structural.py, test/offline/test_structural_check.py,
+      test/offline/test_invariants.py (dependency-direction extension only),
+      .github/workflows/ci.yml, docs/ai-use-log.yaml
+    summary: >-
+      TD-4 CI structural checks per issue #66 Revision 2 (REQ-INV-001). Added
+      scripts/check_structural.py (gate 2e): module-set vs ADR-001 (undeclared package
+      directory FAILs, declared-but-absent element is INFO; package-only, __pycache__
+      ignored), element-to-element import cycle detection, a frozen-path guard for
+      .opencode/** and .agent/** only (NOT transcripts/**), and a docs-only pass; on a PR
+      a missing GITHUB_TOKEN fails closed with an actionable message and still runs the
+      source-tree part. Gate 2e deliberately does NOT re-run the INV-1 enforcement scan or
+      the dependency-direction check (those stay in gate 5's test_invariants.py) and does
+      not import from test/. Extended test/offline/test_invariants.py::test_dependency_direction
+      with the one missing prohibition, analysis must not import policy, plus a negative
+      fixture. Added test/offline/test_structural_check.py (10 tests, tmp_path fixture
+      trees) and a "Gate 2e — structural checks" step in the existing blocking-gates job
+      (per-step env only; job name unchanged). Pure stdlib (ast, pathlib). Zero findings on
+      main.
+    human_interventions: 2
+    intervention_summary: >-
+      (1) Plan approval with two corrections: (a) gate 2e must not import
+      find_enforcement_violations/_imported_policy_modules from test/ (inverted dependency);
+      scope it to the gaps only and leave INV-1/dependency direction to gate 5, with no
+      scanner refactor; (b) no silent skip on a missing token — a PR event without
+      GITHUB_TOKEN must fail closed with an actionable message and still run the
+      source-tree part, replacing the 401-SKIP test with a closed-fail test. (2) Operator
+      acceptance of implementation start before @xiaolizi33's architecture co-sign, on the
+      record, because the change is additive and does not touch the ADR-001 element set,
+      module tree or dependency matrix; co-sign remains a merge precondition.
+    pr: 69   # opened 2026-11-19, issue #66
+
+  - id: AI-014
+    date: 2026-11-18
+    agent: opencode
+    model: opencode/big-pickle
+    operator: LI Shiyi (60938585)
+    session_transcript: transcripts/60938585-LI-Shiyi.md
+    scope: >-
+      src/contentguard/analysis/**, src/contentguard/__init__.py,
+      test/offline/conftest.py, test/offline/fakes/**,
+      test/offline/fixtures/analysis/**, test/offline/test_analysis_*.py,
+      test/offline/test_context_*.py, test/offline/test_retrieval_grounding.py,
+      test/offline/test_codex_review_fixes.py
+    # Supersedes the drafted AI-013 identifier per PM guidance comment 7015590913;
+    # AI-013 is reserved for Huang TD-4 / PR #69. Original session facts unchanged.
+    summary: >-
+      Session ses_e1351be96ffeMljTs8j9txX6om implemented the offline S3
+      advisory slice under test plan #43 and the S1 interface confirmation.
+      Includes synthetic snapshot authorization, retrieval/provenance and citation
+      validation, context assembly/compaction/reinjection, bounded provider port
+      and typed failures. Independent offline verification: 188 passed; ruff,
+      mypy with MYPYPATH=src and 31-requirement validation passed.
+      Real provider, runtime snapshot, semantic replay and S1/S2 integration
+      acceptance remain pending. Codex relayed requests and technical checks
+      under Shiyi's direction; those redirects are not counted as human actions.
+    human_interventions: 4
+    intervention_summary: >-
+      Shiyi required recorded OpenCode work, requested plan review before approval,
+      explicitly authorized the offline build, and later instructed continuation.
+      Transcript distinguishes these supervising-conversation instructions from
+      automated orchestration. Stubs preceded behavioral tests; functional fixes
+      followed recorded RED runs. A mypy.ini write was blocked; no config changed.
+    pr: 52
