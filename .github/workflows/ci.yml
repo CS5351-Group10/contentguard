@@ -16,6 +16,7 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  issues: read
 
 jobs:
   blocking-gates:
@@ -68,11 +69,16 @@ jobs:
         run: python scripts/check_test_approval.py
 
       # ---------------- Gate 4 — semantic evaluation (PRs only) ----------------
+      # BLOCKING (--strict, TD-1): a prompt/model change with no replay artifact or one
+      # below the approved thresholds fails the merge. The replay is produced by a human
+      # (scripts/record_replay.py) and committed under test/eval/replay/<tag>.jsonl; CI
+      # replays recorded output only and never calls a provider. Docs-only PRs are
+      # unaffected — the gate passes when no prompt/model path changes.
       - name: "Gate 4 — semantic evaluation for prompt/model changes"
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python scripts/check_semantic_eval.py
+        run: python scripts/check_semantic_eval.py --strict
 
       # ---------------- Gate 6 — AI-use log (PRs only) -------------------------
       - name: "Gate 6 — AI-use log updated for code/prompt changes"
