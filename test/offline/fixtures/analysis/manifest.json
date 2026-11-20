@@ -1,0 +1,10 @@
+{
+  "fixture_count": 100,
+  "expected_match": 40,
+  "tampering_error": 60,
+  "tampering": 30,
+  "error": 30,
+  "policy_snapshot": "synthetic approved-status only; no production snapshot",
+  "corpus": "synthetic corpus with pinned integer revisions and digest",
+  "note": "Digests are recomputed at runtime from pinned clause text; no approval-marker self-hash assumption."
+}
