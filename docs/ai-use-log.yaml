@@ -400,7 +400,7 @@ entries:
     agent: opencode
     model: opencode/big-pickle
     operator: LI Shiyi (60938585)
-    session_transcript: transcripts/60938585-LI-Shiyi.md
+    session_transcript: transcripts/60938585-LI-Shiyi-s3.md
     scope: >-
       src/contentguard/analysis/**, src/contentguard/__init__.py,
       test/offline/conftest.py, test/offline/fakes/**,
@@ -427,3 +427,23 @@ entries:
       automated orchestration. Stubs preceded behavioral tests; functional fixes
       followed recorded RED runs. A mypy.ini write was blocked; no config changed.
     pr: 52
+
+  # AI-015 left available for the in-flight S2 session (#75).
+  - id: AI-016
+    date: 2026-11-19
+    agent: opencode
+    model: opencode/big-pickle
+    operator: LI Shiyi (60938585)
+    session_transcript: transcripts/60938585-LI-Shiyi.md
+    scope: Read-only stage-2 architecture candidate evaluation
+    summary: >-
+      Session ses_e0c057451ffejoNgroQJE3zW8m compared retrieval, snapshot,
+      ranking and compaction candidates. No code, benchmark or retroactive
+      approval claimed. Canonical excerpt assembled on 2026-11-20; #68
+      preserves the evaluation product. Raw local tool/step records omitted.
+    human_interventions: 1
+    intervention_summary: >-
+      One verified supervising-conversation message, “都保留”, retained all
+      four recommended baselines. Not a verified full-session count. Automated
+      Codex relay messages are not human interventions. PM D5 review pending.
+    pr: null
