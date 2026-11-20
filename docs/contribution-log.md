@@ -108,7 +108,7 @@ entry, so nothing below rewrites any recorded hours.
 
 > Status (2026-11-20): the authoritative domain-CR record is the Reviewer/domain
 > column of each memo in `docs/review-memo.md`. Main currently carries RM-001–014 +
-> RM-017; RM-015–RM-039 land via PR #64. Backfilling the domain assignments into
+> RM-017; RM-015–RM-040 land via PR #64. Backfilling the domain assignments into
 > this index before the 11-21 lock is not scheduled — this table stays an
 > index-only view and is populated at the D6 aggregation only if the report needs it.
 
