@@ -2,7 +2,7 @@
 
 Date: 2026-11-19 HKT. Session: ses_e0c057451ffejoNgroQJE3zW8m. Agent: OpenCode; model: opencode/big-pickle. Requested by LI Shiyi through Codex. This is a present-day evaluation, not retroactive approval. Human verdict: retain all four baseline choices (decision recorded below). Canonical annotation and total intervention reconciliation remain pending. Raw events remain local; this response-only extract excludes reasoning/tool records. No canonical transcript was edited.
 
-# D5 Stage-2 Candidate Evaluation — ContentGuard Retrieval / Context Choices
+## Evaluation response — retrieval and context choices
 
 **Date:** 2026-11-19 (present-day). **Authorization:** the current instruction states human LI Shiyi authorized this evaluation now. **Nature:** a NEW evaluation, not retroactive evidence and not approval of ADR-001. ADR-001 remains exactly as recorded (approved 2026-11-16; requirements/testing co-signs pending). Nothing here changes the registry, ADR, code, prompts, CI, or git state.
 
@@ -12,7 +12,7 @@ Date: 2026-11-19 HKT. Session: ses_e0c057451ffejoNgroQJE3zW8m. Agent: OpenCode; 
 
 ---
 
-> Scope of evidence: the response below is a design evaluation against the inspected S3 checkout `7206e062ce11f6f39b9c77acf0b986b00331c8e5`, not a fresh audit of current main. Statements about pending co-signs, gate activation, benchmark status and historical defects reflect inspected documents and require owner reconciliation; they are not independently verified current repository status. No tests were run in this session.
+> Scope of evidence: the response below is a design evaluation against the inspected S3 checkout [`7206e062ce11f6f39b9c77acf0b986b00331c8e5`](https://github.com/CS5351-Group10/contentguard/commit/7206e062ce11f6f39b9c77acf0b986b00331c8e5), an unmerged branch head of [PR #52](https://github.com/CS5351-Group10/contentguard/pull/52), not a fresh audit of current main. Statements about pending co-signs, gate activation, benchmark status and historical defects reflect inspected documents and require owner reconciliation; they are not independently verified current repository status. The cited `src/contentguard/analysis/**` and S3 transcript are on PR #52 and become available on main only after #52 merges. The commit link identifies the evaluated version even if the PR head changes; PR #52 records its provenance. No tests were run in this session. Gate 4 strict enforcement shipped in PR #57 (`8e7e2af`); references below to documents describing warn-only behavior are historical stale-document observations, not current gate status.
 
 ## 0. Decision frame
 
@@ -119,6 +119,6 @@ Source: supervising conversation, following presentation of the four candidate r
 | Deterministic ranking | APPROVE — retain |
 | Whole-clause deterministic compaction plus trusted safety capsule reinjection | APPROVE — retain |
 
-[INTERVENTION — candidate selection] LI Shiyi explicitly chose to retain all four recommended baselines after reviewing the candidate evaluation. This is one observed decision message containing four decisions; it is not a verified total intervention count for the OpenCode session. The decision was supplied in the supervising conversation and is not represented as a message originally sent inside OpenCode.
+[Supporting summary only — not a canonical transcript intervention marker] LI Shiyi explicitly chose to retain all four recommended baselines after reviewing the candidate evaluation. This is one observed decision message containing four decisions; it is not a verified total intervention count for the OpenCode session. The decision was supplied in the supervising conversation and is not represented as a message originally sent inside OpenCode.
 
 This is a present-day evaluation decision, not retroactive pre-build approval, a new ADR, runtime acceptance, or implementation authorization. Canonical human-owned transcript annotation, full-session intervention reconciliation, unused AI-use ID allocation and PM D5 acceptance remain pending. No hours or total counts asserted.
