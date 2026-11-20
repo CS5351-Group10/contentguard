@@ -29,9 +29,11 @@ the MVP; anything else is out of scope unless a human explicitly changes the reg
 
 ## 3. Code baseline
 
-- `src/` contains only a placeholder README (pre-architecture). The first modules
-  appear only after ADR-001 (architecture choice) is approved by humans. Do not
-  create modules before that.
+- `src/contentguard/` implements the baseline modules: `policy/` (authoritative kernel),
+  `audit/`, `escalation/`, and `analysis/` (merged via #52, `397e002`). The `api/`
+  module lands via the S2 session (2026-11-20, in flight) — see ADR-001 and
+  `docs/code-governance/structural-constraints.md`. Do not create modules outside the
+  ADR-001 layout.
 - **Scaffold seed compliance note:** the whole scaffold seed — CI workflow,
   `scripts/**`, `prompts/**`, `test/**` scaffolding (READMEs + `test_smoke.py`),
   `pytest.ini`, `src/README.md` — was **human-drafted pre-arrangement reference**.
