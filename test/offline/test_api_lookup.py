@@ -16,7 +16,6 @@ from contentguard.api.app import create_app
 from contentguard.api.config import ActorConfig, ApiConfig
 from contentguard.api.models import AuditView, CaseView
 
-
 OWNER_TOKEN = "owner-token"
 OUTSIDER_TOKEN = "outsider-token"
 GRANTED_MODERATOR_TOKEN = "granted-moderator-token"

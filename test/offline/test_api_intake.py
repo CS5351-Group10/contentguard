@@ -22,7 +22,6 @@ from contentguard.api.config import ActorConfig, ApiConfig
 from contentguard.api.models import ProcessingResult, ProcessingUnavailable
 from contentguard.api.storage import IntakeRepository
 
-
 TOKEN = "submitter-secret-token"
 ACTOR_ID = "submitter-1"
 

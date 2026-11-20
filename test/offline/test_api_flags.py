@@ -24,7 +24,6 @@ from contentguard.api.config import (
 )
 from contentguard.api.models import ProcessingResult
 
-
 TOKEN = "flag-test-token"
 
 

@@ -16,23 +16,35 @@ import pytest
 
 from contentguard.analysis.contracts import (
     AdvisoryResult as AnalysisAdvisory,
+)
+from contentguard.analysis.contracts import (
     AnalysisFailure as S3Failure,
+)
+from contentguard.analysis.contracts import (
     AttemptIdentity,
     Citation,
+)
+from contentguard.analysis.contracts import (
     Usage as AnalysisUsage,
 )
 from contentguard.api.adapter import PolicyAdapter
 from contentguard.policy.contracts import (
     AdvisoryResult as PolicyAdvisory,
+)
+from contentguard.policy.contracts import (
     AnalysisFailure as PolicyFailure,
+)
+from contentguard.policy.contracts import (
     CaseSnapshot,
     CaseStatus,
     CommitResult,
     CommitStatus,
-    FailureCode as PolicyFailureCode,
     ReplayKey,
     Severity,
     Verdict,
+)
+from contentguard.policy.contracts import (
+    FailureCode as PolicyFailureCode,
 )
 
 

@@ -17,7 +17,6 @@ from contentguard.api.config import ActorConfig, ApiConfig
 from contentguard.api.errors import MandatoryRuleViolation
 from contentguard.api.models import CaseView, ProcessingResult, QueueView
 
-
 GRANTED_MODERATOR_TOKEN = "granted-reviewer-token"
 UNGRANTED_MODERATOR_TOKEN = "ungranted-reviewer-token"
 SUBMITTER_TOKEN = "submitter-token"
