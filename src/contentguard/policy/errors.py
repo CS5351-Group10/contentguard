@@ -18,6 +18,20 @@ class PolicyKernelError(PolicyError):
     """A controlled evaluation failure: no decision and no write are produced."""
 
 
+class MandatoryRuleViolation(PolicyError):
+    """A requested human-review outcome conflicts with a mandatory policy rule
+    (ADR-002 review-transition validation).
+
+    Raised by ``PolicyEngine.review_and_commit`` *before any write*: the refusal is an
+    action validation outcome, not a moderation decision, so nothing is committed —
+    no case revision bump, no audit row, no queue entry, no replay record. Carries a
+    stable machine-readable code so the API layer can project it to HTTP 422 by error
+    identity alone.
+    """
+
+    code = "MANDATORY_RULE_VIOLATION"
+
+
 class PolicyConflictError(PolicyError):
     """Revision/snapshot/state conflict; the caller's view is stale."""
 
@@ -41,6 +55,7 @@ class ForbiddenAuthorityError(PolicyError):
 __all__ = [
     "ForbiddenAuthorityError",
     "InvalidReviewError",
+    "MandatoryRuleViolation",
     "PolicyConflictError",
     "PolicyError",
     "PolicyKernelError",
