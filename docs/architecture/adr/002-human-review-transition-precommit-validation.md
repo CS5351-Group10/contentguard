@@ -14,18 +14,26 @@
    **before** any result is produced, and the test asserts `422` + `policy.calls == 1` +
    no final effect. The API's own docstring for the fake states the boundary: *"the API
    may request but never decide a transition."*
-3. S1 on main (`d0f38c1`) explicitly does **not** implement the human-review transition:
-   `PolicyEngine.evaluate_and_commit` documents that "a review is passed through to
-   `evaluate` which rejects it" (`src/contentguard/policy/engine.py:200-201`), and the
-   engine has an internal `_validate_review` currency/authorization/staleness check
-   (`engine.py:627`) but no transition path. Typed analysis failures currently end in
-   HOLD/ESCALATE decisions that **commit** through `EnforcementAuthority.commit`
-   (REQ-INV-002 evidence, PR #62).
+3. S1 on main (verified at `802c59a`; policy engine unchanged since `af63260`) already
+   has a **partial** step-7 path: `PolicyEngine.evaluate` accepts
+   `review: ReviewRequest | None` and routes a current authorized review to
+   `_build_review_decision` (the `if review is not None:` branch in
+   `src/contentguard/policy/engine.py`), whose docstring specifies that the **first
+   matching `REJECT` rule is a mandatory floor that overrides the review**; otherwise
+   the reviewed APPROVE/REJECT applies. The module header and the `evaluate` docstring
+   still say "Step 7 — the human-review transition — is NOT implemented in this slice";
+   the docstring lags the code — the executable path, not the docstring, is the
+   evidence. The disposition of that review decision persists through the existing
+   commit path.
 
-The gap: S2's contract assumes a policy operation that **validates a requested review
-transition before committing and raises a typed violation without writing anything**;
-S1 does not expose it. The mismatch is recorded in #49/#75/#76 and was triaged as
-S1-owned (architecture recommendation, RM-042 thread).
+The gap (restated precisely, per the architecture review on this PR): what S1 lacks is
+(a) the **S2-compatible `review_and_commit` operation** with the exact
+parameter/exception contract the #75 adapter is written against, and (b) a **typed
+pre-commit refusal with zero consequential writes** — the current mandatory REJECT
+floor produces a *decision that commits* (audit + revision + queue), which cannot
+satisfy #51's "422 with no consequential write" for a mandatory-rule-violating review
+request. The mismatch is recorded in #49/#75/#76 and was triaged as S1-owned
+(architecture recommendation, RM-042 thread).
 
 ## Decision
 
@@ -49,6 +57,47 @@ human-review transition, atomically, in this order:
 The API layer maps the typed violation to HTTP 422 and nothing else. Authority stays
 with policy end to end: the API requests, policy decides, and a mandatory-rule refusal
 is an input/action **validation** outcome, not a moderation decision.
+
+## S2 adapter and exception contract
+
+The #75 adapter invokes the policy boundary as
+`review_policy.review_and_commit(CaseView, reviewer_id, expected_revision,
+requested_outcome, rationale)` and currently catches an **API-owned**
+`MandatoryRuleViolation`. To keep one authority and one error identity:
+
+- `MandatoryRuleViolation` becomes a **policy-owned** typed error (stable
+  machine-readable code) exported from `src/contentguard/policy/`.
+- The S2 adapter's policy client catches the **policy-owned** error and projects it to
+  HTTP 422 through the API's existing typed-failure error mapping. The API performs no
+  mandatory-rule evaluation of its own — it translates error identity only.
+- The stale API-owned exception is replaced (same PR as the S2 adapter update, or
+  earlier if #75 merges first — the adapter must be updated before any merge of the
+  policy change so the catch never misses).
+- Parameter flow: authenticated review evidence (`reviewer_id`, non-empty `rationale`),
+  pinned identity (`case_id`, `expected_revision`, `policy_snapshot_id`,
+  `policy_snapshot_digest`, `content_hash`), and replay identity (actor idempotency
+  key) reach `review_and_commit` as explicit parameters built from the authenticated
+  request. The API never decides — it assembles and forwards.
+- **No HTTP rejection after commit**: once the transition commits, the API answers with
+  the committed outcome; the 422 path exists only for pre-commit refusals.
+
+## Replay ordering and atomicity
+
+`review_and_commit` preserves the ordering guarantees the existing commit path
+documents for `evaluate_and_commit`:
+
+1. Load the case row and pinned snapshot; a same-key/**same-payload** committed retry
+   is recognized and reconciled **before** revision/status precondition checks (a
+   retry after snapshot activation or revision advance returns the stored result, not a
+   spurious conflict); a same-key/**different-payload** retry is a CONFLICT.
+2. Mandatory-rule refusals leave **case revision/status, review queue, audit log, and
+   replay records unchanged** (zero writes, no partial state).
+3. A valid requested REJECT commits **exactly once** — case row, audit entry, queue
+   effect, and replay record atomically.
+4. Authorized high-severity reviews remain possible whenever the mandatory rules permit
+   them; the floor only overrides reviews that would waive a mandatory rule.
+5. Read/validation and commit are fenced against a concurrent case or snapshot change
+   (same transaction/locking pattern as `evaluate_and_commit`).
 
 ## Boundaries made explicit
 
@@ -89,13 +138,24 @@ is an input/action **validation** outcome, not a moderation decision.
 ## Implementation slice (agent session, after this ADR is approved)
 
 - `src/contentguard/policy/`: add `MandatoryRuleViolation` typed error;
-  `PolicyEngine.review_and_commit(...)` implementing steps 1–4; keep
+  `PolicyEngine.review_and_commit(...)` implementing the decision steps above; keep
   `evaluate_and_commit` unchanged.
 - `src/contentguard/policy/` errors module: export the typed error.
-- `test/offline/`: policy-layer negative tests for review_and_commit (currency/staleness
-  cases reuse `_validate_review` behaviour; mandatory-rule case asserts zero writes);
-  no `test/live` changes.
+- `src/contentguard/api/` adapter: switch the catch to the policy-owned error (same
+  change-set as the policy change, or sequenced so the catch never misses — see the
+  adapter/exception contract above).
+- **Acceptance matrix** (real engine/store plus HTTP-adapter integration; the
+  fake-based 422 test alone cannot establish these):
+  - prohibited approve (mandatory-rule violation) → HTTP 422 **and zero writes**
+    (case revision/status, queue depth, audit row count, replay records all unchanged);
+  - permitted reject → **exactly one atomic commit** (case + audit + queue + replay
+    records land together);
+  - valid high-severity review → commits;
+  - stale or unauthorized review evidence → typed validation failure without commit;
+  - duplicate replay (same key, same payload) → reconciled stored result;
+    conflicting replay (same key, different payload) → CONFLICT;
+  - injected persistence failure → rollback, no partial state.
 - Docs in the same PR: one clarifying sentence in `docs/architecture/invariants.md`;
-  trace-matrix note for REQ-FUN-003/INV-003 pointing at the new test.
+  trace-matrix note for REQ-FUN-003/INV-003 pointing at the new tests.
 - Out of scope: any change to `evaluate_and_commit`, the advisory contract, or
   requirement fit criteria.
