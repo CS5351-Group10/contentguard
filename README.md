@@ -7,10 +7,12 @@ is made exclusively by a deterministic policy engine constrained by auditable in
 This advisory-vs-authoritative split is the safety-relevant boundary required by the
 CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking gates).
 
-> **Status:** governance bootstrap complete (2026-11-15); review pipeline operational —
-> first memo-gap incident recorded and backfilled (RM-002, 2026-11-16), Gate 7 enforcement
-> spec'd (issue #4); Phase ② in progress — requirements final + evaluation set due 11-16
-> (see `docs/contribution-log.md`).
+> **Status:** Phase ③ build (2026-11-20) — policy kernel + audit/escalation merged with
+> release-acceptance tests (#41, #62); S3 analysis merged (#52, `397e002`); six blocking
+> gates active: gate 4 strict on the fixed evaluation set (#57), gate 1 timestamp-verified
+> (#61), and gate 2 now includes 2e structural checks (#69). In flight: S2 api session and
+> S5 evaluation. D5 transcript annotation lock 11-21 23:59; submission 11-25 (see
+> `docs/contribution-log.md`, `docs/debt-register.md`).
 
 ## Repository organization
 
@@ -76,10 +78,10 @@ authoritative rules live in `docs/review-memo.md`).
 
 | # | Gate | What it enforces | Where implemented | Status |
 |---|---|---|---|---|
-| 1 | Test approval | No code change merges unless its tests were approved before implementation began; PR must cite the approved test plan | `scripts/check_test_approval.py` (PR body marker) | Active (basic) — tightened W12 |
-| 2 | Static analysis | Lint + type-check on every commit; extra checks on safety-relevant paths | `ruff` + `mypy` in `ci.yml` | Active |
+| 1 | Test approval | No code change merges unless its tests were approved before implementation began; PR must cite the approved test plan, which must exist, be independently approved, and predate implementation | `scripts/check_test_approval.py` (PR body marker + issue/timestamp resolution) | Active — tightened (#61) |
+| 2 | Static analysis | Lint + type-check on every commit; extra checks on safety-relevant paths | gates 2a–2e in `ci.yml` (`ruff`, `mypy`, `check_dependencies.py`, `check_safety_paths.py`, `check_structural.py`) | Active |
 | 3 | Schema | Requirements registry validates against `docs/req/req-schema.json` | `scripts/validate_requirements.py` | Active |
-| 4 | Semantic evaluation | Prompt/model changes replay a fixed evaluation set against quality thresholds | `scripts/check_semantic_eval.py` | Skeleton (warns) — harness W12; tracked in debt register |
+| 4 | Semantic evaluation | Prompt/model changes replay a fixed evaluation set against quality thresholds | `scripts/check_semantic_eval.py` + replay harness (#47) | Active (strict) — bad/missing replay blocks merge (#57); TD-1 closed |
 | 5 | Regression | Every change runs all prior test suites; any regression blocks merge | `pytest test/offline` in `ci.yml` | Active |
 | 6 | AI-use log | PR changing code/prompts without updating `docs/ai-use-log.yaml` is blocked | `scripts/check_ai_use_log.py` | Active |
 
