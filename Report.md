@@ -332,13 +332,65 @@ The process was not clean. I pushed a commit seven seconds after a reviewer appr
 What I would keep: plan approval before code, the review memo as a written judgment, and the distinction between what is merged, what is open, and what is planned. What I would change: start the transcript annotation earlier, give the domain owners more of the review load, and treat the debt register as a live checklist rather than a report artifact. The agent made the team faster; the human work was deciding what the speed was allowed to claim.
 
 ### HAN Mei (60914643)
-TBD — author to supply.
+
+My work on ContentGuard changed how I understand requirements engineering in an AI-assisted project. I began with PR #11, where I helped expand the repository from a small initial registry into a 31-requirement baseline, updated the schema and trace matrix, and implemented permanent Gate 3 validation tests. That work taught me that a requirement is useful only when its wording, fit criterion, ownership, and verification evidence remain consistent. Review also exposed weaknesses in my early workflow: several commit messages were vague, evidence links were incomplete, and a test artifact did not initially support the claim being made. I learned to treat an agent’s summary as a claim that must be checked against the actual diff, collected tests, and committed evidence.
+
+In PR #60, I revised the community policy and aligned its approve, escalate, hold, and reject vocabulary with the evaluation and architecture contracts. This showed me that apparently small wording differences can create real integration defects. Requirements, policy language, architecture, and tests must evolve together rather than being edited independently.
+
+PR #75 was my most technical contribution. I used a test-first sequence for the S2 API, adding RED tests for intake, lookup, review authorization, adapter behavior, idempotency, and failure recovery before implementing the service boundary. The work strengthened my understanding of truthful failure reporting: an uncertain or incomplete handoff must never be represented as a committed moderation decision. When the S2 review contract conflicted with the existing S1 policy engine, I did not add an API-side bypass. I kept the PR as an honest draft and escalated the safety-critical change through ADR-002 and the policy-owner approval path.
+
+Overall, the project taught me that responsible AI-assisted development depends on traceability, disciplined review, and honest status reporting. In future work, I will write clearer commit messages, validate evidence earlier, coordinate cross-module contracts before implementation, and maintain transcripts and AI-use records continuously instead of repairing them near the deadline.
 
 ### LI Shiyi (60938585)
-TBD — author to supply.
+
+My architecture work on ContentGuard taught me that an AI system’s authority boundary must be visible in interfaces, persistence, and evidence, rather than stated only in a diagram. The modular monolith assigns analysis an advisory role and gives policy sole authority over consequential transitions. API coordinates the components, while escalation and audit participate in policy-owned persistence. Reviewing this arrangement made the distinction concrete: returning “hold” does not establish a safe handoff unless the case, required queue entry, and audit record actually commit together.
+
+A second lesson was to distinguish design reasoning from measured results. In the stage-two candidate evaluation, I retained lexical retrieval, immutable pinned snapshots, deterministic ranking, and whole-clause compaction with trusted safety-capsule reinjection. These choices fit our build window and support reproducibility, but retaining them does not prove that they outperform embedding, hybrid retrieval, or model summarization. Such changes should follow measured shortcomings and agreed evaluation criteria. Offline fakes, synthetic retrieval cases, and recorded semantic replay each answer different questions; none alone establishes live-provider quality or complete integration.
+
+The evidence work also changed how I think about supervision. The S3 build transcript was real, but it could not substitute for architecture-candidate evaluation. Preserving the build separately and recording the later evaluation as later evidence made the account more defensible. My decision to retain all four candidates was one recorded supervising message, not a reason to invent additional dialogue or intervention types. Preparing comparisons was useful, but the decisions and limits of the evidence still needed explicit attribution.
+
+The S1/S2 review-contract mismatch showed why complete operations need early review. Applying a mandatory rejection floor and rejecting an invalid moderator request are different behaviors: one may commit a decision, while the other must return an error without consequential writes. Moving rule checks into API would create a second policy authority. The proposed policy-owned pre-commit validation preserves the architectural boundary, but its implementation and real integration still require verification.
+
+In future projects, I would review transaction effects alongside response contracts earlier, keep the trace matrix and session records current, and reserve more time for end-to-end and failure-path verification. The main improvement is to make every architectural claim point to the specific evidence that supports it, with remaining gaps stated plainly.
 
 ### HUANG Hongwei (60368210)
-TBD — author to supply.
+
+I came into this project expecting the governance role to be about writing CI files. It turned
+out to be about deciding what counts as evidence, and then making a machine check that decision
+every time someone disagrees with it. The gates were the easy part; the difficulty was admitting
+how many of them looked green while measuring nothing.
+
+The clearest lesson came from a defect I did not cause. Every pull request was red because one
+script sent `Authorization: Bearer ` with an empty token and the API answered 401; only the sixth
+gate had been given the token at all. Once that was fixed, the gates went green — and stayed green
+through a period when one of them was passing an empty test file. That is the failure mode I now
+watch for: a check that has never failed is not a check, it is decoration. So when I added the
+structural gate and the strict semantic gate, I first made them fail on purpose — a forged
+enforcement call, a deliberately bad prompt — before trusting a green run.
+
+The second lesson is that process drifts faster than the record of it. We posted review memos in
+PR threads faster than anyone appended them to the ledger, and ended up backfilling forty entries
+and renumbering several, which is exactly the ambiguity that makes a contribution table
+indefensible. My own review memos were drafted with an assistant and verified line by line before
+I posted them; I would rather state that plainly than have it discovered, because auditable
+supervision cannot mean supervision that conceals its own provenance. The same instinct made me
+write down the decision vocabulary once the policy document said `approve/reject/hold` while the
+evaluation gate scored `allow/block/escalate` — one decision with two names will eventually be
+reported as a quality regression.
+
+What I would do differently: keep one source of truth per fact. For a while we had two transcript
+tables and two ledger numbering schemes, and both produced the same error — a document asserting
+something the repository had already stopped being true about. Gate 7 is still not built and the
+gate-1 timing check landed late; I would rather record those as gaps than describe them as done.
 
 ### Buna DA (60105888)
-TBD — author to supply.
+
+Serving as Testing Lead on ContentGuard showed me how easily a green test suite can create false confidence when a team is moving fast. Early on, I realized that a passing test means very little unless it exercises the right architectural boundary and ties back to an actual invariant.
+
+PR #62 brought this into sharp focus. I noticed that an existing rollback test ran against an empty queue, meaning it passed without ever verifying a real HOLD or ESCALATE write. Fixing this took more than tightening an assertion—I had to rebuild the fixture so it hit the actual queue-writing paths. The updated suite verified case, audit, queue, and replay records together, confirmed that a late persistence failure rolled back the transaction, and blocked unreviewed finalizations before valid human sign-off. That experience taught me that test rigor lives in the execution path and setup, not the pass count.
+
+I also had to draw a hard line between surfacing bugs and shipping fixes. When I uncovered BUG-003—where a tampered decision could retain its authority token and commit a bad outcome—and BUG-004, a declared commit status with no producing code path, patching them quietly inside a testing PR would have masked architectural risks. Documenting their reproduction steps, broken invariants, and open status gave the team a clearer basis for review than a hasty workaround.
+
+Working with our evaluation corpus reinforced this habit of scoping claims carefully. PR #37 locked in reproducible corpus data, and PR #62 tightened acceptance coverage. Later, seeing 458 passing tests alongside clean Ruff and mypy checks confirmed our deterministic regression health—but it did not prove live-provider behavior or finished S2/S3 integration. Part of my job was stating explicitly what those gates covered and what remained unverified.
+
+If I were to run this again, I would set up a tighter, more automated way to log transcripts, test runs, reviews, and requirement links as the work happens, and define S2/S3 fault-injection criteria earlier in the cycle. Ultimately, my role was less about running checks and more about exposing blind spots so the team could make honest engineering decisions.
