@@ -24,7 +24,7 @@
 | `docs/ai-use-log.yaml` | read | read | read | read/write |
 | `docs/debt-register.md`, `docs/bug-diary.md` | read | propose in PR | read | read/write |
 | `src/**` | read | read/write (post-ADR-001) | read | read/write |
-| `test/**` | read | read/write | read/write (reports only) | read/write |
+| `test/**` | read | read/write | read/write (`test/reports/**` only) | read/write |
 | `prompts/**` | read | read/write (triggers gate 4) | read | read/write |
 | `scripts/**` | read | read/write (via agent session — red line) | read | read/write |
 | `.github/workflows/**` | read | read/write (via agent session — red line) | read | read/write |
