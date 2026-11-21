@@ -169,6 +169,28 @@ class IntakeRepository:
             ).fetchone()
         return None if row is None else _intent_from_row(row)
 
+    def list_recoverable_pending(
+        self, *, before: datetime, limit: int
+    ) -> tuple[IntakeIntent, ...]:
+        """List pending intents with an expired/released reservation for recovery."""
+
+        with self.connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT i.handoff_id, i.actor_id, i.idempotency_key, i.payload_hash,
+                       i.content_text, i.state, i.result_json, i.effective_flags
+                FROM intake_intents i
+                JOIN intake_reservations r ON r.handoff_id = i.handoff_id
+                WHERE i.state = 'pending'
+                  AND r.state IN ('pending', 'processing')
+                  AND (r.lease_until IS NULL OR r.lease_until < ?)
+                ORDER BY i.updated_at, i.handoff_id
+                LIMIT ?
+                """,
+                (before.isoformat(), limit),
+            ).fetchall()
+        return tuple(_intent_from_row(row) for row in rows)
+
     def acquire_lease(self, handoff_id: str, lease_seconds: int) -> bool:
         """Atomically acquire an expired/released reservation and increment attempts."""
 

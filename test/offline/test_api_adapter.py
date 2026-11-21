@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from conftest import make_case, make_snapshot
 
 from contentguard.analysis.contracts import (
     AdvisoryResult as AnalysisAdvisory,
@@ -27,7 +28,7 @@ from contentguard.analysis.contracts import (
 from contentguard.analysis.contracts import (
     Usage as AnalysisUsage,
 )
-from contentguard.api.adapter import PolicyAdapter
+from contentguard.api.adapter import PolicyAdapter, to_processing_result
 from contentguard.policy.contracts import (
     AdvisoryResult as PolicyAdvisory,
 )
@@ -46,6 +47,8 @@ from contentguard.policy.contracts import (
 from contentguard.policy.contracts import (
     FailureCode as PolicyFailureCode,
 )
+from contentguard.policy.engine import PolicyEngine
+from contentguard.policy.store import SqliteStore
 
 
 def _attempt() -> AttemptIdentity:
@@ -271,3 +274,143 @@ def test_api_adapter_does_not_import_policy_enforcement() -> None:
 
     assert "contentguard.policy.enforcement" not in imports
     assert "policy.enforcement" not in imports
+
+
+def test_to_processing_result_preserves_truthful_policy_statuses() -> None:
+    """REQ-FUN-001/REQ-INV-004: only COMMITTED claims success with resolvable audit."""
+
+    committed = to_processing_result(_committed(), case_id="case-1")
+    assert committed.status == "committed"
+    assert committed.case_id == "case-1"
+    assert committed.case_revision == 2
+    assert committed.decision_id == "decision-1"
+    assert committed.audit_id == "audit-1"
+    assert committed.outcome is None
+
+    failed = CommitResult(
+        status=CommitStatus.FAILED,
+        decision_id="decision-failed",
+        audit_id=None,
+        case_revision=None,
+        message="audit persistence failed",
+    )
+    projected_failure = to_processing_result(failed, case_id="case-1")
+    assert projected_failure.status == "failed"
+    assert projected_failure.audit_id is None
+    assert projected_failure.case_revision is None
+    assert projected_failure.message == "audit persistence failed"
+
+    conflict = CommitResult(
+        status=CommitStatus.CONFLICT,
+        decision_id="decision-conflict",
+        audit_id=None,
+        case_revision=None,
+        message="stale case revision",
+    )
+    projected_conflict = to_processing_result(conflict, case_id="case-1")
+    assert projected_conflict.status == "conflict"
+    assert projected_conflict.audit_id is None
+
+
+def test_committed_mapping_requires_case_and_audit_ids() -> None:
+    """REQ-INV-004 negative: no success claim without a case and resolvable audit id."""
+
+    with pytest.raises(ValueError):
+        to_processing_result(_committed(), case_id=None)
+
+
+def _seed_case(store: SqliteStore, case: CaseSnapshot, snapshot: Any) -> None:
+    store.initialize()
+    with store.transaction() as conn:
+        store.activate_snapshot(conn, snapshot)
+    with store.transaction() as conn:
+        conn.execute(
+            "INSERT INTO cases (case_id, revision, status, content_hash, "
+            "policy_snapshot_id, policy_snapshot_digest, content_text, advisory_verdict, "
+            "advisory_severity, advisory_model_id, advisory_model_version, "
+            "analysis_failure_code, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                case.case_id,
+                case.revision,
+                case.status.value,
+                case.content_hash,
+                case.policy_snapshot_id,
+                case.policy_snapshot_digest,
+                "benign text",
+                case.advisory_verdict.value if case.advisory_verdict else None,
+                case.advisory_severity.value if case.advisory_severity else None,
+                case.advisory_model_id,
+                case.advisory_model_version,
+                (
+                    case.analysis_failure_code.value
+                    if case.analysis_failure_code
+                    else None
+                ),
+                "2026-11-18T00:00:00+00:00",
+            ),
+        )
+
+
+def test_real_policy_engine_receives_projected_advisory_once(tmp_path: Path) -> None:
+    """REQ-FUN-002/004, REQ-INV-001/004: projection reaches the approved entry point."""
+
+    snapshot = make_snapshot()
+    advisory = _s3_advisory()
+    case = make_case(
+        advisory=PolicyAdvisory.from_payload(advisory.to_s1_payload()),
+        snapshot=snapshot,
+    )
+    store = SqliteStore(tmp_path / "policy.sqlite3")
+    _seed_case(store, case, snapshot)
+
+    commit = PolicyAdapter(PolicyEngine(snapshot)).evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        analysis=advisory,
+        expected_revision=case.revision,
+        replay_key=ReplayKey("submitter-1", "idem-real-advisory"),
+    )
+
+    assert commit.status is CommitStatus.COMMITTED
+    assert commit.audit_id
+    result = to_processing_result(commit, case_id=case.case_id)
+    assert result.status == "committed"
+    assert result.audit_id == commit.audit_id
+    assert result.case_id == case.case_id
+    with store.read_connection() as conn:
+        row = conn.execute(
+            "SELECT status FROM cases WHERE case_id = ?", (case.case_id,)
+        ).fetchone()
+    assert row[0] == CaseStatus.HELD.value
+
+
+def test_real_policy_engine_typed_failure_never_invents_verdict(tmp_path: Path) -> None:
+    """REQ-INV-002/REQ-INV-001: a typed S3 failure is held without an advisory verdict."""
+
+    snapshot = make_snapshot()
+    case = make_case(
+        analysis_failure_code=PolicyFailureCode.PROVIDER_UNAVAILABLE,
+        snapshot=snapshot,
+    )
+    store = SqliteStore(tmp_path / "policy.sqlite3")
+    _seed_case(store, case, snapshot)
+
+    commit = PolicyAdapter(PolicyEngine(snapshot)).evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        analysis=_s3_failure(),
+        expected_revision=case.revision,
+        replay_key=ReplayKey("submitter-1", "idem-real-failure"),
+    )
+
+    assert commit.status is CommitStatus.COMMITTED
+    assert commit.audit_id
+    with store.read_connection() as conn:
+        row = conn.execute(
+            "SELECT status, advisory_verdict FROM cases WHERE case_id = ?",
+            (case.case_id,),
+        ).fetchone()
+    assert row[0] == CaseStatus.HELD.value
+    assert row[1] is None

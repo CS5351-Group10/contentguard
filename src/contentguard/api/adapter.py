@@ -6,7 +6,7 @@ imports enforcement internals and never interprets model output as an action.
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 from contentguard.analysis.contracts import (
     AdvisoryResult as AnalysisAdvisory,
@@ -23,20 +23,23 @@ from contentguard.policy.contracts import (
 from contentguard.policy.contracts import (
     CaseSnapshot,
     CommitResult,
+    CommitStatus,
     FailureCode,
     ReplayKey,
 )
+
+from .schemas import ProcessingResult, ProcessingStatus
 
 
 class _PolicyEntryPoint(Protocol):
     def evaluate_and_commit(
         self,
         *,
-        store: object,
+        store: Any,
         case: CaseSnapshot,
         content_text: str,
         advisory: PolicyAdvisory | PolicyFailure | None,
-        review: object | None,
+        review: Any | None,
         expected_revision: int,
         replay_key: ReplayKey,
     ) -> CommitResult: ...
@@ -51,7 +54,7 @@ class PolicyAdapter:
     def evaluate_and_commit(
         self,
         *,
-        store: object,
+        store: Any,
         case: CaseSnapshot,
         content_text: str,
         analysis: AnalysisAdvisory | AnalysisFailure,
@@ -80,4 +83,40 @@ class PolicyAdapter:
         )
 
 
-__all__ = ["PolicyAdapter"]
+def to_processing_result(
+    commit: CommitResult, *, case_id: str | None = None
+) -> ProcessingResult:
+    """Project a policy commit result truthfully, without inventing success evidence."""
+
+    if commit.status is CommitStatus.COMMITTED:
+        if not case_id or commit.audit_id is None or commit.case_revision is None:
+            raise ValueError("committed policy result requires case, revision and audit")
+        return ProcessingResult(
+            status="committed",
+            case_id=case_id,
+            case_revision=commit.case_revision,
+            decision_id=commit.decision_id,
+            audit_id=commit.audit_id,
+            outcome=None,
+            message=commit.message,
+        )
+
+    status: ProcessingStatus
+    if commit.status is CommitStatus.CONFLICT:
+        status = "conflict"
+    elif commit.status is CommitStatus.PENDING_UNCONFIRMED:
+        status = "pending_unconfirmed"
+    else:
+        status = "failed"
+    return ProcessingResult(
+        status=status,
+        case_id=case_id,
+        case_revision=None,
+        decision_id=commit.decision_id,
+        audit_id=None,
+        outcome=None,
+        message=commit.message,
+    )
+
+
+__all__ = ["PolicyAdapter", "to_processing_result"]

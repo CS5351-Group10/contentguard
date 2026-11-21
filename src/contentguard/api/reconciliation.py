@@ -58,4 +58,31 @@ def reconcile(
     return result
 
 
-__all__ = ["SubmissionProcessor", "reconcile"]
+def recover_pending(
+    intent: IntakeIntent,
+    *,
+    repository: IntakeRepository,
+    processor: SubmissionProcessor,
+    config: ApiConfig,
+) -> ProcessingResult | None:
+    """Probe one expired reservation once through the shared reconciliation path."""
+
+    if intent.result is not None:
+        return intent.result
+    repository.record_event(
+        "pending_recovery_attempt",
+        actor_id=intent.actor_id,
+        handoff_id=intent.handoff_id,
+        details={"state": intent.state},
+    )
+    result = reconcile(intent, repository=repository, processor=processor, config=config)
+    log_event(
+        "pending_recovery_attempt",
+        actor_id=intent.actor_id,
+        handoff_id=intent.handoff_id,
+        outcome="probed" if result is not None else "deferred",
+    )
+    return result
+
+
+__all__ = ["SubmissionProcessor", "reconcile", "recover_pending"]

@@ -12,6 +12,7 @@ import sqlite3
 from collections import deque
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -19,8 +20,9 @@ from fastapi.testclient import TestClient
 
 from contentguard.api.app import create_app
 from contentguard.api.config import ActorConfig, ApiConfig
+from contentguard.api.reconciliation import recover_pending
 from contentguard.api.schemas import ProcessingResult, ProcessingUnavailable
-from contentguard.api.storage import IntakeRepository
+from contentguard.api.storage import IntakeIntent, IntakeRepository
 
 TOKEN = "submitter-secret-token"
 ACTOR_ID = "submitter-1"
@@ -330,3 +332,113 @@ def test_intake_persistence_failure_is_503_before_processing(
     assert response.status_code == 503
     assert response.json() == {"detail": "intake persistence unavailable"}
     assert processor.calls == []
+
+
+def _pending_intent(
+    repository: IntakeRepository,
+    idempotency_key: str,
+    text: str,
+) -> IntakeIntent:
+    intent, created = repository.create_intent(
+        actor_id=ACTOR_ID,
+        idempotency_key=idempotency_key,
+        payload_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        content_text=text,
+        effective_flags={},
+    )
+    assert created
+    return intent
+
+
+def _set_lease(config: ApiConfig, handoff_id: str, lease_until: str) -> None:
+    with sqlite3.connect(config.database_path) as conn:
+        conn.execute(
+            "UPDATE intake_reservations SET lease_until = ?, state = 'processing' "
+            "WHERE handoff_id = ?",
+            (lease_until, handoff_id),
+        )
+
+
+def test_expired_pending_intent_is_recovered_once_without_duplicate_effect(
+    tmp_path: Path,
+) -> None:
+    """REQ-FUN-001/REQ-INV-002/REQ-QUA-002: only expired leases are recovered, once."""
+
+    config = _config(tmp_path)
+    repository = IntakeRepository(config.database_path)
+    expired = _pending_intent(repository, "idem-expired", "expired text")
+    active = _pending_intent(repository, "idem-active", "active text")
+    _set_lease(
+        config, expired.handoff_id, (datetime.now(UTC) - timedelta(seconds=60)).isoformat()
+    )
+    _set_lease(
+        config, active.handoff_id, (datetime.now(UTC) + timedelta(seconds=60)).isoformat()
+    )
+
+    discoverable = repository.list_recoverable_pending(before=datetime.now(UTC), limit=10)
+
+    assert [item.handoff_id for item in discoverable] == [expired.handoff_id]
+    processor = FakeProcessor(deque([_committed_result()]))
+    result = recover_pending(
+        expired, repository=repository, processor=processor, config=config
+    )
+
+    assert result is not None
+    assert result.status == "committed"
+    assert processor.calls == [(expired.handoff_id, ACTOR_ID, "expired text")]
+    assert repository.list_recoverable_pending(before=datetime.now(UTC), limit=10) == ()
+    stored = repository.get_intent(expired.handoff_id)
+    assert stored is not None and stored.result == result
+    assert repository.get_intent(active.handoff_id) == active
+
+
+def test_active_lease_is_not_recovered(tmp_path: Path) -> None:
+    """REQ-QUA-002/REQ-INV-002 negative: an active lease cannot be reprocessed."""
+
+    config = _config(tmp_path)
+    repository = IntakeRepository(config.database_path)
+    active = _pending_intent(repository, "idem-active", "active text")
+    _set_lease(
+        config, active.handoff_id, (datetime.now(UTC) + timedelta(seconds=60)).isoformat()
+    )
+    processor = FakeProcessor(deque([_committed_result()]))
+
+    assert repository.list_recoverable_pending(before=datetime.now(UTC), limit=10) == ()
+    assert (
+        recover_pending(active, repository=repository, processor=processor, config=config)
+        is None
+    )
+    assert processor.calls == []
+    with sqlite3.connect(config.database_path) as conn:
+        row = conn.execute(
+            "SELECT state, attempt_count FROM intake_reservations WHERE handoff_id = ?",
+            (active.handoff_id,),
+        ).fetchone()
+    assert row == ("processing", 0)
+
+
+def test_transient_recovery_failure_keeps_intent_recoverable(tmp_path: Path) -> None:
+    """REQ-INV-002: transient recovery failure leaves intent pending, never successful."""
+
+    config = _config(tmp_path)
+    repository = IntakeRepository(config.database_path)
+    intent = _pending_intent(repository, "idem-transient", "retry me")
+    _set_lease(
+        config, intent.handoff_id, (datetime.now(UTC) - timedelta(seconds=60)).isoformat()
+    )
+    processor = FakeProcessor(
+        deque([ProcessingUnavailable("provider_unavailable", "still offline")])
+    )
+
+    assert (
+        recover_pending(intent, repository=repository, processor=processor, config=config)
+        is None
+    )
+    stored = repository.get_intent(intent.handoff_id)
+    assert stored is not None and stored.state == "pending" and stored.result is None
+    assert [
+        item.handoff_id
+        for item in repository.list_recoverable_pending(
+            before=datetime.now(UTC), limit=10
+        )
+    ] == [intent.handoff_id]
