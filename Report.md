@@ -27,24 +27,25 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
-| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | backfill pending | backfill pending | | 29.1 | pending |
+| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 2.0 | | 36.1 | pending |
 | HAN Mei (60914643) | not reported | 4.5 | not reported | | | | 4.5 | pending |
 | LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | | | 26.5 | pending |
 | HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 1.5 | | 22.75 | pending |
 | Buna DA (60105888) | unclaimed | 4.0 | 7.0 | pending | pending | | 11.0 | pending |
 
 > Aggregated 2026-11-21 19:45 HKT from anchored entries in `docs/contribution-log.md`
-> (issue #28). LIU ③ = 11.5h + 1.6h endgame rows; ④/⑤ endgame entries pending rule-6
-> self-report backfill. LI's ①/③ and the ② supplement are member-authorized retrospective
-> estimates (not clock spans; the original 5.0h ② row is preserved in the log, supplement
-> appended — ② total 7.5h). Buna's ②/③ are member-reported; phase ① is explicitly
-> unclaimed (no verifiable time span — recorded as-is, not estimated). HUANG ④ = 16.0h
-> across 11-18→20; ⑤ = 1.5h so far on 11-21 (running). Still open at aggregation time:
-> HAN Mei phase ①/③ and HUANG phase ① (no anchored entry by their deadlines — kept
-> pending, not estimated), Buna ④/⑤, LIU ④/⑤. Weights are computed only after all cells
-> land (method above). Cell labels: blank = phase not applicable yet; `pending` = not yet
-> reported; `not reported` = no anchored entry by the phase deadline; `unclaimed` =
-> member explicitly declined without a verifiable span.
+> (issue #28); LIU ④/⑤ backfilled 20:20 HKT per rule 6 (member-authorized, GitHub-
+> timestamp anchors; ⑤ running through 20:10). LIU ③ = 11.5h + 1.6h endgame rows;
+> ④ = 11-20 Train A batch; ⑤ = 11-21 endgame batch. LI's ①/③ and the ② supplement are
+> member-authorized retrospective estimates (not clock spans; the original 5.0h ② row is
+> preserved in the log, supplement appended — ② total 7.5h). Buna's ②/③ are
+> member-reported; phase ① is explicitly unclaimed (no verifiable time span — recorded
+> as-is, not estimated). HUANG ④ = 16.0h across 11-18→20; ⑤ = 1.5h so far on 11-21
+> (running). Still open: HAN Mei phase ①/③ and HUANG phase ① (no anchored entry by
+> their deadlines — kept pending, not estimated), Buna ④/⑤. Weights are computed only
+> after all cells land (method above). Cell labels: blank = phase not applicable yet;
+> `pending` = not yet reported; `not reported` = no anchored entry by the phase deadline;
+> `unclaimed` = member explicitly declined without a verifiable span.
 
 ## 3. Software engineering process and how we optimized it
 
