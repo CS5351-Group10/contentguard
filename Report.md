@@ -1,6 +1,6 @@
 # Report.md — Process Report (D6)
 
-> **Status: DRAFT — §3–§6 and the PM §7 reflection drafted (2026-11-18); §2 aggregation and the four other member reflections pending.**
+> **Status: ENDGAME — 2026-11-21 22:45 HKT (post-#81).** §2 man-hours aggregated (#77/#78; open cells recorded as-is); §7 all five member reflections assembled verbatim from issue #27 (#81). ADR-002 approved and merged (#79). S2 API delivered as an honest partial in draft PR #75 — merge pending the ADR-002 implementation (issue #49). Transcript canonical stages 2/3/4 landed (#76); stage 1 (Mei) and stage 5 (Buna) open.
 > Final report: ≤ 10,000 words (excluding diagrams), more than 15 pages, single-line spacing.
 
 ## 1. Team
