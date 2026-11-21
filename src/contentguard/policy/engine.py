@@ -5,10 +5,12 @@
 explicit severity rank, high-severity escalate, mandatory-reject floor, declared-rule /
 fallback resolution, reason-catalog resolution, deterministic decision identity).
 
-**Step 7 — the human-review transition — is NOT implemented in this slice.** A current
-authorized review of a HELD/ESCALATED case is accepted structurally but its final
-disposition is deferred to the routing slice. The persistence/commit path
-(``evaluate_and_commit``, ``EnforcementAuthority``) arrives in a later slice.
+**Step 7 — the human-review transition** is implemented on two surfaces (ADR-002):
+``evaluate`` routes a current authorized review of a HELD/ESCALATED case to
+``_build_review_decision`` (the mandatory REJECT floor overrides the review); and
+``review_and_commit`` is the commit-side entry point that validates the *requested*
+outcome against the pinned snapshot's mandatory rules before any write, refusing a
+violating action with a typed ``MandatoryRuleViolation`` and zero writes.
 """
 
 from __future__ import annotations
@@ -41,6 +43,7 @@ from .contracts import (
 from .enforcement import _AUTHORITY_TOKEN, EnforcementAuthority, _payload_hash
 from .errors import (
     InvalidReviewError,
+    MandatoryRuleViolation,
     PolicyConflictError,
     PolicyKernelError,
     StaleReviewError,
@@ -85,9 +88,10 @@ class PolicyEngine:
     ) -> PolicyDecision:
         """Return the deterministic decision for the complete input/state tuple.
 
-        Steps 1-6 and 8-11 of S1 plan §3.5. The human-review transition (step 7) is not
-        part of this slice: a review of a HELD/ESCALATED case is currency/authorization
-        checked here but raises a controlled error until the routing slice lands.
+        Steps 1-6 and 8-11 of S1 plan §3.5. A current authorized review of a
+        HELD/ESCALATED case (step 7) is evaluated here against the pinned rules with
+        the mandatory REJECT floor winning (``_build_review_decision``); the
+        commit-side review-transition entry point is ``review_and_commit`` (ADR-002).
         """
         _validate_case_snapshot(case, self._snapshot)
         _validate_review(case, review)
@@ -196,9 +200,10 @@ class PolicyEngine:
         candidate's payload hash to the stored replay payload **before** the revision/
         status precondition, so a same-key/same-payload retry after a policy activation
         (or after the case revision advanced) returns the stored result rather than a
-        spurious CONFLICT. A same-key/different-payload retry is a CONFLICT. The human-
-        review transition (step 7) is not part of this slice; a review is passed through
-        to ``evaluate`` which rejects it.
+        spurious CONFLICT. A same-key/different-payload retry is a CONFLICT. A review
+        argument is routed through ``evaluate`` to ``_build_review_decision`` (the
+        mandatory REJECT floor applies); the commit-side review-transition entry point
+        with mandatory-rule validation is ``review_and_commit`` (ADR-002).
         """
         with store.read_connection() as conn:
             row = conn.execute(
@@ -342,6 +347,197 @@ class PolicyEngine:
             if isinstance(candidate_error, UnauthorizedReviewError):
                 return _failed_result(case, f"review rejected: {candidate_error}")
             return _failed_result(case, f"policy error: {candidate_error}")
+
+        authority = EnforcementAuthority(store)
+        try:
+            return authority.commit(
+                candidate,
+                expected_revision=expected_revision,
+                replay_key=replay_key,
+            )
+        except PolicyKernelError as exc:
+            return _failed_result(case, f"commit rejected: {exc}")
+
+    def review_and_commit(
+        self,
+        *,
+        store: SqliteStore,
+        case: CaseSnapshot,
+        content_text: str,
+        review: ReviewRequest,
+        expected_revision: int,
+        replay_key: ReplayKey,
+    ) -> CommitResult:
+        """Validate and commit the step-7 human-review transition atomically (ADR-002).
+
+        Loads the case row and its **pinned** snapshot (same pattern as
+        ``evaluate_and_commit``), applies the existing ``_validate_review`` currency/
+        authorization checks unchanged, then — for a non-replay request — validates the
+        requested outcome against the pinned snapshot's mandatory rules. A requested
+        APPROVE that the first matching mandatory REJECT rule would override raises
+        ``MandatoryRuleViolation`` (stable code ``MANDATORY_RULE_VIOLATION``) with **no
+        write of any kind**: no case revision bump, no audit row, no queue entry, no
+        replay record. On success the transition commits through the existing atomic
+        machinery (audit row, revision bump, queue effect, replay idempotency).
+
+        Replay ordering matches ``evaluate_and_commit``: a same-key/same-payload retry
+        is recognized and reconciled **before** the revision/status precondition (the
+        candidate is re-evaluated under the neutral reviewable status, since a reviewed
+        case sits in a final status); a same-key/different-payload retry is a CONFLICT.
+        The mandatory-rule validation applies only to non-replay requests: a stored
+        result is returned as-is regardless of how the rules would judge the request
+        today. ``evaluate_and_commit``'s executable path is unchanged by ADR-002; this
+        entry point
+        intentionally mirrors its sequence rather than sharing a helper, so the
+        existing commit path stays byte-identical.
+        """
+        with store.read_connection() as conn:
+            row = conn.execute(
+                "SELECT revision, status, content_hash, policy_snapshot_id, "
+                "policy_snapshot_digest, advisory_verdict, advisory_severity, "
+                "advisory_model_id, advisory_model_version, analysis_failure_code "
+                "FROM cases WHERE case_id = ?",
+                (case.case_id,),
+            ).fetchone()
+            if row is None:
+                return _conflict_result(case, "case not found")
+            try:
+                pinned = SnapshotStore.load(conn, str(row[3]))
+            except PolicyKernelError as exc:
+                return _failed_result(case, f"pinned snapshot unavailable: {exc}")
+            replay = conn.execute(
+                "SELECT payload_hash, result_json FROM commits "
+                "WHERE replay_actor = ? AND replay_key = ?",
+                (replay_key.actor_id, replay_key.idempotency_key),
+            ).fetchone()
+
+        (
+            revision,
+            status,
+            row_content_hash,
+            snap_id,
+            snap_digest,
+            adv_verdict,
+            adv_severity,
+            adv_model_id,
+            adv_model_version,
+            failure_code,
+        ) = row
+
+        row_case = CaseSnapshot(
+            case_id=case.case_id,
+            revision=expected_revision,
+            status=CaseStatus(status),
+            content_hash=str(row_content_hash),
+            policy_snapshot_id=str(snap_id),
+            policy_snapshot_digest=str(snap_digest),
+            advisory_verdict=Verdict(adv_verdict) if adv_verdict is not None else None,
+            advisory_severity=(
+                Severity(adv_severity) if adv_severity is not None else None
+            ),
+            advisory_model_id=None if adv_model_id is None else str(adv_model_id),
+            advisory_model_version=(
+                None if adv_model_version is None else str(adv_model_version)
+            ),
+            analysis_failure_code=(
+                FailureCode(failure_code) if failure_code is not None else None
+            ),
+        )
+
+        pinned_engine = PolicyEngine(pinned)
+        try:
+            candidate = pinned_engine.evaluate(
+                case=row_case,
+                content_text=content_text,
+                advisory=None,
+                review=review,
+            )
+        except (
+            PolicyConflictError,
+            PolicyKernelError,
+            InvalidReviewError,
+            StaleReviewError,
+            UnauthorizedReviewError,
+        ) as exc:
+            candidate = None
+            candidate_error: Exception | None = exc
+        else:
+            candidate_error = None
+
+        # Replay check before the revision/status precondition (same rationale as
+        # ``evaluate_and_commit``: a reviewed case sits in a final status, so the
+        # retry's candidate is re-evaluated under the neutral reviewable status
+        # ESCALATED to recover the payload the stored result was committed with).
+        if replay is not None and candidate is None:
+            replay_case = replace(row_case, status=CaseStatus.ESCALATED)
+            try:
+                candidate = pinned_engine.evaluate(
+                    case=replay_case,
+                    content_text=content_text,
+                    advisory=None,
+                    review=review,
+                )
+            except (
+                PolicyConflictError,
+                PolicyKernelError,
+                InvalidReviewError,
+                StaleReviewError,
+                UnauthorizedReviewError,
+            ):
+                candidate = None
+            candidate_error = None
+
+        if replay is not None:
+            stored_payload_hash, stored_result_json = replay
+            if candidate is not None and _payload_hash(candidate) == stored_payload_hash:
+                return _commit_result_from_json(str(stored_result_json))
+            return _conflict_result(case, "replay key reused with a different payload")
+
+        # Not a replay: the caller's expected view must match the stored row.
+        if (
+            int(revision) != expected_revision
+            or row_content_hash != case.content_hash
+            or snap_id != case.policy_snapshot_id
+            or snap_digest != case.policy_snapshot_digest
+        ):
+            return _conflict_result(case, "case revision/snapshot/hash mismatch")
+
+        if candidate is None:
+            if isinstance(
+                candidate_error,
+                (PolicyConflictError, InvalidReviewError, StaleReviewError),
+            ):
+                return _conflict_result(
+                    case, f"cannot re-decide this case: {candidate_error}"
+                )
+            if isinstance(candidate_error, UnauthorizedReviewError):
+                return _failed_result(case, f"review rejected: {candidate_error}")
+            return _failed_result(case, f"policy error: {candidate_error}")
+
+        # Mandatory-rule validation of the requested outcome (ADR-002 decision step 3).
+        # Runs only for non-replay requests, after the review-evidence checks, and
+        # before any write. The matching inputs replicate ``_build_review_decision``
+        # exactly (pinned verdict, effective severity incl. the prefilter contribution,
+        # prefilter labels), so this refusal and the evaluate outcome can never
+        # diverge: if the floor would override the review, the action is refused here
+        # instead of committing a silent flip.
+        prefilter = pinned_engine._prefilter.evaluate(content_text)
+        verdict, advisory_severity, _, _, _ = _resolve_advisory_evidence(row_case, None)
+        eff_severity = effective_severity(
+            advisory_severity,
+            Severity.HIGH if prefilter.high_severity else None,
+        )
+        matched = pinned_engine._matching_rules(
+            verdict=verdict,
+            severity=eff_severity,
+            prefilter_labels=prefilter.labels,
+        )
+        floor = next((rule for rule in matched if rule.outcome is Outcome.REJECT), None)
+        if floor is not None and review.requested_outcome is Outcome.APPROVE:
+            raise MandatoryRuleViolation(
+                f"requested outcome {review.requested_outcome.value} conflicts with "
+                f"mandatory rule {floor.rule_id}"
+            )
 
         authority = EnforcementAuthority(store)
         try:

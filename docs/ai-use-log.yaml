@@ -447,3 +447,52 @@ entries:
       four recommended baselines. Not a verified full-session count. Automated
       Codex relay messages are not human interventions. PM D5 review pending.
     pr: null
+
+  # ADR-002 implementation session (S1): agent-written under PM supervision, disclosed
+  # per RM-042 ("needs to be said out loud by you and PM before merge") and acknowledged
+  # in the implementing PR before merge.
+  - id: AI-017
+    date: 2026-11-22
+    agent: zcode
+    model: zai/glm-5.3-flash
+    operator: LIU Jianwei (61022208)
+    session_transcript: transcripts/61022208-LIU-Jianwei-AI-017.md
+    scope: >-
+      src/contentguard/policy/errors.py, src/contentguard/policy/engine.py,
+      test/offline/test_policy_review_transition.py,
+      docs/architecture/invariants.md, docs/architecture/trace-matrix.md,
+      docs/ai-use-log.yaml
+    summary: >-
+      ADR-002 implementation: added PolicyEngine.review_and_commit (pinned-snapshot
+      load, unchanged _validate_review checks, mandatory-rule validation of the
+      requested outcome with zero writes on violation, replay reconcile/conflict
+      ordering, atomic commit through EnforcementAuthority) and the
+      MandatoryRuleViolation typed error (stable code MANDATORY_RULE_VIOLATION);
+      the evaluate_and_commit executable path is unchanged. The ADR-002 acceptance
+      matrix is covered
+      G1-G6 in test/offline/test_policy_review_transition.py (prohibited approve →
+      zero writes; permitted REJECT → exactly one atomic commit; high-severity review
+      permitted; stale/unauthorized typed failures; replay reconcile/conflict;
+      injected persistence failure → rollback). docstring lag on the step-7 transition
+      corrected (module header, evaluate, and one disclosed sentence inside
+      evaluate_and_commit). Offline verification: 466 passed with only
+      the documented BUG-005 corpus-hash environmental failure, ruff clean, mypy
+      clean (42 files), GATE 3 PASS (31 requirements). Implemented as PR #83.
+    human_interventions: 5
+    intervention_summary: >-
+      1: PM decided the disclosure path for this session (agent-written code, real
+      agent/model identity, explicit PR disclosure per RM-042) instead of an
+      unrecorded substitute, and decided the #75 adapter-rework authorship approach
+      (PM prepares it on feat/s2-api-intake with Mei's on-record authorization and
+      Mei-supplied AI-015 facts); 2: PM approved the implementation plan (AGENTS.md §7
+      stop-condition gate) before any policy/ change; 3: PM authorized execution;
+      4: PM required an independent quality/consistency audit of the finished commit
+      before any push, and the audit's P1 findings (test docstring citation coverage,
+      one stale evaluate_and_commit docstring sentence, the missing transcript file)
+      were fixed and re-verified before this entry was finalized. The transcript file
+      is saved by the PM by hand (transcripts/** is frozen human-only); 5: PM required
+      a value-weighting pass over the second audit's findings — deciding what is worth
+      fixing versus what stands as historical record — and approved the
+      addendum-over-rewrite approach for the frozen transcript file, which now carries
+      a post-session evolution addendum.
+    pr: 83
