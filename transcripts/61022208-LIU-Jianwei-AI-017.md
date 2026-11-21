@@ -30,3 +30,12 @@ python scripts/validate_requirements.py    -> GATE 3 PASS: 31 requirements valid
 ## Scope note
 
 This session did not touch `evaluate_and_commit`, the advisory contract, requirement fit criteria, CI configuration, or any frozen/secret path. The S2 adapter catch switch (api-owned → policy-owned `MandatoryRuleViolation`) is deliberately out of this change set: `src/contentguard/api/` does not exist on main yet (it lives on the #75 branch), so that rework lands on `feat/s2-api-intake` before #75 merges, with the policy-owned error re-exported through `contentguard.api.errors` so the existing 422 mapping keeps working.
+
+## Addendum — post-session evolution (2026-11-22, PM-authorized execution)
+
+The sections above are the session snapshot as of its close; the following happened afterwards under the PM's standing authorization and is recorded here rather than by rewriting those sections (ledger discipline: history is not rewritten in place, corrections are appended).
+
+- **Rebase and follow-up commits.** After #82 merged (main `c24d2be`), the implementing commit was rebased onto the new main with its implementation content unchanged; the session therefore spans the implementing commit plus two follow-up docs commits (the AI-017 PR reference; the post-audit wording alignment) rather than the single implementing commit named above.
+- **Scope-note clarification.** The "did not touch" statement above refers to **executable code**: the one disclosed docstring sentence inside `evaluate_and_commit` (audit round, item (2)) is the sole exception. Audit-round item (3) is likewise complete: the transcript file was confirmed by the PM and placed into the change set.
+- **Gate 1 fix.** The first pull_request-context CI run failed because the PR body lacked the `Test-Plan-Approved` marker (gate 1 reads the body from the workflow event payload snapshot, so its re-run replays the pre-fix body and remains a failed non-head artifact). The body now cites the amended test plan #51, whose independent Testing Lead approval (davina-cs, 2026-11-19T05:16:33Z) predates implementation; a close/reopen produced a fresh pull_request-context run on the current head, which passes.
+- **Interventions.** A fifth supervising decision is recorded: the PM required a value-weighting pass over the second audit's findings (what is worth fixing versus what stands as historical record) and approved this addendum-over-rewrite approach; `docs/ai-use-log.yaml` AI-017 now records 5 interventions.

@@ -478,7 +478,7 @@ entries:
       evaluate_and_commit). Offline verification: 466 passed with only
       the documented BUG-005 corpus-hash environmental failure, ruff clean, mypy
       clean (42 files), GATE 3 PASS (31 requirements). Implemented as PR #83.
-    human_interventions: 4
+    human_interventions: 5
     intervention_summary: >-
       1: PM decided the disclosure path for this session (agent-written code, real
       agent/model identity, explicit PR disclosure per RM-042) instead of an
@@ -490,5 +490,9 @@ entries:
       before any push, and the audit's P1 findings (test docstring citation coverage,
       one stale evaluate_and_commit docstring sentence, the missing transcript file)
       were fixed and re-verified before this entry was finalized. The transcript file
-      is saved by the PM by hand (transcripts/** is frozen human-only).
+      is saved by the PM by hand (transcripts/** is frozen human-only); 5: PM required
+      a value-weighting pass over the second audit's findings — deciding what is worth
+      fixing versus what stands as historical record — and approved the
+      addendum-over-rewrite approach for the frozen transcript file, which now carries
+      a post-session evolution addendum.
     pr: 83
