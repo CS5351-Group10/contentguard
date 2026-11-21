@@ -490,4 +490,4 @@ entries:
       one stale evaluate_and_commit docstring sentence, the missing transcript file)
       were fixed and re-verified before this entry was finalized. The transcript file
       is saved by the PM by hand (transcripts/** is frozen human-only).
-    pr: null
+    pr: 83
