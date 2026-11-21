@@ -386,7 +386,8 @@ class PolicyEngine:
         case sits in a final status); a same-key/different-payload retry is a CONFLICT.
         The mandatory-rule validation applies only to non-replay requests: a stored
         result is returned as-is regardless of how the rules would judge the request
-        today. ``evaluate_and_commit`` itself is unchanged by ADR-002; this entry point
+        today. ``evaluate_and_commit``'s executable path is unchanged by ADR-002; this
+        entry point
         intentionally mirrors its sequence rather than sharing a helper, so the
         existing commit path stays byte-identical.
         """
