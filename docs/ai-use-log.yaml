@@ -442,19 +442,11 @@ entries:
       test/offline/test_api_adapter.py
     summary: >-
       OpenCode audit of the existing S2 API slice adopted the
-      approved unblocked
-        Stage 1 scope under the test plan in Issue #51. Performed
-      in-place repairs
-        limited to the five listed files and verified them:
-      targeted S2 tests:
-        51 passed; Ruff passed; mypy passed; requirements
-      validation: 31
-        requirements passed. No policy, prompt, model
-      configuration, architecture
-        document, AI log, or transcript file was modified. The 422
-      versus
-        committed-REJECT review-contract conflict remains
-      unresolved.
+      approved unblocked Stage 1 scope under the test plan in Issue #51. Performed
+      in-place repairs limited to the five listed files and verified them:
+      targeted S2 tests:51 passed; Ruff passed; mypy passed; requirements
+      validation: 31 requirements passed. No policy, prompt, model
+      configuration, architecture document, AI log, or transcript file was modified. The 422 versus committed-REJECT review-contract conflict remains unresolved.
     human_interventions: 1
     intervention_summary: >-
         Human operator explicitly approved the limited unblocked.Stage 1 execution plan.
