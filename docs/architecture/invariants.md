@@ -14,8 +14,10 @@
   module boundary `src/contentguard/policy/`
 - **Verification method:** structural check (import/call-graph test) + negative test
   proving outside calls are blocked
-- **Operational fallback if violated:** CI blocks the merge; the offending path is
-  feature-flagged off at deploy until a human-approved fix lands
+- **Operational fallback if violated:** CI blocks the merge (structural call-graph
+  check + negative test); if a violation is found post-merge, the deployment is
+  stopped by the reviewed release control or endpoint shutdown — **no runtime feature
+  flag exists** (runtime policy catalog R-7; ADR-001 closed allowlist)
 
 ## INV-2 — Fail-safe hold on AI unavailability
 
@@ -25,7 +27,9 @@
 - **Enforcing component:** escalation (human review queue) + policy engine default rule
 - **Verification method:** fault-injection unit test (AI client mocked to fail)
 - **Operational fallback if violated:** audit subsystem marks the decision invalid,
-  the item is reverted to the queue, on-call moderator alerted
+  the item is reverted to the queue; the anomaly surfaces through the audit log
+  reviewed by the moderation team (no paging infrastructure is in scope for this
+  build — see runtime policy catalog R-1/R-12 for the hold semantics)
 
 ## INV-3 — High-severity always reaches human review
 
@@ -34,8 +38,10 @@
 - **Source requirement:** REQ-INV-003
 - **Enforcing component:** policy engine routing rules
 - **Verification method:** table-driven test over the severity × policy matrix
-- **Operational fallback if violated:** daily audit reconciliation job reopens the
-  item into the queue; case logged in `docs/bug-diary.md`
+- **Operational fallback if violated:** manual audit reconciliation reopens the
+  item into the queue and the case is logged in `docs/bug-diary.md` (an automated
+  daily reconciliation job is not in scope for this build; the trace matrix lists it
+  as a planned monitor)
 
 ## INV-4 — Every decision leaves an audit record
 
