@@ -27,3 +27,11 @@ python scripts/validate_requirements.py -> GATE 3 PASS: 31 requirements valid ag
 ## Scope note
 
 This session did not touch `evaluate_and_commit`'s executable code, `_payload_hash`, ADR-002 text, CI configuration, or any frozen/secret path. The two `transcripts/**` writes (the AI-018 registration row in `transcripts/README.md` and this file) are the disclosed PM-delegated placements described above — the only exception to the no-frozen-path rule, attributed as such. The `commits` table gained a nullable column and `EnforcementAuthority.commit` an optional parameter — both disclosed here and in the PR body as the explicitly revised implementation scope Li's review requires. The #75 revival (Mei authorization → adapter switch to the policy-owned error → AI-015 correction → Li re-verdict → Mei merge) is the next thread and deliberately out of this change set.
+
+
+## Addendum — corrections at the pre-merge quality pass (2026-11-22, PM-required audit of the S2 phase)
+
+The sections above are the session snapshot as delivered in PR #83; the following corrections are appended rather than rewriting them (ledger discipline).
+
+- **Plan-vs-execution deviation on the README registrations.** The Plan section was drafted when the AI-017/AI-018 registration rows in `transcripts/README.md` were expected to be hand-written by the PM (Huang's RM-047 condition ①, literally typed); the executed batch instead had this session place those rows at the PM's explicit instruction, with the agent-performed provenance disclosed in PR #83 and in the AI-018 entry — the Human-interventions section above (item 2) and the yaml entry reflect the executed reality. The deviation is recorded here rather than by rewriting the Plan section.
+- **Format note.** This file is an annotated record, not a raw dump: the agent's tool/step rounds are omitted; every human supervising decision is recorded (per the transcripts/README.md excerpt/annotation policy). Its verification block's mypy line reflects the pre-requirements-install environment of that moment; the local environment later installed the declared manifest (see HANDOFF), so a rerun today reports mypy clean across all 89 files.

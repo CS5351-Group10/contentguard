@@ -428,7 +428,30 @@ entries:
       followed recorded RED runs. A mypy.ini write was blocked; no config changed.
     pr: 52
 
-  # AI-015 left available for the in-flight S2 session (#75).
+  - id: AI-015
+    date: 2026-11-21
+    agent: opencode
+    model: opencode/big-pickle
+    operator: HAN Mei (60914643)
+    session_transcript: transcripts/60914643-HAN-Mei-AI-015.md
+    scope: >-
+      src/contentguard/api/storage.py,
+      src/contentguard/api/reconciliation.py,
+      src/contentguard/api/adapter.py,
+      test/offline/test_api_intake.py,
+      test/offline/test_api_adapter.py
+    summary: >-
+      OpenCode audit of the existing S2 API slice adopted the
+      approved unblocked Stage 1 scope under the test plan in Issue #51. Performed
+      in-place repairs limited to the five listed files and verified them:
+      targeted S2 tests:51 passed; Ruff passed; mypy passed; requirements
+      validation: 31 requirements passed. No policy, prompt, model
+      configuration, architecture document, AI log, or transcript file was modified. The 422 versus committed-REJECT review-contract conflict remains unresolved.
+    human_interventions: 1
+    intervention_summary: >-
+        Human operator explicitly approved the limited unblocked.Stage 1 execution plan.
+    pr: 75
+
   - id: AI-016
     date: 2026-11-19
     agent: opencode
@@ -551,3 +574,76 @@ entries:
       PM-typed, and the PM offered to redo the rows literally if the governance owner
       requires it.
     pr: 83
+
+  # S2 review-contract alignment + Mei-approved follow-up scope (PR #75): same
+  # disclosed RM-042 path B as AI-017/AI-018, executed under HAN Mei's on-record
+  # execution-plan approval (#75 comment 2026-11-22, "=== EXECUTION PLAN APPROVED ===")
+  # with the PM operating the session; acknowledged in PR #75.
+  - id: AI-019
+    date: 2026-11-22
+    agent: zcode
+    model: zai/glm-5.3-flash
+    operator: LIU Jianwei (61022208)
+    session_transcript: transcripts/61022208-LIU-Jianwei-AI-019.md
+    scope: >-
+      src/contentguard/api/adapter.py, src/contentguard/api/errors.py,
+      src/contentguard/api/reconciliation.py, src/contentguard/api/storage.py,
+      src/contentguard/api/schemas.py, src/contentguard/api/routes/lookup.py,
+      src/contentguard/api/routes/review.py,
+      test/offline/test_api_adapter.py, test/offline/test_api_flags.py,
+      test/offline/test_api_intake.py, test/offline/test_api_lookup.py,
+      test/offline/test_api_review_queue.py, docs/ai-use-log.yaml
+    summary: >-
+      S2 review-route alignment with the policy-owned ADR-002 contract plus the
+      Mei-approved follow-up scope for PR #75: api/errors.py re-exports the
+      policy-owned MandatoryRuleViolation (route import surface unchanged); the
+      PolicyAdapter review_and_commit port binds the reviewed case to the caller's
+      expected view, synthesizes the replay key (actor = reviewer, key =
+      review:<case>:<revision>) and lets the policy-owned violation propagate for
+      the 422 mapping; reconcile hands the flags pinned at intake time to the
+      processor (replay after a runtime feature-configuration change processes
+      under the original per-intent flags); storage query failures raise typed
+      StorageUnavailable (503) instead of masquerading as legitimate absence,
+      including grant queries (fail-closed False on a missing grants domain); the
+      lookup intent fallback projects terminal failed/conflict results as 503/409 —
+      never as durable-202 pending state. This design resolves the AI-015 session
+      note "the 422 versus committed-REJECT review-contract conflict remains
+      unresolved": the 422 refusal now happens before any write, on the
+      policy-owned type, with zero consequential writes verified end-to-end by a
+      real PolicyEngine + store behind the HTTP port (approve against a mandatory
+      REJECT floor → 422 zero writes; permitted REJECT → committed once; same
+      request replay reconciles; rationale-only retry → 409 via the
+      review-request identity gate). No changes under src/contentguard/policy/**,
+      no API-side mandatory-rule evaluation, no prompt/model configuration
+      changes. Offline verification on Windows: 532 passed with only the
+      documented BUG-005 corpus-hash environmental failure, ruff clean, mypy
+      clean (89 files), GATE 3 PASS (31 requirements), git diff --check clean.
+      Implementation is delivered on branch prep/s2-revival in this repository
+      (implementation handoff comment on PR #75, 2026-11-22) for HAN Mei's
+      review; she personally performs the commit/push per her approved plan,
+      which also states the approval is not approval to merge PR #75. The PR
+      body's stale pre-#83 status section was rewritten by this session at the
+      PM's instruction (marker moved to the first line per the gate-1
+      convention), disclosed in the provenance comment on PR #75. Provenance and
+      post-lock re-verification note (per the transcripts/README.md lock rule):
+      the AI-019 transcript file and its README registration row are post-lock
+      edits placed by this session at the PM's explicit instruction — disclosed
+      in the provenance comment on PR #75 rather than presented as PM-typed; the
+      transcript states it is an annotated record without a raw dump (raw agent
+      tool/step rounds omitted); no earlier transcript text was modified.
+    human_interventions: 2
+    intervention_summary: >-
+      1: HAN Mei explicitly approved this phase's limited execution plan on the
+      record (#75 comment 2026-11-22T07:51:23Z): the four-item scope, the
+      tests-first negative coverage list, the boundaries (no policy/** changes,
+      no API-side mandatory-rule evaluation, no human-owned/frozen file edits)
+      and the review-then-personal-commit/push delivery; 2: PM opened the session
+      with the standing endgame authorization and the plan-plus-independent-audit
+      discipline (the same session instruction recorded in AI-018; counted here
+      as this phase's standing authorization). A read-only R1 audit of the
+      finished implementation (PM's standing rule) returned code pass with
+      P2-only findings; P2-1 (typed grant-query failures) was fixed in-batch and
+      re-verified, P2-2/P2-3/P2-4 recorded as accepted limitations in the commit
+      message. AI-015's real session values remain HAN Mei's to confirm during
+      her diff review; the agent did not alter that row.
+    pr: 75
