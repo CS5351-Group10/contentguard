@@ -27,10 +27,10 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
-| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 12.2 | | 46.3 | 2.04 |
-| HAN Mei (60914643) | not reported | 4.5 | not reported | | | | 4.5 | 0.20 |
-| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 2.5 | | 29.0 | 1.28 |
-| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 1.5 | | 22.75 | 1.00 |
+| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 12.2 | | 46.3 | 2.00 |
+| HAN Mei (60914643) | not reported | 4.5 | not reported | | | | 4.5 | 0.19 |
+| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 2.5 | | 29.0 | 1.25 |
+| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 3.5 | | 24.75 | 1.07 |
 | Buna DA (60105888) | unclaimed | 4.0 | 7.0 | pending | pending | | 11.0 | 0.48 |
 
 > Aggregated 2026-11-21 19:45 HKT from anchored entries in `docs/contribution-log.md`
@@ -46,8 +46,15 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 > evening (close-out batch): LI Shiyi ⑤ 1.0h (PR #84 architecture review, 11-22) and
 > LIU ⑤ tail 10.2h (11-21 22:30 → 11-22 20:15, five anchored sub-blocks, rule 6) —
 > LIU ⑤ = 12.2h / total 46.3h; LI ⑤ = 2.5h (1.5h 11-21 via PR #85 + 1.0h 11-22) /
-> total 29.0h. Weights are computed over reported totals at this 2026-11-22 #28
-> close-out (mean of the five reported totals = 22.71h): open cells stay recorded
+> total 29.0h. Supplemented 2026-11-22 (PR #87 review round): HUANG ⑤ 2.0h (11-22
+> consolidated review batch; member-reported (self) on issue #28 21:18 HKT with six
+> anchored review spans; per-review `Hours:` headers not summed per the member's
+> reconciliation) — HUANG ⑤ = 3.5h / total 24.75h. Weights are computed over reported
+> totals as of this head (`cc80ef8`, 2026-11-22 21:23 HKT); rows reported after that
+> time (Mei ③ supplement 21:41 HKT, Buna ③/⑤ supplements 21:59 HKT, reviewer 0.4h
+> 23:05 HKT) land as-reported in the next close-out PR per the issue #28 policy —
+> nothing silently dropped. Mean of the five reported totals = 23.11h; weights sum to
+> 5.00 before per-member rounding (rounded values total 4.99). Open cells stay recorded
 > as-is and are not estimated, so totals reflect reported hours only. Cell labels: blank = phase not applicable yet;
 > `pending` = not yet reported; `not reported` = no anchored entry by the phase deadline;
 > `unclaimed` = member explicitly declined without a verifiable span.
