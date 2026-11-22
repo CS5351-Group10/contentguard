@@ -264,6 +264,23 @@ def test_storage_query_failure_is_503_not_404(tmp_path: Path) -> None:
     assert audit_response.json() == {"detail": "storage unavailable"}
 
 
+def test_grant_query_failure_is_503_never_403(tmp_path: Path) -> None:
+    """REQ-FUN-001/REQ-INV-004: a grant query failure reports unavailable — it must
+    not be answered with a fabricated authorization denial."""
+
+    @dataclass
+    class FailingGrantRepository(FakeLookupRepository):
+        def has_case_grant(self, case_id: str, actor_id: str) -> bool:
+            raise StorageUnavailable("grant query failed: disk I/O error")
+
+    repository = FailingGrantRepository()
+    with _client(tmp_path, repository) as client:
+        response = client.get("/v1/cases/case-1", headers=_auth(GRANTED_MODERATOR_TOKEN))
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "storage unavailable"}
+
+
 def test_real_storage_query_failure_is_typed_and_missing_domain_is_absent(
     tmp_path: Path,
 ) -> None:
@@ -298,6 +315,8 @@ def test_real_storage_query_failure_is_typed_and_missing_domain_is_absent(
         repository.get_audit("audit-1")
     with pytest.raises(StorageUnavailable):
         repository.list_open_queue()
+    with pytest.raises(StorageUnavailable):
+        repository.has_case_grant("case-1", "moderator-1")
 
     # An intake-only store has no policy tables: legitimate absence, not failure.
     fresh = IntakeRepository(tmp_path / "intake-only.sqlite3")

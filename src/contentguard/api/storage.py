@@ -304,10 +304,17 @@ class IntakeRepository:
         """Return whether a moderator has an explicit grant for this case."""
 
         with self.connect() as conn:
-            row = conn.execute(
-                "SELECT 1 FROM case_grants WHERE case_id = ? AND actor_id = ?",
-                (case_id, actor_id),
-            ).fetchone()
+            try:
+                row = conn.execute(
+                    "SELECT 1 FROM case_grants WHERE case_id = ? AND actor_id = ?",
+                    (case_id, actor_id),
+                ).fetchone()
+            except sqlite3.OperationalError as exc:
+                # A missing grants domain means no grant is recorded: fail closed to
+                # False (absence), never fabricate an authorization decision from a
+                # broken query — a real failure raises StorageUnavailable (503).
+                if _absence_or_unavailable(exc, query="case grant"):
+                    return False
         return row is not None
 
     def get_case(self, case_id: str) -> CaseView | None:

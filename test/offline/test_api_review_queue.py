@@ -515,3 +515,26 @@ def test_review_queue_storage_failure_is_503_not_empty(tmp_path: Path) -> None:
 
     assert response.status_code == 503
     assert response.json() == {"detail": "storage unavailable"}
+
+
+def test_review_grant_query_failure_is_503_never_403(tmp_path: Path) -> None:
+    """REQ-FUN-003/REQ-INV-004: a grant query failure on the review route reports
+    unavailable — it must not be answered with a fabricated authorization denial."""
+
+    @dataclass
+    class FailingGrantRepository(FakeReviewRepository):
+        def has_case_grant(self, case_id: str, actor_id: str) -> bool:
+            raise StorageUnavailable("grant query failed: disk I/O error")
+
+    repository = FailingGrantRepository()
+    policy = FakeReviewPolicy(_committed_review())
+    with _client(tmp_path, repository, policy) as client:
+        response = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(),
+        )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "storage unavailable"}
+    assert policy.calls == []  # the authorization gate precedes any policy call

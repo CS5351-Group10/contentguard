@@ -57,7 +57,11 @@ def get_case(
                 _terminal_intent_response(intent.result)
             return JSONResponse(status_code=202, content=pending_body(intent.handoff_id))
         raise HTTPException(status_code=404, detail="case not found")
-    if not may_read_case(actor, case, repository):
+    try:
+        readable = may_read_case(actor, case, repository)
+    except StorageUnavailable as exc:
+        raise HTTPException(status_code=503, detail="storage unavailable") from exc
+    if not readable:
         raise HTTPException(status_code=403, detail="forbidden")
     return JSONResponse(
         status_code=200,
@@ -88,7 +92,11 @@ def get_audit(
         raise HTTPException(status_code=503, detail="storage unavailable") from exc
     if audit is None:
         raise HTTPException(status_code=404, detail="audit not found")
-    if not may_read_audit(actor, audit, repository):
+    try:
+        readable = may_read_audit(actor, audit, repository)
+    except StorageUnavailable as exc:
+        raise HTTPException(status_code=503, detail="storage unavailable") from exc
+    if not readable:
         raise HTTPException(status_code=403, detail="forbidden")
     return JSONResponse(
         status_code=200,

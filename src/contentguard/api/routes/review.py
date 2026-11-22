@@ -29,13 +29,13 @@ def list_review_queue(
     repository = request.app.state.review_repository
     try:
         open_items = repository.list_open_queue()
+        items = [
+            item
+            for item in open_items
+            if repository.has_case_grant(item.case_id, actor.actor_id)
+        ]
     except StorageUnavailable as exc:
         raise HTTPException(status_code=503, detail="storage unavailable") from exc
-    items = [
-        item
-        for item in open_items
-        if repository.has_case_grant(item.case_id, actor.actor_id)
-    ]
     return JSONResponse(
         status_code=200,
         content=[
@@ -65,7 +65,11 @@ def review_case(
     case = repository.get_case(case_id)
     if case is None:
         raise HTTPException(status_code=404, detail="case not found")
-    if not may_review_case(actor, case_id, repository):
+    try:
+        reviewable = may_review_case(actor, case_id, repository)
+    except StorageUnavailable as exc:
+        raise HTTPException(status_code=503, detail="storage unavailable") from exc
+    if not reviewable:
         raise HTTPException(status_code=403, detail="forbidden")
     if body.expected_revision != case.revision:
         raise HTTPException(status_code=409, detail="stale case revision")
