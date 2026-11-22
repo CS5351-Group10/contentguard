@@ -62,7 +62,10 @@ def review_case(
     """Submit current human evidence to the policy-owned review entry point."""
 
     repository = request.app.state.review_repository
-    case = repository.get_case(case_id)
+    try:
+        case = repository.get_case(case_id)
+    except StorageUnavailable as exc:
+        raise HTTPException(status_code=503, detail="storage unavailable") from exc
     if case is None:
         raise HTTPException(status_code=404, detail="case not found")
     try:
@@ -71,8 +74,12 @@ def review_case(
         raise HTTPException(status_code=503, detail="storage unavailable") from exc
     if not reviewable:
         raise HTTPException(status_code=403, detail="forbidden")
-    if body.expected_revision != case.revision:
-        raise HTTPException(status_code=409, detail="stale case revision")
+    # Replay/staleness ordering is the policy engine's, not the route's
+    # (ADR-002): a same-key retry whose expected revision predates a committed
+    # transition must reach the policy-owned replay path and reconcile the
+    # stored result — a route-level staleness 409 here would foreclose that
+    # legitimate reconciliation. A genuinely stale non-replay request is
+    # rejected by the engine as a CONFLICT (mapped to 409 below).
     policy = request.app.state.review_policy
     if policy is None:
         raise HTTPException(status_code=503, detail="review policy unavailable")

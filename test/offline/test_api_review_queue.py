@@ -267,12 +267,20 @@ def test_unauthorized_or_forged_review_has_no_policy_effect(tmp_path: Path) -> N
     assert policy.calls == []
 
 
-def test_stale_review_revision_is_409_before_policy_call(tmp_path: Path) -> None:
-    """REQ-FUN-003/REQ-INV-003 negative: stale review evidence cannot authorize action."""
+def test_stale_review_revision_conflicts_through_policy(
+    tmp_path: Path,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """REQ-FUN-003/REQ-INV-003 negative: a genuinely stale non-replay request is
+    rejected by the policy-owned currency check as a CONFLICT (409) — the route
+    delegates replay/staleness ordering to the engine instead of preempting it,
+    and the refusal writes nothing."""
 
-    repository = FakeReviewRepository()
-    policy = FakeReviewPolicy(_committed_review())
-    with _client(tmp_path, repository, policy) as client:
+    snap = snapshot_with_reject_rule
+    client, store, _repository = _real_policy_client(tmp_path, snap, advisory_medium)
+    with client:
+        before_counts = _store_counts(store)
         response = client.post(
             "/v1/cases/case-high/reviews",
             headers=_auth(GRANTED_MODERATOR_TOKEN),
@@ -280,8 +288,8 @@ def test_stale_review_revision_is_409_before_policy_call(tmp_path: Path) -> None
         )
 
     assert response.status_code == 409
-    assert response.json() == {"detail": "stale case revision"}
-    assert policy.calls == []
+    assert response.json() == {"detail": "case revision/snapshot/hash mismatch"}
+    assert _store_counts(store) == before_counts  # the engine refuses without writing
 
 
 def test_mandatory_rule_violation_is_422_without_final_effect(tmp_path: Path) -> None:
@@ -438,6 +446,31 @@ def test_real_engine_approve_against_reject_floor_is_422_with_zero_writes(
     assert (int(row[0]), str(row[1])) == (4, "escalated")
 
 
+def _refresh_projection(
+    repository: FakeReviewRepository, store: SqliteStore
+) -> None:
+    """Rebuild the API projection from the real store row — the current revision and
+    status a database-backed repository would actually serve after a commit."""
+    with store.read_connection() as conn:
+        row = conn.execute(
+            "SELECT revision, status, content_hash, policy_snapshot_id, "
+            "policy_snapshot_digest, content_text FROM cases WHERE case_id = ?",
+            ("case-high",),
+        ).fetchone()
+    assert row is not None
+    repository.cases["case-high"] = CaseView(
+        case_id="case-high",
+        owner_id="submitter-1",
+        revision=int(row[0]),
+        status=str(row[1]),
+        content_hash=str(row[2]),
+        policy_snapshot_id=str(row[3]),
+        policy_snapshot_digest=str(row[4]),
+        audit_id="audit-escalation",
+        content_text=None if row[5] is None else str(row[5]),
+    )
+
+
 def test_real_engine_permitted_reject_commits_replays_and_conflicts_via_http(
     tmp_path: Path,
     snapshot_with_reject_rule: PolicySnapshot,
@@ -445,11 +478,13 @@ def test_real_engine_permitted_reject_commits_replays_and_conflicts_via_http(
 ) -> None:
     """Acceptance matrix group 1, HTTP leg (ADR-002): a permitted requested REJECT
     commits exactly once through the API port; a same-key same-request retry
-    reconciles the stored result; a same-key retry that changes only the rationale is
-    a 409 CONFLICT (the review-request identity gate) — all with a real engine and
-    store, and the replay row persists the review-request identity."""
+    (expected_revision pinned to the pre-commit revision, against a repository
+    projection refreshed to the CURRENT stored row) reconciles the stored result; a
+    same-key retry that changes only the rationale is a 409 CONFLICT (the
+    review-request identity gate) — all with a real engine and store, and the replay
+    row persists the review-request identity."""
     snap = snapshot_with_reject_rule
-    client, store, _repository = _real_policy_client(tmp_path, snap, advisory_medium)
+    client, store, repository = _real_policy_client(tmp_path, snap, advisory_medium)
     with client:
         first = client.post(
             "/v1/cases/case-high/reviews",
@@ -462,6 +497,11 @@ def test_real_engine_permitted_reject_commits_replays_and_conflicts_via_http(
         assert first.json()["audit_id"] is not None
         counts_after_first = _store_counts(store)
         assert counts_after_first == (1, 0, 1)  # audit appended, queue resolved, replay row
+
+        # A database-backed projection now serves the post-commit row (revision 5,
+        # status rejected) — the retry's expected_revision stays at 4, so this leg
+        # exercises the replay-before-staleness ordering end to end.
+        _refresh_projection(repository, store)
 
         retry = client.post(
             "/v1/cases/case-high/reviews",
@@ -497,6 +537,96 @@ def test_real_engine_permitted_reject_commits_replays_and_conflicts_via_http(
     assert (int(row[0]), str(row[1])) == (5, "rejected")
     assert replay is not None
     assert replay[0] is not None  # the review-request identity is persisted
+
+
+def test_real_engine_current_row_replay_reconciles_and_identity_conflicts(
+    tmp_path: Path,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """Architecture re-review requirement (ADR-002 replay-before-staleness, HTTP
+    leg): with the repository projection at the CURRENT stored row (post-commit
+    revision 5, rejected), an identical retry whose expected_revision pins the
+    pre-commit revision reconciles the stored result through the policy-owned
+    replay path; a retry that changes only the rationale, or one that flips the
+    requested outcome REJECT→APPROVE under the matching mandatory REJECT floor,
+    conflicts via the review-request identity gate — all with no additional
+    writes to case, queue, audit or replay state."""
+    snap = snapshot_with_reject_rule
+    client, store, repository = _real_policy_client(tmp_path, snap, advisory_medium)
+    with client:
+        first = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(requested_outcome="reject"),
+        )
+        assert first.status_code == 200
+        counts_after_first = _store_counts(store)
+        assert counts_after_first == (1, 0, 1)
+
+        _refresh_projection(repository, store)
+
+        identical = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(requested_outcome="reject"),
+        )
+        assert identical.status_code == 200
+        assert identical.json()["status"] == "committed"
+        assert identical.json()["decision_id"] == first.json()["decision_id"]
+        assert identical.json()["audit_id"] == first.json()["audit_id"]
+        assert _store_counts(store) == counts_after_first
+
+        rationale_flip = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(
+                requested_outcome="reject",
+                rationale="a different moderator rationale",
+            ),
+        )
+        assert rationale_flip.status_code == 409
+        assert rationale_flip.json() == {
+            "detail": "replay key reused with a different payload"
+        }
+        assert _store_counts(store) == counts_after_first
+
+        outcome_flip = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(requested_outcome="approve"),
+        )
+        assert outcome_flip.status_code == 409
+        assert outcome_flip.json() == {
+            "detail": "replay key reused with a different payload"
+        }
+        assert _store_counts(store) == counts_after_first
+
+
+def test_review_case_read_failure_is_503_with_zero_policy_calls(
+    tmp_path: Path,
+) -> None:
+    """Architecture re-review requirement (REQ-FUN-001/REQ-INV-004): a query failure
+    on the review route's earliest storage read (the case lookup) maps to 503 — not
+    an unhandled server error — and no policy call happens."""
+
+    @dataclass
+    class FailingReadRepository(FakeReviewRepository):
+        def get_case(self, case_id: str) -> CaseView | None:
+            raise StorageUnavailable("case read failed: disk I/O error")
+
+    repository = FailingReadRepository()
+    policy = FakeReviewPolicy(_committed_review())
+    with _client(tmp_path, repository, policy) as client:
+        response = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(),
+        )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "storage unavailable"}
+    assert policy.calls == []
 
 
 def test_review_queue_storage_failure_is_503_not_empty(tmp_path: Path) -> None:
