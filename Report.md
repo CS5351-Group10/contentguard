@@ -1,6 +1,6 @@
 # Report.md — Process Report (D6)
 
-> **Status: ENDGAME — 2026-11-21 22:45 HKT (post-#81).** §2 man-hours aggregated (#77/#78; open cells recorded as-is); §7 all five member reflections assembled verbatim from issue #27 (#81). ADR-002 approved and merged (#79). S2 API delivered as an honest partial in draft PR #75 — merge pending the ADR-002 implementation (issue #49). Transcript canonical stages 2/3/4 landed (#76); stage 1 (Mei) and stage 5 (Buna) open.
+> **Status: ENDGAME — 2026-11-22 HKT (post-#84).** §2 man-hours aggregated (#77/#78 + 11-22 tail batch; open cells recorded as-is); §7 all five member reflections assembled verbatim from issue #27 (#81). ADR-002 `review_and_commit` policy kernel merged (#83, `257a97a`); S2 API intake/lookup/review merged (#75, `9e189e9`) — the S1/S2 review-contract mismatch is closed; S2 trace evidence flipped to delivered reality (#84, `bc30315`). Transcript canonical stages 2/3/4 landed (#76); stage 1 (Mei) and stage 5 (Buna) open as honest gaps.
 > Final report: ≤ 10,000 words (excluding diagrams), more than 15 pages, single-line spacing.
 
 ## 1. Team
@@ -27,11 +27,11 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
-| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 2.0 | | 36.1 | pending |
-| HAN Mei (60914643) | not reported | 4.5 | not reported | | | | 4.5 | pending |
-| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | | | 26.5 | pending |
-| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 1.5 | | 22.75 | pending |
-| Buna DA (60105888) | unclaimed | 4.0 | 7.0 | pending | pending | | 11.0 | pending |
+| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 12.2 | | 46.3 | 2.07 |
+| HAN Mei (60914643) | not reported | 4.5 | not reported | | | | 4.5 | 0.20 |
+| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 1.0 | | 27.5 | 1.23 |
+| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 1.5 | | 22.75 | 1.02 |
+| Buna DA (60105888) | unclaimed | 4.0 | 7.0 | pending | pending | | 11.0 | 0.49 |
 
 > Aggregated 2026-11-21 19:45 HKT from anchored entries in `docs/contribution-log.md`
 > (issue #28); LIU ④/⑤ backfilled 20:20 HKT per rule 6 (member-authorized, GitHub-
@@ -42,8 +42,13 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 > member-reported; phase ① is explicitly unclaimed (no verifiable time span — recorded
 > as-is, not estimated). HUANG ④ = 16.0h across 11-18→20; ⑤ = 1.5h so far on 11-21
 > (running). Still open: HAN Mei phase ①/③ and HUANG phase ① (no anchored entry by
-> their deadlines — kept pending, not estimated), Buna ④/⑤. Weights are computed only
-> after all cells land (method above). Cell labels: blank = phase not applicable yet;
+> their deadlines — kept pending, not estimated), Buna ④/⑤. Supplemented 2026-11-22
+> evening (close-out batch): LI Shiyi ⑤ 1.0h (PR #84 architecture review, 11-22) and
+> LIU ⑤ tail 10.2h (11-21 22:30 → 11-22 20:15, five anchored sub-blocks, rule 6) —
+> LIU ⑤ = 12.2h / total 46.3h; LI ⑤ = 1.0h / total 27.5h. Weights are computed over
+> reported totals at this 2026-11-22 #28 close-out (mean of the five reported totals
+> = 22.41h): open cells stay recorded as-is and are not estimated, so totals reflect
+> reported hours only. Cell labels: blank = phase not applicable yet;
 > `pending` = not yet reported; `not reported` = no anchored entry by the phase deadline;
 > `unclaimed` = member explicitly declined without a verifiable span.
 
