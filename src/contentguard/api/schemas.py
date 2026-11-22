@@ -53,6 +53,7 @@ class CaseView:
     policy_snapshot_id: str
     policy_snapshot_digest: str
     audit_id: str | None
+    content_text: str | None = None
 
 
 @dataclass(frozen=True)

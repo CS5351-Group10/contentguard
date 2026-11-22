@@ -12,10 +12,17 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from contentguard.analysis.contracts import AdvisoryResult
+from contentguard.api.adapter import PolicyAdapter
 from contentguard.api.app import create_app
 from contentguard.api.config import ActorConfig, ApiConfig
 from contentguard.api.errors import MandatoryRuleViolation
 from contentguard.api.schemas import CaseView, ProcessingResult, QueueView
+from contentguard.escalation.contracts import QueueEntry
+from contentguard.escalation.repository import QueueRepository
+from contentguard.policy.engine import PolicyEngine
+from contentguard.policy.snapshot import PolicySnapshot
+from contentguard.policy.store import SqliteStore
 
 GRANTED_MODERATOR_TOKEN = "granted-reviewer-token"
 UNGRANTED_MODERATOR_TOKEN = "ungranted-reviewer-token"
@@ -140,7 +147,7 @@ def _committed_review() -> ProcessingResult:
 def _client(
     tmp_path: Path,
     repository: FakeReviewRepository,
-    policy: FakeReviewPolicy,
+    policy: FakeReviewPolicy | PolicyAdapter,
 ) -> TestClient:
     return TestClient(
         create_app(
@@ -314,3 +321,178 @@ def test_high_severity_case_has_no_final_effect_before_valid_review(
     assert repository.get_case("case-high") == _case()
     assert repository.get_case("case-high").status == "escalated"  # type: ignore[union-attr]
     assert policy.calls == []
+
+
+# --- real policy engine + store: the ADR-002 acceptance-matrix HTTP leg ----------------
+
+
+def _seed_escalated_case(store: SqliteStore, snapshot: PolicySnapshot) -> None:
+    """Seed a reviewable escalated case row (pinned medium-severity evidence) and an
+    open escalation queue entry in a real store."""
+    with store.transaction() as conn:
+        store.activate_snapshot(conn, snapshot)
+        conn.execute(
+            """
+            INSERT INTO cases (
+                case_id, revision, status, content_hash, policy_snapshot_id,
+                policy_snapshot_digest, content_text, advisory_verdict,
+                advisory_severity, advisory_model_id, advisory_model_version,
+                analysis_failure_code, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "case-high",
+                4,
+                "escalated",
+                "c" * 64,
+                snapshot.snapshot_id,
+                snapshot.digest,
+                "seeded content",
+                "violate",
+                "medium",
+                "model-x",
+                "2026-11",
+                None,
+                "2026-11-22T00:00:00+00:00",
+            ),
+        )
+        QueueRepository.enqueue(
+            conn,
+            QueueEntry(
+                case_id="case-high",
+                case_revision=4,
+                outcome="escalate",
+                reason_id="RULE-HIGH-SEVERITY",
+                enqueued_at="2026-11-22T00:00:00+00:00",
+            ),
+        )
+
+
+def _real_case_view(snapshot: PolicySnapshot) -> CaseView:
+    """The API projection of the seeded real row, including its content text."""
+    return CaseView(
+        case_id="case-high",
+        owner_id="submitter-1",
+        revision=4,
+        status="escalated",
+        content_hash="c" * 64,
+        policy_snapshot_id=snapshot.snapshot_id,
+        policy_snapshot_digest=snapshot.digest,
+        audit_id="audit-escalation",
+        content_text="seeded content",
+    )
+
+
+def _store_counts(store: SqliteStore) -> tuple[int, int, int]:
+    """Return (audit row count, open queue depth, replay record count)."""
+    with store.read_connection() as conn:
+        audit = conn.execute("SELECT COUNT(*) FROM audit_records").fetchone()[0]
+        queue = QueueRepository.count(conn)
+        replay = conn.execute("SELECT COUNT(*) FROM commits").fetchone()[0]
+    return int(audit), int(queue), int(replay)
+
+
+def _real_policy_client(
+    tmp_path: Path,
+    snapshot: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> tuple[TestClient, SqliteStore, FakeReviewRepository]:
+    """Wire the API to a real PolicyEngine over a real store (repository stays the
+    API-owned projection fake: engine + store are the safety-critical pair)."""
+    store = SqliteStore(f"{tmp_path}/policy.db")
+    store.initialize()
+    _seed_escalated_case(store, snapshot)
+    repository = FakeReviewRepository(cases={"case-high": _real_case_view(snapshot)})
+    adapter = PolicyAdapter(engine=PolicyEngine(snapshot), store=store)
+    return _client(tmp_path, repository, adapter), store, repository
+
+
+def test_real_engine_approve_against_reject_floor_is_422_with_zero_writes(
+    tmp_path: Path,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """Acceptance matrix group 1, HTTP leg (ADR-002): a real engine + store behind the
+    API port refuses a requested APPROVE that the mandatory REJECT floor would
+    override — 422 with zero writes: no case revision bump, no queue change, no audit
+    row, no replay record."""
+    snap = snapshot_with_reject_rule
+    client, store, _repository = _real_policy_client(tmp_path, snap, advisory_medium)
+    with client:
+        before_counts = _store_counts(store)
+        response = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(),
+        )
+
+    assert response.status_code == 422
+    assert "mandatory rule" in response.json()["detail"]
+    assert _store_counts(store) == before_counts
+    with store.read_connection() as conn:
+        row = conn.execute(
+            "SELECT revision, status FROM cases WHERE case_id = ?", ("case-high",)
+        ).fetchone()
+    assert row is not None
+    assert (int(row[0]), str(row[1])) == (4, "escalated")
+
+
+def test_real_engine_permitted_reject_commits_replays_and_conflicts_via_http(
+    tmp_path: Path,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """Acceptance matrix group 1, HTTP leg (ADR-002): a permitted requested REJECT
+    commits exactly once through the API port; a same-key same-request retry
+    reconciles the stored result; a same-key retry that changes only the rationale is
+    a 409 CONFLICT (the review-request identity gate) — all with a real engine and
+    store, and the replay row persists the review-request identity."""
+    snap = snapshot_with_reject_rule
+    client, store, _repository = _real_policy_client(tmp_path, snap, advisory_medium)
+    with client:
+        first = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(requested_outcome="reject"),
+        )
+        assert first.status_code == 200
+        assert first.json()["status"] == "committed"
+        assert first.json()["outcome"] == "reject"
+        assert first.json()["audit_id"] is not None
+        counts_after_first = _store_counts(store)
+        assert counts_after_first == (1, 0, 1)  # audit appended, queue resolved, replay row
+
+        retry = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(requested_outcome="reject"),
+        )
+        assert retry.status_code == 200
+        assert retry.json()["decision_id"] == first.json()["decision_id"]
+        assert retry.json()["audit_id"] == first.json()["audit_id"]
+        assert _store_counts(store) == counts_after_first  # reconciled, no new writes
+
+        edited = client.post(
+            "/v1/cases/case-high/reviews",
+            headers=_auth(GRANTED_MODERATOR_TOKEN),
+            json=_review_payload(
+                requested_outcome="reject",
+                rationale="a different moderator rationale",
+            ),
+        )
+        assert edited.status_code == 409
+        assert edited.json() == {"detail": "replay key reused with a different payload"}
+        assert _store_counts(store) == counts_after_first
+
+    with store.read_connection() as conn:
+        row = conn.execute(
+            "SELECT revision, status FROM cases WHERE case_id = ?", ("case-high",)
+        ).fetchone()
+        replay = conn.execute(
+            "SELECT review_request_hash FROM commits WHERE replay_key = ?",
+            ("review:case-high:4",),
+        ).fetchone()
+    assert row is not None
+    assert (int(row[0]), str(row[1])) == (5, "rejected")
+    assert replay is not None
+    assert replay[0] is not None  # the review-request identity is persisted

@@ -129,6 +129,9 @@ class FakePolicyEngine:
         self.calls.append(kwargs)
         return self.result
 
+    def review_and_commit(self, **kwargs: Any) -> CommitResult:
+        raise AssertionError("intake adapter tests must not enter the review port")
+
 
 def _invoke(
     adapter: PolicyAdapter,

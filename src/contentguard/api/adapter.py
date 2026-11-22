@@ -15,20 +15,24 @@ from contentguard.analysis.contracts import (
     AnalysisFailure,
 )
 from contentguard.policy.contracts import (
+    ActorRef,
+    CaseSnapshot,
+    CaseStatus,
+    CommitResult,
+    CommitStatus,
+    FailureCode,
+    Outcome,
+    ReplayKey,
+    ReviewRequest,
+)
+from contentguard.policy.contracts import (
     AdvisoryResult as PolicyAdvisory,
 )
 from contentguard.policy.contracts import (
     AnalysisFailure as PolicyFailure,
 )
-from contentguard.policy.contracts import (
-    CaseSnapshot,
-    CommitResult,
-    CommitStatus,
-    FailureCode,
-    ReplayKey,
-)
 
-from .schemas import ProcessingResult, ProcessingStatus
+from .schemas import CaseView, ProcessingResult, ProcessingStatus
 
 
 class _PolicyEntryPoint(Protocol):
@@ -44,12 +48,24 @@ class _PolicyEntryPoint(Protocol):
         replay_key: ReplayKey,
     ) -> CommitResult: ...
 
+    def review_and_commit(
+        self,
+        *,
+        store: Any,
+        case: CaseSnapshot,
+        content_text: str,
+        review: Any,
+        expected_revision: int,
+        replay_key: ReplayKey,
+    ) -> CommitResult: ...
+
 
 class PolicyAdapter:
     """Project validated S3 output and invoke the sole policy commit entry point."""
 
-    def __init__(self, engine: _PolicyEntryPoint) -> None:
+    def __init__(self, engine: _PolicyEntryPoint, *, store: Any | None = None) -> None:
         self._engine = engine
+        self._store = store
 
     def evaluate_and_commit(
         self,
@@ -81,6 +97,71 @@ class PolicyAdapter:
             expected_revision=expected_revision,
             replay_key=replay_key,
         )
+
+    def review_and_commit(
+        self,
+        *,
+        case: CaseView,
+        reviewer_id: str,
+        expected_revision: int,
+        requested_outcome: str,
+        rationale: str,
+    ) -> ProcessingResult:
+        """Run the policy-owned review transition for one authorized review (ADR-002).
+
+        The route has already authenticated the actor and checked the moderator grant;
+        this port binds the reviewed case to the caller's expected view, synthesizes
+        the replay key from the reviewer and the reviewed revision, and lets the
+        policy-owned ``MandatoryRuleViolation`` propagate for the route's 422 mapping.
+        """
+        if self._store is None:
+            raise ValueError("review port requires a policy store at construction")
+        snapshot = CaseSnapshot(
+            case_id=case.case_id,
+            revision=expected_revision,
+            status=CaseStatus(case.status),
+            content_hash=case.content_hash,
+            policy_snapshot_id=case.policy_snapshot_id,
+            policy_snapshot_digest=case.policy_snapshot_digest,
+        )
+        review = ReviewRequest(
+            reviewer=ActorRef(actor_id=reviewer_id, role="moderator"),
+            case_id=case.case_id,
+            expected_revision=expected_revision,
+            requested_outcome=Outcome(requested_outcome),
+            rationale=rationale,
+            policy_snapshot_id=case.policy_snapshot_id,
+            policy_snapshot_digest=case.policy_snapshot_digest,
+            content_hash=case.content_hash,
+        )
+        replay_key = ReplayKey(
+            actor_id=reviewer_id,
+            idempotency_key=f"review:{case.case_id}:{expected_revision}",
+        )
+        commit = self._engine.review_and_commit(
+            store=self._store,
+            case=snapshot,
+            # content_text is policy-owned row state; legacy NULL rows prefilter as
+            # empty, which cannot manufacture a prefilter high-severity escalation.
+            content_text=case.content_text or "",
+            review=review,
+            expected_revision=expected_revision,
+            replay_key=replay_key,
+        )
+        if commit.status is CommitStatus.COMMITTED:
+            # Review invariant (ADR-002): a committed review's outcome equals the
+            # requested one — an APPROVE that a mandatory REJECT floor would override
+            # never commits (it raises before any write).
+            return ProcessingResult(
+                status="committed",
+                case_id=case.case_id,
+                case_revision=commit.case_revision,
+                decision_id=commit.decision_id,
+                audit_id=commit.audit_id,
+                outcome=requested_outcome,
+                message=commit.message,
+            )
+        return to_processing_result(commit, case_id=case.case_id)
 
 
 def to_processing_result(

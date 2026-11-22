@@ -298,7 +298,7 @@ class IntakeRepository:
                 row = conn.execute(
                     """
                     SELECT c.case_id, i.actor_id, c.revision, c.status, c.content_hash,
-                           c.policy_snapshot_id, c.policy_snapshot_digest,
+                           c.policy_snapshot_id, c.policy_snapshot_digest, c.content_text,
                            json_extract(i.result_json, '$.audit_id')
                     FROM cases c
                     LEFT JOIN intake_intents i
@@ -320,7 +320,8 @@ class IntakeRepository:
             content_hash=str(row[4]),
             policy_snapshot_id=str(row[5]),
             policy_snapshot_digest=str(row[6]),
-            audit_id=None if row[7] is None else str(row[7]),
+            content_text=None if row[7] is None else str(row[7]),
+            audit_id=None if row[8] is None else str(row[8]),
         )
 
     def get_audit(self, audit_id: str) -> AuditView | None:
