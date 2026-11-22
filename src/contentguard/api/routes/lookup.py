@@ -10,9 +10,20 @@ from fastapi.responses import JSONResponse
 from ..authz import may_read_audit, may_read_case
 from ..deps import require_actor
 from ..intake_projection import committed_body, pending_body
-from ..schemas import RequestContext
+from ..schemas import ProcessingResult, RequestContext
+from ..storage import StorageUnavailable
 
 router = APIRouter(prefix="/v1")
+
+
+def _terminal_intent_response(result: ProcessingResult) -> JSONResponse:
+    """Project a terminal intake result truthfully — never as pending success."""
+
+    if result.status == "conflict":
+        raise HTTPException(status_code=409, detail=result.message)
+    if result.status == "failed":
+        raise HTTPException(status_code=503, detail=result.message)
+    raise ValueError(f"unexpected terminal intake status: {result.status}")
 
 
 @router.get("/cases/{case_id}")
@@ -24,12 +35,26 @@ def get_case(
     """Return an authorized case or a truthful API-owned reconciliation state."""
 
     repository = request.app.state.lookup_repository
-    case = repository.get_case(case_id)
+    try:
+        case = repository.get_case(case_id)
+    except StorageUnavailable as exc:
+        raise HTTPException(status_code=503, detail="storage unavailable") from exc
     if case is None:
         intent = request.app.state.intake_repository.get_intent(case_id)
         if intent is not None and intent.actor_id == actor.actor_id:
-            if intent.result is not None and intent.result.status == "committed":
-                return JSONResponse(status_code=200, content=committed_body(intent.result))
+            if intent.result is not None:
+                if intent.result.status == "committed":
+                    return JSONResponse(
+                        status_code=200, content=committed_body(intent.result)
+                    )
+                if intent.result.status == "pending_unconfirmed":
+                    return JSONResponse(
+                        status_code=202, content=pending_body(intent.handoff_id)
+                    )
+                # Terminal failed/conflict results are durable outcomes, not
+                # pending state: projecting them as 202 would claim that work is
+                # still reconciling (REQ-FUN-001, REQ-INV-004).
+                _terminal_intent_response(intent.result)
             return JSONResponse(status_code=202, content=pending_body(intent.handoff_id))
         raise HTTPException(status_code=404, detail="case not found")
     if not may_read_case(actor, case, repository):
@@ -57,7 +82,10 @@ def get_audit(
     """Return immutable decision evidence after owner/grant authorization."""
 
     repository = request.app.state.lookup_repository
-    audit = repository.get_audit(audit_id)
+    try:
+        audit = repository.get_audit(audit_id)
+    except StorageUnavailable as exc:
+        raise HTTPException(status_code=503, detail="storage unavailable") from exc
     if audit is None:
         raise HTTPException(status_code=404, detail="audit not found")
     if not may_read_audit(actor, audit, repository):

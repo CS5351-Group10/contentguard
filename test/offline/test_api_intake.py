@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import sqlite3
 from collections import deque
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -37,7 +37,7 @@ class FakeProcessor:
     """Deterministic S3-to-S1 boundary fake; it never executes policy itself."""
 
     results: deque[ProcessingResult | Exception]
-    calls: list[tuple[str, str, str]] = field(default_factory=list)
+    calls: list[tuple[str, str, str, dict[str, bool]]] = field(default_factory=list)
 
     def process(
         self,
@@ -45,8 +45,9 @@ class FakeProcessor:
         handoff_id: str,
         actor_id: str,
         text: str,
+        effective_flags: Mapping[str, bool],
     ) -> ProcessingResult:
-        self.calls.append((handoff_id, actor_id, text))
+        self.calls.append((handoff_id, actor_id, text, dict(effective_flags)))
         result = self.results.popleft()
         if isinstance(result, Exception):
             raise result
@@ -385,7 +386,9 @@ def test_expired_pending_intent_is_recovered_once_without_duplicate_effect(
 
     assert result is not None
     assert result.status == "committed"
-    assert processor.calls == [(expired.handoff_id, ACTOR_ID, "expired text")]
+    assert processor.calls == [
+        (expired.handoff_id, ACTOR_ID, "expired text", {})
+    ]
     assert repository.list_recoverable_pending(before=datetime.now(UTC), limit=10) == ()
     stored = repository.get_intent(expired.handoff_id)
     assert stored is not None and stored.result == result

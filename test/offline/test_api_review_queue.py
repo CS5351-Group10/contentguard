@@ -18,6 +18,7 @@ from contentguard.api.app import create_app
 from contentguard.api.config import ActorConfig, ApiConfig
 from contentguard.api.errors import MandatoryRuleViolation
 from contentguard.api.schemas import CaseView, ProcessingResult, QueueView
+from contentguard.api.storage import StorageUnavailable
 from contentguard.escalation.contracts import QueueEntry
 from contentguard.escalation.repository import QueueRepository
 from contentguard.policy.engine import PolicyEngine
@@ -496,3 +497,21 @@ def test_real_engine_permitted_reject_commits_replays_and_conflicts_via_http(
     assert (int(row[0]), str(row[1])) == (5, "rejected")
     assert replay is not None
     assert replay[0] is not None  # the review-request identity is persisted
+
+
+def test_review_queue_storage_failure_is_503_not_empty(tmp_path: Path) -> None:
+    """REQ-FUN-001/REQ-INV-004: a queue query failure reports unavailable — it must
+    not masquerade as a legitimate empty queue."""
+
+    @dataclass
+    class FailingQueueRepository(FakeReviewRepository):
+        def list_open_queue(self) -> tuple[QueueView, ...]:
+            raise StorageUnavailable("queue query failed: disk I/O error")
+
+    repository = FailingQueueRepository()
+    policy = FakeReviewPolicy(_committed_review())
+    with _client(tmp_path, repository, policy) as client:
+        response = client.get("/v1/review-queue", headers=_auth(GRANTED_MODERATOR_TOKEN))
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "storage unavailable"}

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Protocol
 
 from .config import ApiConfig
@@ -17,6 +18,7 @@ class SubmissionProcessor(Protocol):
         handoff_id: str,
         actor_id: str,
         text: str,
+        effective_flags: Mapping[str, bool],
     ) -> ProcessingResult: ...
 
 
@@ -38,6 +40,11 @@ def reconcile(
             handoff_id=intent.handoff_id,
             actor_id=intent.actor_id,
             text=intent.content_text,
+            # The flags pinned at intake time — never the current runtime
+            # configuration — decide the processing behavior, so a replay after a
+            # runtime feature-configuration change processes under the original
+            # effective flags (REQ-FUN-007, REQ-INV-001).
+            effective_flags=dict(intent.effective_flags),
         )
     except ProcessingUnavailable as exc:
         repository.release_pending(intent.handoff_id)

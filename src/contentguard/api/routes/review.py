@@ -12,6 +12,7 @@ from ..deps import require_actor
 from ..errors import MandatoryRuleViolation
 from ..intake_projection import committed_body
 from ..schemas import RequestContext, ReviewRequestBody
+from ..storage import StorageUnavailable
 
 router = APIRouter(prefix="/v1")
 
@@ -26,9 +27,13 @@ def list_review_queue(
     if actor.actor_type != "moderator" or "review-queue:read" not in actor.scopes:
         raise HTTPException(status_code=403, detail="forbidden")
     repository = request.app.state.review_repository
+    try:
+        open_items = repository.list_open_queue()
+    except StorageUnavailable as exc:
+        raise HTTPException(status_code=503, detail="storage unavailable") from exc
     items = [
         item
-        for item in repository.list_open_queue()
+        for item in open_items
         if repository.has_case_grant(item.case_id, actor.actor_id)
     ]
     return JSONResponse(

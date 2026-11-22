@@ -61,6 +61,26 @@ class IdempotencyConflict(ValueError):
     """An actor reused an idempotency key with a different payload hash."""
 
 
+class StorageUnavailable(RuntimeError):
+    """A durable-state query failed; absence of evidence was not established.
+
+    Routes must map this to an unavailable (503) response — never to a 404, which
+    would fabricate a legitimate-absence claim from a broken query (REQ-FUN-001,
+    REQ-INV-004).
+    """
+
+
+def _absence_or_unavailable(exc: sqlite3.OperationalError, *, query: str) -> bool:
+    """Return True when the error means the queried domain does not exist at all.
+
+    An intake-only deployment legitimately has no policy tables, so a missing
+    table is a truthful absence; any other operational failure is unavailable.
+    """
+    if "no such table" in str(exc).lower():
+        return True
+    raise StorageUnavailable(f"{query} query failed: {exc}") from exc
+
+
 @dataclass(frozen=True)
 class IntakeIntent:
     """Durable, non-authoritative accepted-intake state (REQ-FUN-001)."""
@@ -308,8 +328,9 @@ class IntakeRepository:
                     """,
                     (case_id,),
                 ).fetchone()
-            except sqlite3.OperationalError:
-                return None
+            except sqlite3.OperationalError as exc:
+                if _absence_or_unavailable(exc, query="case"):
+                    return None
         if row is None:
             return None
         return CaseView(
@@ -342,8 +363,9 @@ class IntakeRepository:
                     """,
                     (audit_id,),
                 ).fetchone()
-            except sqlite3.OperationalError:
-                return None
+            except sqlite3.OperationalError as exc:
+                if _absence_or_unavailable(exc, query="audit"):
+                    return None
         if row is None:
             return None
         return AuditView(
@@ -373,8 +395,9 @@ class IntakeRepository:
                     ORDER BY q.enqueued_at, q.case_id
                     """
                 ).fetchall()
-            except sqlite3.OperationalError:
-                return ()
+            except sqlite3.OperationalError as exc:
+                if _absence_or_unavailable(exc, query="queue"):
+                    return ()
         return tuple(
             QueueView(
                 case_id=str(row[0]),

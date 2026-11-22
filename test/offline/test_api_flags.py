@@ -22,7 +22,7 @@ from contentguard.api.config import (
     ConfigurationError,
     FeatureFlags,
 )
-from contentguard.api.schemas import ProcessingResult
+from contentguard.api.schemas import ProcessingResult, ProcessingUnavailable
 
 TOKEN = "flag-test-token"
 
@@ -180,3 +180,74 @@ def test_no_flag_state_disables_policy_mediation(tmp_path: Path, enabled: bool) 
     assert response.status_code == 201
     assert response.json()["audit_id"] == "audit-flags"
     assert len(processor.calls) == 1
+
+
+def test_replay_after_config_change_uses_pinned_intent_flags(tmp_path: Path) -> None:
+    """REQ-FUN-007/REQ-INV-001: a replay after a runtime feature-configuration change
+    processes under the flags pinned at intake time — never the current configuration."""
+
+    shared_db = tmp_path / "pinned-flags.sqlite3"
+    pinned_flags = FeatureFlags(reconsideration_enabled=True)
+    changed_flags = FeatureFlags(reconsideration_enabled=False)
+
+    def build_config(flags: FeatureFlags) -> ApiConfig:
+        return ApiConfig(
+            database_path=shared_db,
+            api_tokens={
+                _digest(TOKEN): ActorConfig(
+                    actor_id="submitter-1",
+                    actor_type="submitter",
+                    scopes=frozenset({"submission:create"}),
+                )
+            },
+            intake_max_bytes=16_384,
+            lease_seconds=30,
+            recovery_interval_seconds=5,
+            max_attempts=5,
+            start_recovery_worker=False,
+            feature_flags=flags,
+        )
+
+    class _UnavailableProcessor:
+        """First processing attempt fails transiently; the intent stays pending."""
+
+        def process(self, **kwargs: object) -> ProcessingResult:
+            raise ProcessingUnavailable(
+                "provider_unavailable", "analysis provider offline"
+            )
+
+    class _RecordingProcessor:
+        """Second attempt records the effective flags it was handed."""
+
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def process(self, **kwargs: object) -> ProcessingResult:
+            self.calls.append(kwargs)
+            return _committed()
+
+    first_app = create_app(
+        config=build_config(pinned_flags), processor=_UnavailableProcessor()
+    )
+    recording = _RecordingProcessor()
+    second_app = create_app(config=build_config(changed_flags), processor=recording)
+
+    with TestClient(first_app) as client:
+        pending = client.post(
+            "/v1/submissions",
+            headers=_headers("pinned-flags-replay"),
+            json={"text": "please review this text"},
+        )
+        assert pending.status_code == 202
+
+    with TestClient(second_app) as client:
+        replayed = client.post(
+            "/v1/submissions",
+            headers=_headers("pinned-flags-replay"),
+            json={"text": "please review this text"},
+        )
+
+    assert replayed.status_code == 200
+    assert len(recording.calls) == 1
+    assert recording.calls[0]["effective_flags"] == pinned_flags.as_dict()
+    assert recording.calls[0]["effective_flags"] != changed_flags.as_dict()
