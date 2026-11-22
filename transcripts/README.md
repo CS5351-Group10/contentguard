@@ -51,7 +51,7 @@ committing**: replace any credential with `[REDACTED]`. The team reviews each fi
 before commit (risk RSK-4). Never commit a `.env`/token file — `.gitignore` also
 guards this, but sanitization is the human responsibility here.
 
-## Inventory - the five canonical files (main, as of 2026-11-22 HKT)
+## Inventory — the five canonical files (main, as of 2026-11-22 HKT)
 
 | Canonical file | Member | Pipeline stage / session line | Status |
 |---|---|---|---|
@@ -73,7 +73,7 @@ markers; a file without markers does not count as done.
 | 2 | Architecture candidate generation & evaluation | `60938585-LI-Shiyi.md` | LI Shiyi | ✅ canonical stage-2 excerpt landed via #76 (annotated, one inline marker); the S3 build record is preserved at `60938585-LI-Shiyi-s3.md` as stage-4 supporting |
 | 3 | Plan approval before code | `61022208-LIU-Jianwei.md`, `60368210-HUANG-Hongwei.md` | PM / HUANG Hongwei | ✅ both present, inline markers in place (#73 added HUANG's) |
 | 4 | Build + verification compliance | same two files as row 3 | PM / HUANG Hongwei | ✅ both present, inline markers in place |
-| 5 | Architecture revision based on test evidence | `60105888-DA-Buna.md` | Buna DA | ✅ canonical Stage-5 excerpt with inline intervention markers; `-AI003` / `-AI004` / `-AI012` remain supporting |
+| 5 | Architecture revision based on test evidence | `60105888-DA-Buna.md` + ADR-002 (#79, `20f5f7b`) | Buna DA | ✅ Stage-5 excerpt: release-acceptance audit and test-evidence review (five inline markers); the architecture revision is recorded in ADR-002, not in this transcript |
 
 Collective intervention-type coverage across the canonical set: approve ✓,
 redirect ✓, reject ✓, interrupt ✓ (HUANG canonical, "Accidental interruption").
