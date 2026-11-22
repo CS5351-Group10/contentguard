@@ -30,6 +30,12 @@
   the item is reverted to the queue; the anomaly surfaces through the audit log
   reviewed by the moderation team (no paging infrastructure is in scope for this
   build — see runtime policy catalog R-1/R-12 for the hold semantics)
+- **Boundary (ADR-002):** REQ-INV-002's typed-failure commit requirement applies to
+  **moderation decisions** (analysis failures → HOLD/ESCALATE). A
+  `MandatoryRuleViolation` raised by review-transition validation
+  (`PolicyEngine.review_and_commit`) is an action rejection, not a moderation
+  decision — it deliberately writes nothing, and this invariant's negative tests are
+  unaffected.
 
 ## INV-3 — High-severity always reaches human review
 
