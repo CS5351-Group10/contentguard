@@ -92,6 +92,8 @@ completeness is not required.
 | `60914643-HAN-Mei-AI-002.md`, `60914643-HAN-Mei-AI-006.md` | requirements validator / tests | idem |
 | `60938585-LI-Shiyi-s3.md` | S3 analysis build (PR #52) | original S3 build-session record; preserved as stage-4 supporting after #76 installed the stage-2 canonical excerpt |
 | `60105888-DA-Buna-AI003.md`, `60105888-DA-Buna-AI004.md`, `60105888-DA-Buna-AI012.md` | eval corpus build; release acceptance tests | idem |
+| `61022208-LIU-Jianwei-AI-017.md` | ADR-002 S1 implementation (AI-017, PR #83) | non-OpenCode agent session (zcode), disclosed per RM-042 |
+| `61022208-LIU-Jianwei-AI-018.md` | ADR-002 S1 review-response fix (AI-018, PR #83) | non-OpenCode agent session (zcode), disclosed per RM-042; row and file placed by the session at the PM's explicit instruction (2026-11-22), disclosed in PR #83 |
 
 > PR #76 resolved the naming caveat: the canonical `60938585-LI-Shiyi.md` is the
 > stage-2 candidate-evaluation excerpt; the S3 build session is preserved as
