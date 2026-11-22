@@ -50,7 +50,7 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 > consolidated review batch; member-reported (self) on issue #28 21:18 HKT with six
 > anchored review spans; per-review `Hours:` headers not summed per the member's
 > reconciliation) — HUANG ⑤ = 3.5h / total 24.75h. Weights are computed over reported
-> totals as of this head (`cc80ef8`, 2026-11-22 21:23 HKT); rows reported after that
+> totals as of head `cc80ef8` (2026-11-22 21:23 HKT); rows reported after that
 > time (Mei ③ supplement 21:41 HKT, Buna ③/⑤ supplements 21:59 HKT, reviewer 0.4h
 > 23:05 HKT) land as-reported in the next close-out PR per the issue #28 policy —
 > nothing silently dropped. Mean of the five reported totals = 23.11h; weights sum to
