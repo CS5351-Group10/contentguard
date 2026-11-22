@@ -60,6 +60,7 @@ class EnforcementAuthority:
         *,
         expected_revision: int,
         replay_key: ReplayKey,
+        review_identity_hash: str | None = None,
     ) -> CommitResult:
         # Step 1: authority-token check runs before any write and is never converted.
         if not is_frozen_dto(decision) or decision._authority_token is not _AUTHORITY_TOKEN:
@@ -72,14 +73,24 @@ class EnforcementAuthority:
 
         try:
             with self._store.transaction() as conn:
-                # Step 3: replay lookup.
+                # Step 3: replay lookup. When the caller supplies a review-request
+                # identity (ADR-002 review replays), the stored identity must match
+                # too: the projected decision payload alone cannot distinguish review
+                # requests that collapse onto the same decision (rationale edits,
+                # floor-overridden outcome changes). NULL stored identity vs a
+                # supplied one (or vice versa) is a key collision across request
+                # kinds — also a CONFLICT.
                 replay = conn.execute(
-                    "SELECT payload_hash, result_json FROM commits "
+                    "SELECT payload_hash, review_request_hash, result_json FROM commits "
                     "WHERE replay_actor = ? AND replay_key = ?",
                     (replay_key.actor_id, replay_key.idempotency_key),
                 ).fetchone()
                 if replay is not None:
-                    if replay[0] != payload_hash:
+                    stored_payload_hash, stored_identity_hash, stored_result_json = replay
+                    if (
+                        stored_identity_hash != review_identity_hash
+                        or stored_payload_hash != payload_hash
+                    ):
                         return CommitResult(
                             status=CommitStatus.CONFLICT,
                             decision_id=decision.decision_id,
@@ -87,7 +98,7 @@ class EnforcementAuthority:
                             case_revision=None,
                             message="replay key reused with a different payload",
                         )
-                    return _commit_result_from_json(replay[1])
+                    return _commit_result_from_json(stored_result_json)
 
                 # Step 4: bind the decision to the current case row.
                 case_row = conn.execute(
@@ -171,14 +182,15 @@ class EnforcementAuthority:
                 conn.execute(
                     """
                     INSERT INTO commits
-                        (replay_actor, replay_key, payload_hash, decision_id, audit_id,
-                         result_json)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                        (replay_actor, replay_key, payload_hash, review_request_hash,
+                         decision_id, audit_id, result_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         replay_key.actor_id,
                         replay_key.idempotency_key,
                         payload_hash,
+                        review_identity_hash,
                         decision.decision_id,
                         audit_id,
                         _commit_result_to_json(result),

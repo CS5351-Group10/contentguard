@@ -447,3 +447,107 @@ entries:
       four recommended baselines. Not a verified full-session count. Automated
       Codex relay messages are not human interventions. PM D5 review pending.
     pr: null
+
+  # ADR-002 implementation session (S1): agent-written under PM supervision, disclosed
+  # per RM-042 ("needs to be said out loud by you and PM before merge") and acknowledged
+  # in the implementing PR before merge.
+  - id: AI-017
+    date: 2026-11-22
+    agent: zcode
+    model: zai/glm-5.3-flash
+    operator: LIU Jianwei (61022208)
+    session_transcript: transcripts/61022208-LIU-Jianwei-AI-017.md
+    scope: >-
+      src/contentguard/policy/errors.py, src/contentguard/policy/engine.py,
+      test/offline/test_policy_review_transition.py,
+      docs/architecture/invariants.md, docs/architecture/trace-matrix.md,
+      docs/ai-use-log.yaml
+    summary: >-
+      ADR-002 implementation: added PolicyEngine.review_and_commit (pinned-snapshot
+      load, unchanged _validate_review checks, mandatory-rule validation of the
+      requested outcome with zero writes on violation, replay reconcile/conflict
+      ordering, atomic commit through EnforcementAuthority) and the
+      MandatoryRuleViolation typed error (stable code MANDATORY_RULE_VIOLATION);
+      the evaluate_and_commit executable path is unchanged. The ADR-002 acceptance
+      matrix is covered
+      G1-G6 in test/offline/test_policy_review_transition.py (prohibited approve →
+      zero writes; permitted REJECT → exactly one atomic commit; high-severity review
+      permitted; stale/unauthorized typed failures; replay reconcile/conflict;
+      injected persistence failure → rollback). docstring lag on the step-7 transition
+      corrected (module header, evaluate, and one disclosed sentence inside
+      evaluate_and_commit). Offline verification: 466 passed with only
+      the documented BUG-005 corpus-hash environmental failure, ruff clean, mypy
+      clean (42 files), GATE 3 PASS (31 requirements). Implemented as PR #83.
+    human_interventions: 5
+    intervention_summary: >-
+      1: PM decided the disclosure path for this session (agent-written code, real
+      agent/model identity, explicit PR disclosure per RM-042) instead of an
+      unrecorded substitute, and decided the #75 adapter-rework authorship approach
+      (PM prepares it on feat/s2-api-intake with Mei's on-record authorization and
+      Mei-supplied AI-015 facts); 2: PM approved the implementation plan (AGENTS.md §7
+      stop-condition gate) before any policy/ change; 3: PM authorized execution;
+      4: PM required an independent quality/consistency audit of the finished commit
+      before any push, and the audit's P1 findings (test docstring citation coverage,
+      one stale evaluate_and_commit docstring sentence, the missing transcript file)
+      were fixed and re-verified before this entry was finalized. The transcript file
+      is saved by the PM by hand (transcripts/** is frozen human-only); 5: PM required
+      a value-weighting pass over the second audit's findings — deciding what is worth
+      fixing versus what stands as historical record — and approved the
+      addendum-over-rewrite approach for the frozen transcript file, which now carries
+      a post-session evolution addendum.
+    pr: 83
+
+  # ADR-002 review-transition fix session (S1 review response): same disclosed RM-042
+  # path B as AI-017 (agent-written under PM supervision), acknowledged in PR #83.
+  - id: AI-018
+    date: 2026-11-22
+    agent: zcode
+    model: zai/glm-5.3-flash
+    operator: LIU Jianwei (61022208)
+    session_transcript: transcripts/61022208-LIU-Jianwei-AI-018.md
+    scope: >-
+      src/contentguard/policy/store.py, src/contentguard/policy/enforcement.py,
+      src/contentguard/policy/engine.py,
+      test/offline/test_policy_review_transition.py, docs/debt-register.md,
+      docs/ai-use-log.yaml
+    summary: >-
+      Review response for PR #83 (Li architecture P1 + Huang RM-047 conditions): review
+      replays now bind the immutable review-request identity — requested outcome,
+      rationale, authenticated reviewer, replay key, original case revision and the
+      pinned snapshot identity — in addition to the projected decision payload. The
+      identity is persisted as a nullable commits.review_request_hash column (new-store
+      DDL + in-place ALTER TABLE migration for pre-fix databases) and is compared at
+      both the engine replay branch and inside EnforcementAuthority.commit (closing the
+      race window between the transaction-free replay read and the commit); a
+      NULL-stored identity colliding with a review request is a cross-kind CONFLICT.
+      evaluate_and_commit's executable path and _payload_hash are unchanged.
+      New regressions in test/offline/test_policy_review_transition.py: rationale-only
+      retry → CONFLICT; floor-overridden outcome flip (REJECT→APPROVE) → CONFLICT;
+      review key on an evaluate-committed row → CONFLICT; legacy-schema migration stays
+      usable and persists the identity (G7). Huang's governance conditions land in the
+      same change-set: debt-register TD-11 (AGENTS.md §4 agent-session definition vs.
+      one disclosed zcode session) and the post-lock transcripts/README.md registration
+      rows. Post-lock re-verification note (per the transcripts/README.md lock rule):
+      the supporting-session registration rows for AI-017/AI-018 are post-lock edits
+      added on 2026-11-22 — the AI-018 row and its transcript file were placed by the
+      session at the PM's explicit instruction with that provenance disclosed in PR
+      #83 (not presented as PM-typed); the AI-017 row uses the RM-047-prescribed
+      wording. No earlier transcript text was modified.
+      Offline verification on Windows: 470 passed with only the documented BUG-005
+      corpus-hash environmental failure, ruff clean, mypy clean modulo the 5 local
+      yaml-stub-only errors absent in CI. Implemented as PR #83.
+    human_interventions: 2
+    intervention_summary: >-
+      1: PM opened this session by authorizing the endgame run (check #83 approvals →
+      squash-merge once approved → #75 revival chain) and required a plan plus an
+      independent R1 sub-agent review before execution. Because both reviews arrived as
+      CHANGES_REQUESTED instead of approvals, the plan pivoted to a fix round; the
+      plan-approval question to the PM went unanswered and the agent proceeded on the
+      documented recommended defaults with the R1 verdict incorporated (3 P1 / 7 P2
+      adopted), explicitly reserving PM veto; 2: PM approved the prepared batch for
+      push and delegated the two human-only transcripts/** placements (the README
+      registration rows and the AI-018 transcript file) to the session — the
+      agent-performed provenance is disclosed in PR #83 rather than presented as
+      PM-typed, and the PM offered to redo the rows literally if the governance owner
+      requires it.
+    pr: 83
