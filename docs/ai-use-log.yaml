@@ -496,3 +496,58 @@ entries:
       addendum-over-rewrite approach for the frozen transcript file, which now carries
       a post-session evolution addendum.
     pr: 83
+
+  # ADR-002 review-transition fix session (S1 review response): same disclosed RM-042
+  # path B as AI-017 (agent-written under PM supervision), acknowledged in PR #83.
+  - id: AI-018
+    date: 2026-11-22
+    agent: zcode
+    model: zai/glm-5.3-flash
+    operator: LIU Jianwei (61022208)
+    session_transcript: transcripts/61022208-LIU-Jianwei-AI-018.md
+    scope: >-
+      src/contentguard/policy/store.py, src/contentguard/policy/enforcement.py,
+      src/contentguard/policy/engine.py,
+      test/offline/test_policy_review_transition.py, docs/debt-register.md,
+      docs/ai-use-log.yaml
+    summary: >-
+      Review response for PR #83 (Li architecture P1 + Huang RM-047 conditions): review
+      replays now bind the immutable review-request identity — requested outcome,
+      rationale, authenticated reviewer, replay key, original case revision and the
+      pinned snapshot identity — in addition to the projected decision payload. The
+      identity is persisted as a nullable commits.review_request_hash column (new-store
+      DDL + in-place ALTER TABLE migration for pre-fix databases) and is compared at
+      both the engine replay branch and inside EnforcementAuthority.commit (closing the
+      race window between the transaction-free replay read and the commit); a
+      NULL-stored identity colliding with a review request is a cross-kind CONFLICT.
+      evaluate_and_commit's executable path and _payload_hash are unchanged.
+      New regressions in test/offline/test_policy_review_transition.py: rationale-only
+      retry → CONFLICT; floor-overridden outcome flip (REJECT→APPROVE) → CONFLICT;
+      review key on an evaluate-committed row → CONFLICT; legacy-schema migration stays
+      usable and persists the identity (G7). Huang's governance conditions land in the
+      same change-set: debt-register TD-11 (AGENTS.md §4 agent-session definition vs.
+      one disclosed zcode session) and the post-lock transcripts/README.md registration
+      rows. Post-lock re-verification note (per the transcripts/README.md lock rule):
+      the supporting-session registration rows for AI-017/AI-018 are post-lock edits
+      added on 2026-11-22 — the AI-018 row and its transcript file were placed by the
+      session at the PM's explicit instruction with that provenance disclosed in PR
+      #83 (not presented as PM-typed); the AI-017 row uses the RM-047-prescribed
+      wording. No earlier transcript text was modified.
+      Offline verification on Windows: 470 passed with only the documented BUG-005
+      corpus-hash environmental failure, ruff clean, mypy clean modulo the 5 local
+      yaml-stub-only errors absent in CI. Implemented as PR #83.
+    human_interventions: 2
+    intervention_summary: >-
+      1: PM opened this session by authorizing the endgame run (check #83 approvals →
+      squash-merge once approved → #75 revival chain) and required a plan plus an
+      independent R1 sub-agent review before execution. Because both reviews arrived as
+      CHANGES_REQUESTED instead of approvals, the plan pivoted to a fix round; the
+      plan-approval question to the PM went unanswered and the agent proceeded on the
+      documented recommended defaults with the R1 verdict incorporated (3 P1 / 7 P2
+      adopted), explicitly reserving PM veto; 2: PM approved the prepared batch for
+      push and delegated the two human-only transcripts/** placements (the README
+      registration rows and the AI-018 transcript file) to the session — the
+      agent-performed provenance is disclosed in PR #83 rather than presented as
+      PM-typed, and the PM offered to redo the rows literally if the governance owner
+      requires it.
+    pr: 83

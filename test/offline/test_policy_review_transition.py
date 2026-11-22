@@ -13,14 +13,19 @@ Verifies REQ-FUN-003 / REQ-INV-003 against the ADR-002 acceptance matrix
   (the floor's low/medium severity condition does not match at eff_severity=HIGH);
 - G4 stale or unauthorized review evidence is a typed validation failure without a
   commit;
-- G5 a duplicate replay (same key, same payload) reconciles the stored result; a
-  conflicting replay (same key, different payload) is a CONFLICT;
-- G6 an injected persistence failure rolls back with no partial state.
+- G5 a duplicate replay (same key, same payload, same review-request identity)
+  reconciles the stored result; a conflicting replay (same key, different payload OR
+  different review-request identity) is a CONFLICT;
+- G6 an injected persistence failure rolls back with no partial state;
+- G7 a database created with the pre-fix commits schema migrates in place (nullable
+  ``review_request_hash`` column) and stays fully usable.
 
 Deterministic and offline: no network, no API key, no model access.
 """
 
 from __future__ import annotations
+
+import sqlite3
 
 import pytest
 from conftest import CONTENT_HASH, make_case, make_snapshot
@@ -420,6 +425,108 @@ def test_g5_same_key_different_payload_conflicts(
     assert _counts(store) == counts_after_first
 
 
+def test_g5_same_key_different_rationale_conflicts(
+    store: SqliteStore,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """G5 (review-request identity): a same-key retry that changes **only the
+    rationale** projects onto the identical decision payload, so the payload hash
+    alone cannot see the difference — the review-request identity does. The retry is
+    a CONFLICT (ADR-002: same key + different request → CONFLICT) and writes nothing:
+    no case revision bump, no queue change, no audit row, no replay row."""
+    snap = snapshot_with_reject_rule
+    case = _escalated_case(snap, advisory_medium)
+    _seed_escalated_case(store, case, snapshot=snap)
+    engine = PolicyEngine(snap)
+    review = _review(outcome=Outcome.REJECT, snapshot=snap)
+
+    first = _call(engine, store, case, review, key="idem-shared", replay_actor="moderator-1")
+    assert first.status == CommitStatus.COMMITTED
+    counts_after_first = _counts(store)
+
+    edited = _review(
+        outcome=Outcome.REJECT,
+        snapshot=snap,
+        rationale="a different moderator rationale",
+    )
+    retry = _call(engine, store, case, edited, key="idem-shared", replay_actor="moderator-1")
+
+    assert retry.status == CommitStatus.CONFLICT
+    assert retry.audit_id is None
+    assert _counts(store) == counts_after_first
+
+
+def test_g5_same_key_floor_overridden_outcome_conflicts(
+    store: SqliteStore,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """G5 (review-request identity): a same-key retry that flips the requested
+    outcome REJECT→APPROVE under a matching mandatory REJECT floor projects onto the
+    same REJECT decision (the floor overrides the request), so the payload hash alone
+    sees no change — the review-request identity does. The retry is a CONFLICT, not a
+    spurious reconcile of the committed REJECT, and writes nothing."""
+    snap = snapshot_with_reject_rule
+    case = _escalated_case(snap, advisory_medium)
+    _seed_escalated_case(store, case, snapshot=snap)
+    engine = PolicyEngine(snap)
+    review = _review(outcome=Outcome.REJECT, snapshot=snap)
+
+    first = _call(engine, store, case, review, key="idem-shared", replay_actor="moderator-1")
+    assert first.status == CommitStatus.COMMITTED
+    counts_after_first = _counts(store)
+
+    flipped = _review(outcome=Outcome.APPROVE, snapshot=snap)
+    retry = _call(engine, store, case, flipped, key="idem-shared", replay_actor="moderator-1")
+
+    assert retry.status == CommitStatus.CONFLICT
+    assert retry.audit_id is None
+    assert _counts(store) == counts_after_first
+
+
+def test_g5_review_request_on_evaluate_row_conflicts(
+    store: SqliteStore,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """G5 (review-request identity, cross-kind): a review request whose replay key
+    collides with a commits row written by the evaluate path (stored identity NULL)
+    is a CONFLICT — a review request can never be the true replay of an
+    advisory-path decision, so the NULL identity cannot be reconciled away."""
+    snap = snapshot_with_reject_rule
+    # The evaluate leg needs a non-reviewable case (a HELD/ESCALATED case refuses a
+    # review-free re-decision), so this one sits in ANALYZING with pinned evidence.
+    case = make_case(
+        case_id="case-x",
+        revision=1,
+        status=CaseStatus.ANALYZING,
+        advisory=advisory_medium,
+        snapshot=snap,
+    )
+    _seed_escalated_case(store, case, snapshot=snap)
+    engine = PolicyEngine(snap)
+
+    # The evaluate path commits first under the shared key (identity stored NULL).
+    evaluated = engine.evaluate_and_commit(
+        store=store,
+        case=case,
+        content_text="benign text",
+        advisory=advisory_medium,
+        expected_revision=case.revision,
+        replay_key=ReplayKey(actor_id="moderator-1", idempotency_key="idem-shared"),
+    )
+    assert evaluated.status == CommitStatus.COMMITTED
+    counts_after_first = _counts(store)
+
+    review = _review(outcome=Outcome.REJECT, snapshot=snap, case_id="case-x")
+    retry = _call(engine, store, case, review, key="idem-shared", replay_actor="moderator-1")
+
+    assert retry.status == CommitStatus.CONFLICT
+    assert retry.audit_id is None
+    assert _counts(store) == counts_after_first
+
+
 # --- G6: injected persistence failure -> rollback, no partial state --------------------
 
 
@@ -450,9 +557,13 @@ def test_g6_injected_persistence_failure_rolls_back(
             *,
             expected_revision: int,
             replay_key: ReplayKey,
+            review_identity_hash: str | None = None,
         ) -> CommitResult:
             return self._real.commit(
-                decision, expected_revision=expected_revision, replay_key=replay_key
+                decision,
+                expected_revision=expected_revision,
+                replay_key=replay_key,
+                review_identity_hash=review_identity_hash,
             )
 
     monkeypatch.setattr(engine_module, "EnforcementAuthority", _ExplodingAuthority)
@@ -471,3 +582,54 @@ def test_g6_injected_persistence_failure_rolls_back(
     assert result.audit_id is None
     assert _counts(store) == before_counts
     assert _case_row(store, case.case_id) == before_row
+
+
+# --- G7: legacy schema migration --------------------------------------------------------
+
+
+def test_g7_legacy_schema_migration_adds_review_identity_column(
+    tmp_path: object,
+    snapshot_with_reject_rule: PolicySnapshot,
+    advisory_medium: AdvisoryResult,
+) -> None:
+    """G7 (schema migration): a database created with the pre-fix commits schema
+    opens usable after ``initialize`` — the nullable ``review_request_hash`` column
+    is added in place, the migrated store accepts a review commit, and that commit
+    persists the review-request identity (evaluate rows keep NULL)."""
+    db_path = f"{tmp_path}/legacy.db"
+    legacy_commits_ddl = (
+        "CREATE TABLE IF NOT EXISTS commits ("
+        "replay_actor TEXT NOT NULL, replay_key TEXT NOT NULL, payload_hash TEXT NOT NULL, "
+        "decision_id TEXT NOT NULL, audit_id TEXT NOT NULL, result_json TEXT NOT NULL, "
+        "PRIMARY KEY (replay_actor, replay_key))"
+    )
+    raw_conn = sqlite3.connect(db_path)
+    try:
+        raw_conn.execute(legacy_commits_ddl)
+        raw_conn.commit()
+    finally:
+        raw_conn.close()
+
+    migrated = SqliteStore(db_path)
+    migrated.initialize()  # idempotent DDL + in-place column migration
+
+    with migrated.read_connection() as conn:
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(commits)").fetchall()}
+    assert "review_request_hash" in columns
+
+    snap = snapshot_with_reject_rule
+    case = _escalated_case(snap, advisory_medium)
+    _seed_escalated_case(migrated, case, snapshot=snap)
+    engine = PolicyEngine(snap)
+    review = _review(outcome=Outcome.REJECT, snapshot=snap)
+
+    result = _call(engine, migrated, case, review)
+    assert result.status == CommitStatus.COMMITTED
+
+    with migrated.read_connection() as conn:
+        row = conn.execute(
+            "SELECT review_request_hash FROM commits WHERE replay_key = ?",
+            ("idem-review-1",),
+        ).fetchone()
+    assert row is not None
+    assert row[0] is not None  # review commits persist the request identity

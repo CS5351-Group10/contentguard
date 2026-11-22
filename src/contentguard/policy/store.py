@@ -56,12 +56,25 @@ CREATE TABLE IF NOT EXISTS commits (
     replay_actor TEXT NOT NULL,
     replay_key TEXT NOT NULL,
     payload_hash TEXT NOT NULL,
+    review_request_hash TEXT,
     decision_id TEXT NOT NULL,
     audit_id TEXT NOT NULL,
     result_json TEXT NOT NULL,
     PRIMARY KEY (replay_actor, replay_key)
 )
 """
+
+
+def _migrate_commits_schema(conn: sqlite3.Connection) -> None:
+    """Idempotent column additions for databases created before the ADR-002
+    review-transition fix round.
+
+    ``review_request_hash`` carries the immutable review-request identity bound to
+    review commits; evaluate-path rows keep NULL.
+    """
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(commits)").fetchall()}
+    if "review_request_hash" not in columns:
+        conn.execute("ALTER TABLE commits ADD COLUMN review_request_hash TEXT")
 
 
 class SqliteStore:
@@ -81,6 +94,7 @@ class SqliteStore:
             conn.execute(_SNAPSHOTS_DDL)
             conn.execute(_SNAPSHOTS_INDEX_DDL)
             conn.execute(_COMMITS_DDL)
+            _migrate_commits_schema(conn)
             AuditRepository.ensure_schema(conn)
             QueueRepository.ensure_schema(conn)
 

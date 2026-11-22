@@ -37,6 +37,7 @@ from .contracts import (
     Verdict,
     bind_decision_id,
     decision_payload_from_fields,
+    digest_of,
     effective_severity,
     is_frozen_dto,
 )
@@ -384,8 +385,15 @@ class PolicyEngine:
         is recognized and reconciled **before** the revision/status precondition (the
         candidate is re-evaluated under the neutral reviewable status, since a reviewed
         case sits in a final status); a same-key/different-payload retry is a CONFLICT.
-        The mandatory-rule validation applies only to non-replay requests: a stored
-        result is returned as-is regardless of how the rules would judge the request
+        The replay comparison additionally binds the **immutable review-request
+        identity** — requested outcome, rationale, authenticated reviewer, replay key,
+        original case revision and the pinned snapshot identity — because the projected
+        decision payload alone cannot distinguish review requests that collapse onto the
+        same decision (a rationale edit, or a requested-outcome change the mandatory
+        floor overrides). A retry that re-evaluates to no candidate stays a CONFLICT
+        (zero writes, conservative). The mandatory-rule validation applies only to
+        non-replay requests: a stored result is returned as-is regardless of how the
+        rules would judge the request
         today. ``evaluate_and_commit``'s executable path is unchanged by ADR-002; this
         entry point
         intentionally mirrors its sequence rather than sharing a helper, so the
@@ -406,7 +414,7 @@ class PolicyEngine:
             except PolicyKernelError as exc:
                 return _failed_result(case, f"pinned snapshot unavailable: {exc}")
             replay = conn.execute(
-                "SELECT payload_hash, result_json FROM commits "
+                "SELECT payload_hash, review_request_hash, result_json FROM commits "
                 "WHERE replay_actor = ? AND replay_key = ?",
                 (replay_key.actor_id, replay_key.idempotency_key),
             ).fetchone()
@@ -445,6 +453,7 @@ class PolicyEngine:
         )
 
         pinned_engine = PolicyEngine(pinned)
+        review_identity_hash = _review_request_identity_hash(review, replay_key)
         try:
             candidate = pinned_engine.evaluate(
                 case=row_case,
@@ -488,8 +497,12 @@ class PolicyEngine:
             candidate_error = None
 
         if replay is not None:
-            stored_payload_hash, stored_result_json = replay
-            if candidate is not None and _payload_hash(candidate) == stored_payload_hash:
+            stored_payload_hash, stored_identity_hash, stored_result_json = replay
+            if (
+                candidate is not None
+                and _payload_hash(candidate) == stored_payload_hash
+                and review_identity_hash == stored_identity_hash
+            ):
                 return _commit_result_from_json(str(stored_result_json))
             return _conflict_result(case, "replay key reused with a different payload")
 
@@ -545,6 +558,7 @@ class PolicyEngine:
                 candidate,
                 expected_revision=expected_revision,
                 replay_key=replay_key,
+                review_identity_hash=review_identity_hash,
             )
         except PolicyKernelError as exc:
             return _failed_result(case, f"commit rejected: {exc}")
@@ -818,6 +832,32 @@ def _validate_case_snapshot(case: CaseSnapshot, snapshot: PolicySnapshot) -> Non
         or case.policy_snapshot_digest != snapshot.digest
     ):
         raise PolicyConflictError("case is pinned to a different policy snapshot")
+
+
+def _review_request_identity_hash(review: ReviewRequest, replay_key: ReplayKey) -> str:
+    """Immutable canonical identity of a review request (ADR-002 replay gate).
+
+    The projected decision payload cannot distinguish review requests that collapse
+    onto the same decision (a rationale edit, or a requested-outcome change the
+    mandatory floor overrides), so the replay comparison for review commits also binds
+    the request itself: requested outcome, rationale, authenticated reviewer, replay
+    key, original case revision and the pinned snapshot identity. Every field is
+    validated input: the reviewer comes from the server-authenticated context and
+    ``_validate_review`` pins revision/snapshot/digest/content to the stored row.
+    """
+    return digest_of(
+        {
+            "requested_outcome": review.requested_outcome.value,
+            "rationale": review.rationale,
+            "reviewer_id": review.reviewer.actor_id,
+            "reviewer_role": review.reviewer.role,
+            "replay_actor": replay_key.actor_id,
+            "replay_key": replay_key.idempotency_key,
+            "case_revision": review.expected_revision,
+            "policy_snapshot_id": review.policy_snapshot_id,
+            "policy_snapshot_digest": review.policy_snapshot_digest,
+        }
+    )
 
 
 def _validate_review(case: CaseSnapshot, review: ReviewRequest | None) -> None:
