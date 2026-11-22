@@ -172,7 +172,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: test/offline/test_api_intake.py (commit / idempotent-replay / payload-conflict / 422-invalid / 503-persistence outcomes with resolvable audit id, durable 202 handoff and no-duplicate recovery, PR #75); test/offline/test_api_lookup.py (audit/case lookup resolvable to the decision, PR #75); executed by gate 5
+    evidence: PARTIAL — API-boundary coverage with a fake processor / lookup repository; test/offline/test_api_intake.py (commit / idempotent-replay / payload-conflict / 422-invalid / 503-persistence outcomes with resolvable audit id and durable 202 handoff at the injected processing boundary, PR #75); test/offline/test_api_lookup.py (audit/case lookup resolvable to the decision, PR #75); real-chain queue/audit persistence, lost-ack reconciliation and no-duplicate consequential effects remain pending integration acceptance; executed by gate 5
   source:
     origin: "Team kickoff discussion 2026-11-15"
     links:
