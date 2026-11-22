@@ -630,7 +630,13 @@ entries:
       edits placed by this session at the PM's explicit instruction — disclosed
       in the provenance comment on PR #75 rather than presented as PM-typed; the
       transcript states it is an annotated record without a raw dump (raw agent
-      tool/step rounds omitted); no earlier transcript text was modified.
+      tool/step rounds omitted); the only in-place transcript edit this session
+      made was adding one excerpt-declaration sentence at the head of its own
+      AI-019 transcript file (branch commit cdee491, delivered in PR #75; the
+      squash merge means that sha is not reachable from main). AI-018/AI-019
+      corrections were appended at file end (Addendum-over-rewrite); the
+      pre-existing text of any transcript, including those from earlier
+      sessions, was not modified.
     human_interventions: 2
     intervention_summary: >-
       1: HAN Mei explicitly approved this phase's limited execution plan on the

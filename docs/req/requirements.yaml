@@ -85,7 +85,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: unit-test
-    evidence: test/offline/test_escalation_routing.py (severity x policy matrix) and test/offline/test_release_invariants_acceptance.py (high severity cannot finalize without a current review, PR #62); executed by gate 5
+    evidence: test/offline/test_escalation_routing.py (severity x policy matrix) and test/offline/test_release_invariants_acceptance.py (high severity cannot finalize without a current review, PR #62); test/offline/test_policy_review_transition.py (ADR-002 review-transition acceptance matrix, PR #83) and test/offline/test_api_review_queue.py (authenticated review boundary, PR #75); executed by gate 5
   source:
     origin: "Team kickoff discussion 2026-11-15"
     links:
@@ -172,7 +172,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: PENDING
+    evidence: PARTIAL — API-boundary coverage with a fake processor / lookup repository; test/offline/test_api_intake.py (commit / idempotent-replay / payload-conflict / 422-invalid / 503-persistence outcomes with resolvable audit id and durable 202 handoff at the injected processing boundary, PR #75); test/offline/test_api_lookup.py (audit/case lookup resolvable to the decision, PR #75); real-chain queue/audit persistence, lost-ack reconciliation and no-duplicate consequential effects remain pending integration acceptance; executed by gate 5
   source:
     origin: "Team kickoff discussion 2026-11-15"
     links:
@@ -216,7 +216,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: PARTIAL — test/offline/test_release_must_acceptance.py (failure→hold→review finalization at the policy/queue boundary, PR #62); S2 API review queue test/offline/test_review_queue.py remains TBD (S2)
+    evidence: test/offline/test_release_must_acceptance.py (failure→hold→review finalization at the policy/queue boundary, PR #62); test/offline/test_policy_review_transition.py (ADR-002 review-transition acceptance matrix, PR #83); test/offline/test_api_review_queue.py (S2 authenticated review queue + transitions with zero-write refusals, PR #75)
   source:
     origin: "Team kickoff discussion 2026-11-15"
     links:
@@ -353,7 +353,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: unit-test
-    evidence: PENDING
+    evidence: test/offline/test_api_intake.py (malformed/missing/whitespace/unsupported-type/privileged payloads rejected 422 with zero model calls; over-limit 413 with one recorded event, PR #75)
   source:
     origin: "Derived from accepted text scope in REQ-FUN-001"
     links:
@@ -392,7 +392,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: integration-test
-    evidence: PENDING
+    evidence: PARTIAL — test/offline/test_api_lookup.py (owner/grant lookup boundary, 403 unauthorized, PR #75); dedicated assigned-moderator and retention-clock acceptance remains TBD (S5)
   source:
     origin: "Attachment 1 §§4G, 4I, 7; INV-4 demands audit data"
     links:
