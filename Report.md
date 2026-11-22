@@ -27,11 +27,11 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
-| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 12.2 | | 46.3 | 2.07 |
+| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 12.2 | | 46.3 | 2.04 |
 | HAN Mei (60914643) | not reported | 4.5 | not reported | | | | 4.5 | 0.20 |
-| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 1.0 | | 27.5 | 1.23 |
-| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 1.5 | | 22.75 | 1.02 |
-| Buna DA (60105888) | unclaimed | 4.0 | 7.0 | pending | pending | | 11.0 | 0.49 |
+| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 2.5 | | 29.0 | 1.28 |
+| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 1.5 | | 22.75 | 1.00 |
+| Buna DA (60105888) | unclaimed | 4.0 | 7.0 | pending | pending | | 11.0 | 0.48 |
 
 > Aggregated 2026-11-21 19:45 HKT from anchored entries in `docs/contribution-log.md`
 > (issue #28); LIU ④/⑤ backfilled 20:20 HKT per rule 6 (member-authorized, GitHub-
@@ -45,10 +45,10 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 > their deadlines — kept pending, not estimated), Buna ④/⑤. Supplemented 2026-11-22
 > evening (close-out batch): LI Shiyi ⑤ 1.0h (PR #84 architecture review, 11-22) and
 > LIU ⑤ tail 10.2h (11-21 22:30 → 11-22 20:15, five anchored sub-blocks, rule 6) —
-> LIU ⑤ = 12.2h / total 46.3h; LI ⑤ = 1.0h / total 27.5h. Weights are computed over
-> reported totals at this 2026-11-22 #28 close-out (mean of the five reported totals
-> = 22.41h): open cells stay recorded as-is and are not estimated, so totals reflect
-> reported hours only. Cell labels: blank = phase not applicable yet;
+> LIU ⑤ = 12.2h / total 46.3h; LI ⑤ = 2.5h (1.5h 11-21 via PR #85 + 1.0h 11-22) /
+> total 29.0h. Weights are computed over reported totals at this 2026-11-22 #28
+> close-out (mean of the five reported totals = 22.71h): open cells stay recorded
+> as-is and are not estimated, so totals reflect reported hours only. Cell labels: blank = phase not applicable yet;
 > `pending` = not yet reported; `not reported` = no anchored entry by the phase deadline;
 > `unclaimed` = member explicitly declined without a verifiable span.
 
@@ -64,7 +64,7 @@ The team treated the repository, not the chat log, as the source of truth. The p
 | ② Planning and foundation | 11/16 | requirements baseline, ADR/blueprint, governance drafts, schema gate | #11 registry; ADR-001 (#15); bug/debt registers (#17) |
 | ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 merged in PR #41 (`e60dd50`); gate-2 work merged in #45 (`b2e67f1`) |
 | ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | S4/S5 harness and benchmark planned (TD-1) |
-| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report draft #44; 9 of 11 session transcripts annotated (canonical set 2/5 — see `transcripts/README.md`) |
+| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report assembled (#44, §7 verbatim via #81); canonical transcripts 3/5 — stages 2/3/4 landed via #76, stage 1 (Mei) and stage 5 (Buna) open as honest gaps (see `transcripts/README.md`) |
 | ⑥ Deliver and present | 11/25–30 | zip + video, slides to TA, presentation | pending |
 
 Three constraints shaped the work:
