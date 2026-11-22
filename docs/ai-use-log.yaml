@@ -618,9 +618,19 @@ entries:
       changes. Offline verification on Windows: 532 passed with only the
       documented BUG-005 corpus-hash environmental failure, ruff clean, mypy
       clean (89 files), GATE 3 PASS (31 requirements), git diff --check clean.
-      Implementation is delivered as a local branch for HAN Mei's review; she
-      personally performs the commit/push per her approved plan, which also
-      states the approval is not approval to merge PR #75.
+      Implementation is delivered on branch prep/s2-revival in this repository
+      (implementation handoff comment on PR #75, 2026-11-22) for HAN Mei's
+      review; she personally performs the commit/push per her approved plan,
+      which also states the approval is not approval to merge PR #75. The PR
+      body's stale pre-#83 status section was rewritten by this session at the
+      PM's instruction (marker moved to the first line per the gate-1
+      convention), disclosed in the provenance comment on PR #75. Provenance and
+      post-lock re-verification note (per the transcripts/README.md lock rule):
+      the AI-019 transcript file and its README registration row are post-lock
+      edits placed by this session at the PM's explicit instruction — disclosed
+      in the provenance comment on PR #75 rather than presented as PM-typed; the
+      transcript states it is an annotated record without a raw dump (raw agent
+      tool/step rounds omitted); no earlier transcript text was modified.
     human_interventions: 2
     intervention_summary: >-
       1: HAN Mei explicitly approved this phase's limited execution plan on the
