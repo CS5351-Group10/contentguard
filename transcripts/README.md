@@ -51,7 +51,7 @@ committing**: replace any credential with `[REDACTED]`. The team reviews each fi
 before commit (risk RSK-4). Never commit a `.env`/token file — `.gitignore` also
 guards this, but sanitization is the human responsibility here.
 
-## Inventory — the five canonical files (main, as of 2026-11-22 HKT)
+## Inventory — the five canonical files (main, as of 2026-11-23 HKT)
 
 | Canonical file | Member | Pipeline stage / session line | Status |
 |---|---|---|---|
@@ -63,7 +63,7 @@ guards this, but sanitization is the human responsibility here.
 
 ## Coverage checklist
 
-State as of 2026-11-22 HKT (issue #50 deadlines: 11/20 23:00 all five final,
+State as of 2026-11-23 HKT (issue #50 deadlines: 11/20 23:00 all five final,
 11/21 23:59 lock). "✅" means the file exists **and** carries inline `[INTERVENTION]`
 markers; a file without markers does not count as done.
 
