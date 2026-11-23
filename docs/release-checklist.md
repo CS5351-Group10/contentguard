@@ -28,6 +28,16 @@ the demo video (sheet slide 23); no API keys in the submission.
   3/5 state and its disposition are recorded in the execution record).
 - AI-use log up to date at submission (submission-model hard requirement).
 
+## 0.1 Report format (D6)
+
+`Report.md` must contain at most 10,000 words excluding diagrams and render to
+more than 15 pages in 12-point font with single-line spacing (course sheet D6:
+"more than 15 pages in Point 12 with single-line spacing"). Measure both before
+the freeze: `wc -w` for words (record the counting convention used for code
+fences and diagrams) and a page-count render at 12 pt/single spacing with the
+reviewed heading and table structure unchanged. Record both numbers in the
+execution record.
+
 ## 1. Freeze
 
 Record the snapshot sha (`git ls-remote origin main`) and the build timestamp.
@@ -48,10 +58,19 @@ bytes and breaks the REQ-INV-005 corpus-digest check
 
 ## 3. Exclusion assertions
 
-The archive must contain none of: `*.mp4` / `*.mov` / `*.webm` / `*.mkv` /
-`*.avi` (demo video, sheet slide 23); `.git/`; `*.sqlite3` / `*.db`;
-`.env` / `token.txt` / `*_token.json` (the `.gitignore` red-line list);
-`__pycache__/`; `.venv/`.
+Using the step-2 `git ls-tree -r --name-only <sha>` output, match each path by
+substring or path component (directory names as components) and require no hit
+on: `*.mp4` / `*.mov` / `*.webm` / `*.mkv` / `*.avi` (demo video, sheet slide
+23); `*.sqlite3` / `*.db`; `.env` / `*.env` / `.env.*` / `token.txt` / `*.token`
+/ `*_token.json` (the `.gitignore` red-line block); `__pycache__/`; `.venv/`;
+`node_modules/`; `*.log`.
+
+`git archive` cannot include untracked paths (`.venv/`, `__pycache__/`, `.tmp/`),
+so untracked paths need no assertion; tracked junk is the only way this step can
+fail. `.git/` is structurally impossible in a tree listing and is not asserted.
+The workspace convention puts temporary artifacts under `.tmp/`, which is not
+currently in the repository `.gitignore` — keep it untracked (or add the ignore
+rule after submission).
 
 ## 4. Secret scan (REQ-SEC-005)
 
@@ -80,5 +99,5 @@ Record the zip sha256 and byte size.
 ## Execution record
 
 (to be appended by the release pass; REQ-SEC-005 evidence and the trace-matrix
-cell are flipped only after this section exists with the scan results and the
-submitted sha.)
+cell are flipped only after this section exists with the scan results, the D6
+word/page numbers, and the submitted sha.)
