@@ -15,7 +15,8 @@ the demo video (sheet slide 23); no API keys in the submission.
   `Prompt.md`, `Report.md`; `docs/req/{requirements.yaml, req-schema.json}`;
   `docs/architecture/` (ADR, invariants, trace-matrix, memory-design,
   permission-model, evaluation-table, runtime-policy-catalog, evaluation-logbook,
-  risk-list); `docs/code-governance/` (structural-constraints,
+  risk-list, interface-contracts, option-ledger); `docs/code-governance/`
+  (structural-constraints,
   verification-constraints, mcp-tool-manifest); `docs/{ai-use-log.yaml,
   review-memo.md, debt-register.md, bug-diary.md}`; `.opencode/{permissions.jsonc,
   rules.md}`; `.agent/rules.md`; `.github/workflows/ci.yml`;
@@ -25,7 +26,8 @@ the demo video (sheet slide 23); no API keys in the submission.
   how to run the offline tests, the live tests, and the full suite; the GitHub
   repo URL.
 - D5 canonical annotated transcripts, one per member (5 expected; the current
-  3/5 state and its disposition are recorded in the execution record).
+  4/5 state (Mei stage 1 open) and its disposition are recorded in the
+  execution record).
 - AI-use log up to date at submission (submission-model hard requirement).
 
 ## 0.1 Report format (D6)
@@ -65,12 +67,12 @@ on: `*.mp4` / `*.mov` / `*.webm` / `*.mkv` / `*.avi` (demo video, sheet slide
 / `*_token.json` (the `.gitignore` red-line block); `__pycache__/`; `.venv/`;
 `node_modules/`; `*.log`.
 
-`git archive` cannot include untracked paths (`.venv/`, `__pycache__/`, `.tmp/`),
-so untracked paths need no assertion; tracked junk is the only way this step can
-fail. `.git/` is structurally impossible in a tree listing and is not asserted.
-The workspace convention puts temporary artifacts under `.tmp/`, which is not
-currently in the repository `.gitignore` — keep it untracked (or add the ignore
-rule after submission).
+`git archive` cannot include untracked paths (`.venv/`, `__pycache__/`, a local
+`.tmp/`), so untracked paths need no assertion; tracked junk is the only way this
+step can fail. `.git/` is structurally impossible in a tree listing and is not
+asserted. The repository `.gitignore` does not currently list `.tmp/` — if the
+team keeps temporary artifacts there, keep them untracked or add the ignore rule
+after submission.
 
 ## 4. Secret scan (REQ-SEC-005)
 
