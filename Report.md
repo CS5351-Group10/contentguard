@@ -1,6 +1,6 @@
 # Report.md — Process Report (D6)
 
-> **Status: ENDGAME — 2026-11-22 HKT (post-#84).** §2 man-hours aggregated (#77/#78 + 11-22 tail batch; open cells recorded as-is); §7 all five member reflections assembled verbatim from issue #27 (#81). ADR-002 `review_and_commit` policy kernel merged (#83, `257a97a`); S2 API intake/lookup/review merged (#75, `9e189e9`) — the S1/S2 review-contract mismatch is closed; S2 trace evidence flipped to delivered reality (#84, `bc30315`). Transcript canonical stages 2/3/4 landed (#76); stage 1 (Mei) and stage 5 (Buna) open as honest gaps.
+> **Status: ENDGAME — 2026-11-23 HKT (post-#88).** §2 man-hours aggregated (#77/#78 + 11-22 tail batch; open cells recorded as-is); §7 all five member reflections assembled verbatim from issue #27 (#81). ADR-002 `review_and_commit` policy kernel merged (#83, `257a97a`); S2 API intake/lookup/review merged (#75, `9e189e9`) — the S1/S2 review-contract mismatch is closed; S2 trace evidence flipped to delivered reality (#84, `bc30315`); S5 stage-5 transcript landed (#88, `1e2d6db`). Transcript canonical set now covers stages 2–5 (stage 2 via #76; stages 3–4 via #53/#73; stage 5 via #88); stage 1 (Mei) remains an honest gap.
 > Final report: ≤ 10,000 words (excluding diagrams), more than 15 pages, single-line spacing.
 
 ## 1. Team
@@ -22,8 +22,8 @@
 Computed from productive man-hours logged per phase (hours only; no story points) in
 `docs/contribution-log.md` — members report PR-natively per its recording protocol; the
 PM aggregates at every phase close. Method (requirement sheet D6): average contribution
-= 1.0; weight = individual total / mean total. Final table goes here; the raw,
-append-only log and the recording protocol live in `docs/contribution-log.md`.
+= 1.0; weight = individual total / mean total. The table below is the aggregation;
+the raw, append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
@@ -70,8 +70,8 @@ The team treated the repository, not the chat log, as the source of truth. The p
 | ① Kickoff | 11/15 | topic vote, roles, repository, branch protection, AI-use log | repository transferred; protection verified; AI-001 |
 | ② Planning and foundation | 11/16 | requirements baseline, ADR/blueprint, governance drafts, schema gate | #11 registry; ADR-001 (#15); bug/debt registers (#17) |
 | ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 merged in PR #41 (`e60dd50`); gate-2 work merged in #45 (`b2e67f1`) |
-| ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | S4/S5 harness and benchmark planned (TD-1) |
-| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report assembled (#44, §7 verbatim via #81); canonical transcripts 3/5 — stages 2/3/4 landed via #76, stage 1 (Mei) and stage 5 (Buna) open as honest gaps (see `transcripts/README.md`) |
+| ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | gate 4 `--strict` replay of the fixed eval set (TD-1 closed via #57); eval corpus #37 |
+| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report assembled (#44, §7 verbatim via #81); canonical transcripts 4/5 — stages 2–5 covered (stage 2 via #76; stages 3–4 via #53/#73; stage 5 via #88), stage 1 (Mei) remains an honest gap (see `transcripts/README.md`) |
 | ⑥ Deliver and present | 11/25–30 | zip + video, slides to TA, presentation | pending |
 
 Three constraints shaped the work:
