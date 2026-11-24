@@ -57,6 +57,16 @@ entries:
       improved schema error reporting, and failure exit handling.
       Performed preliminary verification using temporary fixtures.
       Session: ses_e1fa17e9dffeD1bxtEnItAbngB.
+      Post-lock re-verification note (per the transcripts/README.md lock rule):
+      the canonical Stage-1 excerpt transcripts/60914643-HAN-Mei.md was assembled
+      after the 2026-11-21 23:59 HKT lock by the owner from AI-002 and AI-006,
+      with AI assistance for organisation and cross-checking; the supporting
+      transcripts were not modified. The excerpt records four AI-002 intervention
+      points (the initial scope instruction plus the three decision turns
+      summarised above) and six AI-006 points (the five timestamped turns plus
+      the opening instruction); the human_interventions counts above (3 and 5)
+      retain the original decision-turn granularity. Owner confirmation is
+      recorded in PR #90.
     human_interventions: 3
     intervention_summary: >-
       Approved the implementation plan before code changes.
@@ -130,6 +140,8 @@ entries:
       (20 items), with all tests passing. Also consolidated
       Gate 3 verification evidence.
       Session: ses_e170e175cffeErOe3BcXI8zqed.
+      The canonical Stage-1 excerpt (transcripts/60914643-HAN-Mei.md) draws on
+      this session; see the AI-002 entry for the post-lock re-verification note.
     human_interventions: 5
     intervention_summary: >-
       Approved implementation after initial inspection;

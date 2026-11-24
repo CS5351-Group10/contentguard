@@ -7,13 +7,13 @@ is made exclusively by a deterministic policy engine constrained by auditable in
 This advisory-vs-authoritative split is the safety-relevant boundary required by the
 CS5351 Agentic Software Engineering Project specification (D1–D9, §6 blocking gates).
 
-> **Status:** Endgame (2026-11-23) — policy kernel + audit/escalation with release-acceptance
+> **Status:** Submission (2026-11-25) — policy kernel + audit/escalation with release-acceptance
 > tests (#41, #62); S3 analysis merged (#52, `397e002`); ADR-002 `review_and_commit` policy
 > kernel merged (#83, `257a97a`) and S2 API intake/lookup/review merged (#75, `9e189e9`) —
 > the S1/S2 review-contract mismatch is closed and the S2 trace rows are flipped to delivered
-> evidence; transcripts canonical stages 2–5 covered (stage 2 #76; stages 3–4 #53/#73; stage 5
-> #88), stage 1 recorded as open; member reflections and man-hours aggregation landed (#81,
-> #77/#78, #87). Six blocking gates
+> evidence; transcripts canonical all five stages covered (stage 1 #90, post-lock; stage 2 #76;
+> stages 3–4 #53/#73; stage 5 #88); member reflections and man-hours aggregation landed (#81,
+> #77/#78, #87 + close-out). Six blocking gates
 > active: gate 4 strict on the fixed evaluation set (#57), gate 1 timestamp-verified (#61),
 > gate 2 includes 2e structural checks (#69). Submission 11-25 (see `docs/contribution-log.md`,
 > `docs/debt-register.md`, issue #49).

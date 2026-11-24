@@ -1,6 +1,6 @@
 # Report.md — Process Report (D6)
 
-> **Status: ENDGAME — 2026-11-23 HKT (post-#88).** §2 man-hours aggregated (#77/#78 + 11-22 tail batch; open cells recorded as-is); §7 all five member reflections assembled verbatim from issue #27 (#81). ADR-002 `review_and_commit` policy kernel merged (#83, `257a97a`); S2 API intake/lookup/review merged (#75, `9e189e9`) — the S1/S2 review-contract mismatch is closed; S2 trace evidence flipped to delivered reality (#84, `bc30315`); S5 stage-5 transcript landed (#88, `1e2d6db`). Transcript canonical set now covers stages 2–5 (stage 2 via #76; stages 3–4 via #53/#73; stage 5 via #88); stage 1 (Mei) remains an honest gap.
+> **Status: SUBMISSION — 2026-11-25 HKT (post-#90).** Final man-hours aggregated (#77/#78/#87 + the 11-25 close-out batch; open cells recorded as-is); §7 all five member reflections assembled verbatim from issue #27 (#81). ADR-002 `review_and_commit` policy kernel merged (#83, `257a97a`); S2 API intake/lookup/review merged (#75, `9e189e9`) — the S1/S2 review-contract mismatch is closed; S2 trace evidence flipped to delivered reality (#84, `bc30315`); S5 stage-5 transcript landed (#88, `1e2d6db`); stage-1 canonical transcript landed post-lock (#90). Transcript canonical set now covers all five stages (stage 1 via #90, post-lock with the re-verification note; stage 2 via #76; stages 3–4 via #53/#73; stage 5 via #88).
 > Final report: ≤ 10,000 words (excluding diagrams), more than 15 pages, single-line spacing.
 
 ## 1. Team
@@ -27,11 +27,11 @@ the raw, append-only log and the recording protocol live in `docs/contribution-l
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
-| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 12.2 | | 46.3 | 2.00 |
-| HAN Mei (60914643) | not reported | 4.5 | not reported | | | | 4.5 | 0.19 |
-| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 2.5 | | 29.0 | 1.25 |
-| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 3.5 | | 24.75 | 1.07 |
-| Buna DA (60105888) | unclaimed | 4.0 | 7.0 | pending | pending | | 11.0 | 0.48 |
+| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 17.3 | | 51.4 | 1.69 |
+| HAN Mei (60914643) | not reported | 4.5 | 12.0 | 2.0 | 1.5 | | 20.0 | 0.66 |
+| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 3.5 | | 30.0 | 0.99 |
+| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 5.7 | | 26.95 | 0.89 |
+| Buna DA (60105888) | unclaimed | 4.0 | 11.5 | 5.0 | 3.0 | | 23.5 | 0.77 |
 
 > Aggregated 2026-11-21 19:45 HKT from anchored entries in `docs/contribution-log.md`
 > (issue #28); LIU ④/⑤ backfilled 20:20 HKT per rule 6 (member-authorized, GitHub-
@@ -59,6 +59,30 @@ the raw, append-only log and the recording protocol live in `docs/contribution-l
 > `pending` = not yet reported; `not reported` = no anchored entry by the phase deadline;
 > `unclaimed` = member explicitly declined without a verifiable span.
 
+> **Close-out aggregation — 2026-11-25 01:00 HKT (submission freeze).** This note
+> supersedes the 2026-11-22 21:23 HKT snapshot above; the old note is retained as
+> history. Late reports landed as-reported: HAN Mei ③ 12.0 / ④ 2.0 / ⑤ 1.5 (15.5h,
+> corrected breakdown 2026-11-22T17:06Z); Buna DA ③ 11.5 (7.0 + 4.5 continuation)
+> / ④ 5.0 / ⑤ 3.0 = 23.5h (her reply "A" reads as the itemized (a) option; the
+> stated 28.5h total is not adopted because it counts the 5.0h moved from ③ to ④
+> twice; the 11-21 3.0h row anchors `9e189e9`, which merged 2026-11-22 17:54 —
+> recorded under 11-21 as reported with a `[borderline]` note, clarification
+> requested); LI Shiyi ⑤ +1.0h (two 0.5h review entries: 11-22 PR #84 follow-up,
+> 11-23 PR #88 architecture re-review); HUANG Hongwei ⑤ +2.2h (six review-body
+> spans on PRs #87/#88/#89, all after the existing 2.0h batch's 09:31–20:15 window,
+> consolidated by wall-clock union with no overlapping minute double-counted;
+> recorded at the reported precision as a `[borderline]` exception to the 0.5h
+> step, consistent with the existing LIU 1.6/10.2/3.9 and HUANG 4.25 exceptions;
+> confirmation requested); LIU Jianwei ⑤ +5.1h (3.9h endgame tail v3 + 1.2h for
+> the 11-23 close-out: #89 authoring/merge 1.0h net of the #88 re-review + RM-058
+> re-review 0.2h). Totals: LIU 51.4 / Mei 20.0 / LI 30.0 / HUANG 26.95 /
+> Buna 23.5; mean 30.37h; weights 1.69 / 0.66 / 0.99 / 0.89 / 0.77 (rounded values
+> total 5.00). Late tail entries keep their reported precision (LIU 3.9h,
+> HUANG 2.2h); phase-level member reports remain in 0.5h steps. Open cells stay
+> as-is and are not estimated: Mei ① and demo-recording hours, HUANG ①; Buna ①
+> remains explicitly `unclaimed`. A later report lands as a recorded open cell or a
+> post-freeze follow-up — nothing is silently inferred.
+
 ## 3. Software engineering process and how we optimized it
 
 ### 3.1 A process fixed before the build
@@ -71,7 +95,7 @@ The team treated the repository, not the chat log, as the source of truth. The p
 | ② Planning and foundation | 11/16 | requirements baseline, ADR/blueprint, governance drafts, schema gate | #11 registry; ADR-001 (#15); bug/debt registers (#17) |
 | ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 merged in PR #41 (`e60dd50`); gate-2 work merged in #45 (`b2e67f1`) |
 | ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | gate 4 `--strict` replay of the fixed eval set (TD-1 closed via #57); eval corpus #37 |
-| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report assembled (#44, §7 verbatim via #81); canonical transcripts 4/5 — stages 2–5 covered (stage 2 via #76; stages 3–4 via #53/#73; stage 5 via #88), stage 1 (Mei) remains an honest gap (see `transcripts/README.md`) |
+| ⑤ Final sprint | 11/22–25 | report, transcripts annotated, demo video, slides | report assembled (#44, §7 verbatim via #81); canonical transcripts 5/5 — stage 1 via #90 (landed post-lock 2026-11-25; re-verification noted in `docs/ai-use-log.yaml`), stages 2–5 via #76/#53/#73/#88; demo video recorded 11-25; slides v3 in progress for the 11-29 TA deadline |
 | ⑥ Deliver and present | 11/25–30 | zip + video, slides to TA, presentation | pending |
 
 Three constraints shaped the work:
