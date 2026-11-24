@@ -1,8 +1,9 @@
 # Contribution Log (working file for the D6 relative-contribution table)
 
-> Log man-hours **per phase, same-day, from day one** (the requirement sheet's D6
-> method computes each member's weight = individual total / mean total). The final
-> table lives in `Report.md` §2; this file is the raw, append-only evidence.
+> Log man-hours **per phase, same-day, from day one**. The requirement sheet's D6
+> allows the team to choose the contribution measure; the team's final decision is
+> equal weights (1.00 each, issue #28, 2026-11-25), with these hours retained as the
+> raw, append-only effort evidence. The final table lives in `Report.md` §2.
 > PM work, review duty, and governance documentation count as real hours — the sheet
 > explicitly rewards "difficult tasks and project management". Protocol: § Recording protocol.
 
@@ -40,8 +41,10 @@ Set before the first logged entry — no historical hours are rewritten.
    closely related PR). End-of-phase recall estimates are not accepted. Cross-check
    anchors at phase close: git commit timestamps, the five locked transcripts
    (due 11-21), and `docs/ai-use-log.yaml`.
-3. **Hours only.** Spec D6 computes weights from productive hours (its example uses hrs);
-   story points are dropped — a 16-day project does not run sprint planning.
+3. **Hours only.** Spec D6 suggests productive hours (its example uses hrs); story
+   points are dropped — a 16-day project does not run sprint planning. The hours are
+   retained as the raw effort evidence; the final contribution weights are equal
+   (1.00 each) by team decision (issue #28, 2026-11-25) — see the note at the top.
 4. **What counts (pre-agreed).** Build, testing, debugging, CR/review duty, memos,
    governance docs, stand-ups, PM coordination, demo/slides work, and required reading
    all count. General course study unrelated to this project does not. Borderline items
@@ -140,8 +143,9 @@ entry, so nothing below rewrites any recorded hours.
 > union, `[borderline]` precision exception); LIU Jianwei ⑤ +3.9h (v3 tail) and
 > +1.2h (11-23 close-out: #89 1.0h net + RM-058 0.2h). Open cells remain as-is:
 > Mei ① and demo-recording hours, HUANG ①; Buna ① remains `unclaimed`.
-> `Report.md` §2 is recomputed in the same PR (mean 30.37h; weights 1.69/0.66/
-> 0.99/0.89/0.77, rounded values total 5.00).
+> `Report.md` §2 is recomputed in the same PR (mean 30.37h); the final weights are
+> equal at 1.00 each by team decision (issue #28, 2026-11-25), with the hours retained
+> as the raw effort evidence.
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 

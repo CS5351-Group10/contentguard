@@ -21,17 +21,19 @@
 
 Computed from productive man-hours logged per phase (hours only; no story points) in
 `docs/contribution-log.md` — members report PR-natively per its recording protocol; the
-PM aggregates at every phase close. Method (requirement sheet D6): average contribution
-= 1.0; weight = individual total / mean total. The table below is the aggregation;
-the raw, append-only log and the recording protocol live in `docs/contribution-log.md`.
+PM aggregates at every phase close. Method (requirement sheet D6): the team chose the
+relative-contribution measure; by team decision (issue #28, 2026-11-25) the final
+weights are equal (1.00 each). The per-phase hours are retained as the raw effort
+evidence and are not used as the ratio. The table below shows both; the raw,
+append-only log and the recording protocol live in `docs/contribution-log.md`.
 
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
-| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 17.3 | | 51.4 | 1.69 |
-| HAN Mei (60914643) | not reported | 4.5 | 12.0 | 2.0 | 1.5 | | 20.0 | 0.66 |
-| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 3.5 | | 30.0 | 0.99 |
-| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 5.7 | | 26.95 | 0.89 |
-| Buna DA (60105888) | unclaimed | 4.0 | 11.5 | 5.0 | 3.0 | | 23.5 | 0.77 |
+| LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 17.3 | | 51.4 | 1.00 |
+| HAN Mei (60914643) | not reported | 4.5 | 12.0 | 2.0 | 1.5 | | 20.0 | 1.00 |
+| LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 3.5 | | 30.0 | 1.00 |
+| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 5.7 | | 26.95 | 1.00 |
+| Buna DA (60105888) | unclaimed | 4.0 | 11.5 | 5.0 | 3.0 | | 23.5 | 1.00 |
 
 > Aggregated 2026-11-21 19:45 HKT from anchored entries in `docs/contribution-log.md`
 > (issue #28); LIU ④/⑤ backfilled 20:20 HKT per rule 6 (member-authorized, GitHub-
@@ -76,8 +78,10 @@ the raw, append-only log and the recording protocol live in `docs/contribution-l
 > confirmation requested); LIU Jianwei ⑤ +5.1h (3.9h endgame tail v3 + 1.2h for
 > the 11-23 close-out: #89 authoring/merge 1.0h net of the #88 re-review + RM-058
 > re-review 0.2h). Totals: LIU 51.4 / Mei 20.0 / LI 30.0 / HUANG 26.95 /
-> Buna 23.5; mean 30.37h; weights 1.69 / 0.66 / 0.99 / 0.89 / 0.77 (rounded values
-> total 5.00). Late tail entries keep their reported precision (LIU 3.9h,
+> Buna 23.5; mean 30.37h. The final relative-contribution weights are **equal at
+> 1.00 each** by team decision (issue #28, 2026-11-25); the hours table is the raw
+> effort evidence, not the ratio. The earlier 2026-11-22 hours-derived weights are
+> retained as history only. Late tail entries keep their reported precision (LIU 3.9h,
 > HUANG 2.2h); phase-level member reports remain in 0.5h steps. Open cells stay
 > as-is and are not estimated: Mei ① and demo-recording hours, HUANG ①; Buna ①
 > remains explicitly `unclaimed`. A later report lands as a recorded open cell or a
