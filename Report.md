@@ -30,9 +30,9 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 | Member | Ph ① | Ph ② | Ph ③ | Ph ④ | Ph ⑤ | Ph ⑥ | Total | Weight |
 |---|---|---|---|---|---|---|---|---|
 | LIU Jianwei (61022208) | 12.5 | 3.5 | 13.1 | 5.0 | 17.3 | | 51.4 | 1.00 |
-| HAN Mei (60914643) | not reported | 4.5 | 12.0 | 2.0 | 1.5 | | 20.0 | 1.00 |
+| HAN Mei (60914643) | not reported | 6.5 | 12.0 | 2.0 | 17.5 | 1.0 | 39.0 | 1.00 |
 | LI Shiyi (60938585) | 1.5 | 7.5 | 17.5 | | 3.5 | | 30.0 | 1.00 |
-| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 5.7 | | 26.95 | 1.00 |
+| HUANG Hongwei (60368210) | not reported | 4.25 | 1.0 | 16.0 | 7.7 | | 28.95 | 1.00 |
 | Buna DA (60105888) | unclaimed | 4.0 | 11.5 | 5.0 | 3.0 | | 23.5 | 1.00 |
 
 > Aggregated 2026-11-21 19:45 HKT from anchored entries in `docs/contribution-log.md`
@@ -86,6 +86,18 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 > as-is and are not estimated: Mei ① and demo-recording hours, HUANG ①; Buna ①
 > remains explicitly `unclaimed`. A later report lands as a recorded open cell or a
 > post-freeze follow-up — nothing is silently inferred.
+
+> **Final 11-25 reports (pre-submission).** Added after the 01:00 HKT close-out
+> from issue #28: HAN Mei +19.0h (② 2.0; ⑤ 4.0 demo frontend + 12.0 demo video;
+> ⑥ 0.5 D5 canonical + 0.5 Spec §5 audit) → 39.0h cumulative; HUANG Hongwei ⑤
+> +2.0h (11-25 review passes; the 11:18Z consolidation supersedes the interim
+> 05:20Z 2.0h figure) → 28.95h cumulative. No further 11-25 reports were recorded
+> for LIU Jianwei / LI Shiyi / Buna DA; their totals remain 51.4 / 30.0 / 23.5.
+> Recomputed totals: LIU 51.4 / Mei 39.0 / LI 30.0 / HUANG 28.95 / Buna 23.5;
+> mean 34.57h. The final weights remain **equal at 1.00 each** by team decision
+> (issue #28); the hours are the raw effort evidence, not the ratio. Mei's
+> demo-recording hours are now reported; open cells remain Mei ①, HUANG ①, and
+> Buna ① (`unclaimed`).
 
 ## 3. Software engineering process and how we optimized it
 
