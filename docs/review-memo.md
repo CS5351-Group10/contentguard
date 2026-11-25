@@ -635,13 +635,14 @@
 > collisions in this burst are resolved by first-post precedence and disclosed below.
 > Dismissed interim reviews are recorded as chain entries with their verdicts noted,
 > not as final memos: RM-042's first pass on `3aa6b95` (CHANGES REQUIRED, 2026-11-21)
-> is superseded by the final governance approval it shares with RM-050; RM-049
+> is superseded by the final governance approval recorded as RM-050; RM-049
 > (governance pass at `c5a9b2c`) is superseded by RM-050 at `07b542e`; RM-051
 > (`a2e280f`) is superseded by RM-053 at `8b0ece5`. RM-047 was first posted as
 > CHANGES REQUIRED and is followed by the final APPROVE as RM-048 after the fixes.
-> RM-042 and RM-050 are one final review body carrying two numbers: RM-042 is the
-> chain label from the 11-21 dismissed initial, RM-050 the label posted on the final
-> re-review — per the PM's reserved mapping.
+> RM-042 and RM-050 are separate reviews: RM-042 is the chain label from the 11-21
+> dismissed initial (`6003554670`), RM-050 is the final approval at `07b542e`
+> (`6011567054`) — per the PM's reserved mapping. The RM-042 entry records the chain
+> and points to RM-050 as the memo of record; the final approval is not double-recorded.
 >
 > **Collision rulings (first-post precedence):**
 > - **RM-042** — creator-xiyuan posted the label on #75 (2026-11-21T06:35:53Z) and
@@ -684,7 +685,7 @@
 - Code quality: initial review at `3aa6b95` (2026-11-21T06:35:53Z, DISMISSED) found three governance blockers — ai-use-log placeholders (`REPLACE_WITH_ACTUAL_MODEL_ID`, `REPLACE_WITH_ACTUAL_COUNT`), `agent: codex` as a red-line question (OpenCode-only per AGENTS.md §4), and the doubled `transcripts/transcripts/` path — plus a WIP/draft-flag mismatch. PM round 2 at `7cae5a6` verified the transcript path and code fixes; PM round 3 at `6bdf85c` verified all four governance blockers closed (`agent: opencode`, real model id, `session_transcript` pointer, interventions 1) and diagnosed the gate-1 red as the lost literal `Test-Plan-Approved: #51` marker in the rewritten body
 - Test quality: interim re-review at `b4e86d7` confirmed three of four initial blockers closed; the governance verdict's zero-write 422 HTTP leg was later code-verified at `c5a9b2c` (real engine + real store; case/queue/audit/replay counts and case status asserted unchanged)
 - Security / Efficiency: the `agent: codex` question was resolved as a disclosed deviation, not a silent rewrite — the PM pre-authorized "truthful label + explicit disclosure" in round 2; this path-B handling was later formalized as the conditional acknowledgment in RM-047 and recorded as TD-11 (rule text and practice diverged, RM-036 class)
-- Operational metadata: memo of record is creator-xiyuan's governance APPROVE at `07b542e` (2026-11-22T09:49:15Z), whose body is summarized under RM-050 — same review, two numbers per the PM's reserved mapping; architecture re-approve by xiaolizi33 (LI Shiyi) at the same head 09:48:45Z. Head `07b542e`, base `257a97a`; squash-merged as `9e189e9` on 2026-11-22 (09:54:33Z; 17:54 HKT). Chain links: initial CHANGES REQUIRED github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6003554670; PM round 2 github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6005066219
+- Operational metadata: memo of record is creator-xiyuan's governance APPROVE at `07b542e` (2026-11-22T09:49:15Z), recorded as RM-050 (the final re-review at this head); RM-042 is the chain label from the dismissed initial review (`6003554670`, 2026-11-21T06:35:53Z), not a second final approval; architecture re-approve by xiaolizi33 (LI Shiyi) at the same head 09:48:45Z. Head `07b542e`, base `257a97a`; squash-merged as `9e189e9` on 2026-11-22 (09:54:33Z; 17:54 HKT). Chain links: initial CHANGES REQUIRED github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6003554670; PM round 2 github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6005066219
 - Verdict: APPROVE (final; governance scope) — final review 2026-11-22T09:49:15Z; github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6011567054 (initial CHANGES REQUIRED 2026-11-21T06:35:53Z, github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6003554670, superseded)
 
 ## RM-043 — PR #78: docs(man-hours): LIU phase-4/5 backfill rows per rule 6 (member-authorized, anchored)
