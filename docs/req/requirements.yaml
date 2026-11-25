@@ -410,7 +410,14 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: manual-review
-    evidence: PENDING
+    evidence: >-
+      EXECUTED 2026-11-25 — final submission zip sha256
+      5a08f976bb171613ce1f30308f26219c3deb82ba86570aeb11da2481ce9b8ed3,
+      1,035,413 bytes, built from main e8d22a4 / tag submission-20261125-final;
+      release-checklist execution record: 0 valid credentials (1,474 regex hits,
+      1,436 example/placeholder triaged, 38 itemized false positives), 187/187
+      manifest, 535 offline tests passed, 0 hard failures. Canvas zip attempt 1
+      submitted 2026-11-25 20:53 HKT, late=False.
   source:
     origin: "Team plan §1.2, citing introduction slide 23"
     links: []
