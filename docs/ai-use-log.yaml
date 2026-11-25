@@ -57,6 +57,19 @@ entries:
       improved schema error reporting, and failure exit handling.
       Performed preliminary verification using temporary fixtures.
       Session: ses_e1fa17e9dffeD1bxtEnItAbngB.
+      Post-lock re-verification note (2026-11-25):
+      The AI-002 session was cross-checked for the D5 Stage-1
+      canonical transcript in transcripts/60914643-HAN-Mei.md
+      (PR #90). Four human intervention points are included,
+      comprising two approve and two redirect classifications.
+      AI assistance was used for source cross-checking and
+      canonical excerpt assembly. The rationales are retained
+      from the owner's supplied review notes. The original
+      supporting transcript remains unchanged.
+      Note on the count: the session-level human_interventions value (3) is the
+      decision-turn count; this excerpt records four points because it also
+      includes the opening scope instruction (transcript source line 28, a
+      redirect) alongside the three logged decision turns.
     human_interventions: 3
     intervention_summary: >-
       Approved the implementation plan before code changes.
@@ -129,6 +142,25 @@ entries:
       test items and the complete offline regression suite
       (20 items), with all tests passing. Also consolidated
       Gate 3 verification evidence.
+      Session: ses_e170e175cffeErOe3BcXI8zqed.
+      Post-lock re-verification note (2026-11-25):
+      The AI-006 session was cross-checked for the D5 Stage-1
+      canonical transcript in transcripts/60914643-HAN-Mei.md
+      (PR #90). Six human intervention points are included,
+      comprising three approve and three redirect classifications,
+      including the opening user instruction before the first
+      assistant heading. Together with AI-002, the canonical
+      excerpt contains ten intervention points: five approve
+      and five redirect. AI assistance was used for source
+      cross-checking and canonical excerpt assembly. The
+      rationales are retained from the owner's supplied review
+      notes. The original supporting transcript remains unchanged.
+      Missing messages and tool payloads are not reconstructed.
+      AI-015 is outside the scope of this canonical excerpt.
+      Note on the count: the session-level human_interventions value (5) is the
+      decision-turn count; this excerpt records six points because it also
+      includes the opening user instruction alongside the five logged decision
+      turns.
       Session: ses_e170e175cffeErOe3BcXI8zqed.
     human_interventions: 5
     intervention_summary: >-
