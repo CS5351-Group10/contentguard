@@ -71,7 +71,7 @@ The team treated the repository, not the chat log, as the source of truth. The p
 | ② Planning and foundation | 11/16 | requirements baseline, ADR/blueprint, governance drafts, schema gate | #11 registry; ADR-001 (#15); bug/debt registers (#17) |
 | ③ Build (sessions 1–4) | 11/17–20 | S1 policy/audit; S2 intake/queue; S3 analysis/RAG; S4 CI/governance | S1 merged in PR #41 (`e60dd50`); gate-2 work merged in #45 (`b2e67f1`) |
 | ④ Refine and evaluate | 11/20–21 | semantic evaluation, negative tests, architecture revision; evidence lock 11/21 23:59 | gate 4 `--strict` replay of the fixed eval set (TD-1 closed via #57); eval corpus #37 |
-| ⑤ Final sprint | 11/22–24 | report, transcripts annotated, demo video, slides | report assembled (#44, §7 verbatim via #81); canonical transcripts 4/5 — stages 2–5 covered (stage 2 via #76; stages 3–4 via #53/#73; stage 5 via #88), stage 1 (Mei) remains an honest gap (see `transcripts/README.md`) |
+| ⑤ Final sprint | 11/22–25 | report, transcripts annotated, demo video, slides | report assembled (#44, §7 verbatim via #81); canonical transcripts 5/5 — stage 1 via #90 (landed post-lock 2026-11-25; re-verification noted in `docs/ai-use-log.yaml`), stages 2–5 via #76/#53/#73/#88; demo video recorded 11-25; slides v3 in progress for the 11-29 TA deadline |
 | ⑥ Deliver and present | 11/25–30 | zip + video, slides to TA, presentation | pending |
 
 Three constraints shaped the work:
