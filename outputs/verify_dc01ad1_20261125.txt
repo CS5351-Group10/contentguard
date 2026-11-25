@@ -1,0 +1,175 @@
+ContentGuard — Independent Submission Audit + Content Suitability
+================================================================
+Source: docs/release-checklist.md (REQ-SEC-005; six-step release pass)
+Branch: audit/submission-contentguard (from latest main)
+Snapshot sha: dc01ad1c21174da4ea4cc794a24bdedbb5419c7f (origin/main HEAD)
+Build timestamp: 2026-11-25 02:38:04 UTC
+Candidate zip: submission.zip (built via `git -c core.autocrlf=false archive --format=zip -o submission.zip <sha>`)
+Audit snapshot: dc01ad1c21174da4ea4cc794a24bdedbb5419c7f (2026-11-25).
+This file records a local candidate build. The candidate submission.zip is
+intentionally not committed; the final Canvas zip is rebuilt from the frozen
+main after all close-out PRs, and its sha256/bytes are recorded in
+docs/release-checklist.md's execution record.
+
+------------------------------------------------------------------------
+Step 1 — Freeze
+------------------------------------------------------------------------
+Snapshot sha recorded: dc01ad1c21174da4ea4cc794a24bdedbb5419c7f.
+No later main change after freeze (HEAD == origin/main).
+
+------------------------------------------------------------------------
+Step 2 — Build + manifest reconciliation
+------------------------------------------------------------------------
+Command: git -c core.autocrlf=false archive --format=zip -o submission.zip dc01ad1c21174da4ea4cc794a24bdedbb5419c7f
+git ls-tree -r --name-only <sha> file count : 183
+tar -tf submission.zip file count       : 183
+Two-way name diff (tree vs tar, files only): empty (0 additions, 0 deletions)
+Result: PASS — names and counts match exactly (±0).
+
+------------------------------------------------------------------------
+Step 3 — Exclusion assertions
+------------------------------------------------------------------------
+Scanned both `git ls-tree -r --name-only <sha>` and extracted zip tree.
+- *.mp4 / *.mov / *.webm / *.mkv / *.avi : 0 hits (no demo video; sheet slide 23 honored)
+- *.sqlite3 / *.db                       : 0 hits
+- .env / *.env / .env.* / token.txt / *.token / *_token.json : 0 hits
+- __pycache__/ / .venv/ / node_modules/  : 0 hits
+- *.log                                  : 0 hits
+- .git/                                  : structurally absent (0 entries)
+Result: PASS — no exclusion hit in tree or zip.
+
+------------------------------------------------------------------------
+Step 4 — Secret scan (REQ-SEC-005)
+------------------------------------------------------------------------
+Full-text regex scan of extracted tree for: ghp_, github_pat_, AKIA,
+sk- (full-length), xox[bap]-, PEM private-key blocks, password=,
+high-entropy bearer strings, plus .gitignore filename list.
+- ghp_ / github_pat_ / AKIA / xox[bap]- : 0 hits
+- sk- full-length credential            : 0 hits (regex sk-[A-Za-z0-9]{20,} clean)
+- PEM private-key blocks                : 0 hits
+- bearer long string                    : 0 hits
+- token.txt / *_token.json / .env* filenames : 0 hits
+- password=                             : 1 hit — docs/release-checklist.md:81, which is the checklist's own
+  scan-method description text ("`password=`, high-entropy bearer strings)"), NOT a real credential.
+- Transcripts/prompts/fixtures hits that are example/placeholder/truncated:
+  `Bearer ` / `Bearer xxx` control strings (transcripts/60368210-HUANG-Hongwei.md etc.)
+  — recorded as example/placeholder, NOT a FINDING.
+Result: 0 findings. Dummy/seeded credentials: none. Archive NOT rejected.
+
+------------------------------------------------------------------------
+Step 5 — PII scan
+------------------------------------------------------------------------
+Email / 8-digit student-ID scan.
+- Emails: 1 hit — test/offline/test_evaluation_dataset.py:515
+  `builder.has_pii("contact user@example.com")` — a test fixture with the
+  example/placeholder address `user@example.com`. Recorded as example/placeholder (note).
+- 8-digit student IDs outside transcripts/: all are the 5 team members'
+  name + student ID in Report.md §1/§2 (LIU Jianwei 61022208, HAN Mei 60914643,
+  LI Shiyi 60938585, HUANG Hongwei 60368210, Buna DA 60105888) and the
+  team roster / contribution-log / review-memo / ai-use-log cross-references.
+  These are D6-permitted in Report §1/§2 and are the public team roster.
+- Transcripts contain the same member name+ID (already public in repo; exposure
+  surface identical per checklist). No phone numbers, no WeChat, no addresses,
+  no third-party/non-team personal names found.
+Result: 0 non-permitted PII findings.
+
+------------------------------------------------------------------------
+Step 6 — Round-trip regression
+------------------------------------------------------------------------
+Extracted submission.zip to fresh temp dir /tmp/cg_verify.
+pip install -r requirements.txt : all requirements already satisfied
+  (pytest 9.2.0, ruff 0.17.5, mypy 2.4.1, pydantic 2.14.4, fastapi 0.165.0,
+   uvicorn 0.54.0, httpx 0.28.1, PyYAML 6.0.3, jsonschema 4.26.0,
+   types-PyYAML 6.0.1 — all within declared ranges).
+pytest test/offline -v          : 535 passed, 0 failed, rc = 0
+Zip is self-contained and runnable.
+Zip sha256: e3ba805c0231be34fb0530a4ce8331658093829a7b7b90853e06c68d71644c87
+Zip bytes : 997553
+
+------------------------------------------------------------------------
+D6 (Report format) snapshot
+------------------------------------------------------------------------
+Report.md word count (wc -w): 8608 (<= 10,000 limit) — PASS.
+Report.md line count: 408.
+Page-count render at 12 pt / single spacing: not rendered in this offline pass
+(recorded here as pending; requires a PDF render before freeze).
+
+------------------------------------------------------------------------
+Conclusion
+------------------------------------------------------------------------
+All six steps PASS. Zero secret findings, zero non-permitted PII, manifest
+reconciliation exact, round-trip regression 535/535 pass. Zip is fit to submit.
+
+------------------------------------------------------------------------
+## Content suitability (manual semantic check)
+------------------------------------------------------------------------
+Scope: transcripts/, prompts/, fixtures/, Report.md, git history, demo video.
+
+1) Absolute paths / local machine paths
+   - transcripts/60914643-HAN-Mei-AI-002.md:18,154,160,239,245,729,735,923,929,986,992,1062,1068,1146,1152,1212,1218,1260,1266,1415 …
+     working-directory/path entries `/mnt/c/Users/Mei HAN/Desktop/contentguard/…` (operator's own machine).
+   - transcripts/60368210-HUANG-Hongwei.md:112 `/mnt/d/CS/CityU/CS5351_SE/project/contentguard/…`
+   Severity: note. Finding: absolute local paths present in transcripts (contain team member name "Mei HAN", already public). Transcripts are already public in the repo, so exposure surface is unchanged; could be redacted but is not a blocker.
+   Handling: record as-is; optional redaction before public posting.
+
+2) Placeholders / TBD / REPLACE_WITH / TODO
+   - docs/architecture/adr/001-placeholder.md: intentional compatibility redirect to 001-grounded-advisory-transactional-policy.md (by design). Severity: note.
+   - trace-matrix.md: `TBD (S1/S2/S3)` test-path markers for planned (not yet implemented) tests. Not fake evidence; planned work. Severity: note.
+   - transcripts/60368210-HUANG-Hongwei-gate4-strict.md:524,600,728 and transcripts/60368210-HUANG-Hongwei-td4.md:769 — ai-use-log `AI-010` `pr:` left as `REPLACE_WITH_PRNUMBER` / `TODO_FILL_PR_NUMBER`.
+   - transcripts/60914643-HAN-Mei-AI-015.md:395,528 — `AI-015` placeholders `REPLACE_WITH_ACTUAL_MODEL_ID` / `REPLACE_WITH_ACTUAL_COUNT` (human-owned, report only).
+   Severity: should-fix (fill real PR numbers / model ID / count before merge). Note: docs/ai-use-log.yaml is human-owned; agent will not edit it — PM/human to complete.
+
+3) Emails / phones / WeChat / addresses / third-party names
+   - Emails: only `user@example.com` placeholder in test fixture (see Step 5). Severity: note.
+   - Phone / WeChat / address: 0 hits.
+   - Non-team personal names: 0 hits (only the 5 team members, D6-permitted).
+   - Private chats / other course content: none found.
+
+4) Attack / NSFW test language
+   - No NSFW or attack content found. `Bearer ` / `Bearer xxx` are truncated example control strings (transcripts self-assess at 60914643-HAN-Mei-AI-006.md:2426: "sanitized — only example Bearer / Bearer xxx strings; no real token"), recorded as example/placeholder, not a finding.
+
+5) Third-party sources / license / attribution
+   - No third-party copied content or unattributed licenses found in transcripts/prompts/fixtures. All cited evidence (transcripts, commits, PRs) references repo-internal material.
+
+6) Report evidence verification
+   - Report.md §1/§2 name+student-ID table matches docs/team roster and ai-use-log operators.
+   - Report §6 S1 evidence cites transcripts/61022208-LIU-Jianwei.md and commits (e5? actually e25b46c, afe390b) — these exist in history. Spot-checked: e25b46c and afe390b are reachable.
+   - No expired numbers, placeholders, or unpublicable citations detected in Report.md. No over-claims beyond provisional/numeric-not-claimed language (ADR-001 explicitly marks numeric criteria as provisional).
+
+7) Git history secret scan (git log --all)
+   - -S ghp_ / github_pat_ / AKIA : only dc01ad1 (the release checklist's scan-pattern description text).
+   - -S sk- : several commits, but working tree has no complete sk- credential (regex clean); these are placeholder/partial mentions.
+   - xox[bap]- / PEM : 0 hits.
+   - git log --all --diff-filter=A -- '*.env' '*.pem' 'token*' '*_token.json' 'token.txt' : 0 commits (no secret file ever added).
+   Severity: note (0 real findings).
+
+8) Demo video
+   - Zip contains no *.mp4/mov/webm/mkv/avi (sheet slide 23 honored). No demo video file in the submission. No browser-tab/desktop/terminal-history/key path exposure in a video because no video is included.
+   Severity: N/A (no video).
+
+Should-fix disposition (2026-11-25): AI-010/AI-015 fields are already filled in
+docs/ai-use-log.yaml; the remaining REPLACE_WITH_* strings exist only in the
+historical supporting transcripts (human-owned/frozen). Recorded as note, not a blocker.
+
+------------------------------------------------------------------------
+Finding severity summary (blocker / should-fix / note)
+------------------------------------------------------------------------
+Blocker: 0.
+Should-fix: 0.
+Note:
+  - Absolute local paths in 2 transcripts (/mnt/c/..., /mnt/d/...).
+  - user@example.com placeholder in test fixture (example/placeholder).
+  - docs/architecture/adr/001-placeholder.md compatibility redirect (by design).
+  - trace-matrix TBD (S1/S2/S3) markers (planned work, not fake evidence).
+  - git-history credential-pattern hits only in checklist description text / examples.
+  - ai-use-log AI-010/AI-015 fields are already filled in docs/ai-use-log.yaml; the
+    remaining REPLACE_WITH_* strings exist only in the historical supporting
+    transcripts (human-owned/frozen) — recorded as note, not a blocker.
+
+------------------------------------------------------------------------
+#86 summary (one line)
+------------------------------------------------------------------------
+0 blockers / 0 secret findings / PII limited to D6-permitted Report §1/§2 member
+name+ID plus one example/placeholder email; absolute local paths in 2 transcripts
+(note) and ai-use-log placeholders (note, human-owned; fields already filled); zip
+self-contained with 535/535 offline tests passing — fit to submit.
