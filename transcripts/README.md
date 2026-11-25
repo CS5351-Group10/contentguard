@@ -51,25 +51,25 @@ committing**: replace any credential with `[REDACTED]`. The team reviews each fi
 before commit (risk RSK-4). Never commit a `.env`/token file — `.gitignore` also
 guards this, but sanitization is the human responsibility here.
 
-## Inventory — the five canonical files (main, as of 2026-11-23 HKT)
+## Inventory — the five canonical files (main, as of 2026-11-25 HKT)
 
 | Canonical file | Member | Pipeline stage / session line | Status |
 |---|---|---|---|
 | `61022208-LIU-Jianwei.md` | LIU Jianwei (PM) | S1 build session (AI-007, CP1–CP6); stage-3/4 markers added in #53 | ✅ inline markers |
 | `60368210-HUANG-Hongwei.md` | HUANG Hongwei (governance & CI) | stages 3/4 (plan approval + build/verification); inline markers added in #73 | ✅ inline markers |
-| `60914643-HAN-Mei.md` | HAN Mei (requirements) | stage 1 (requirements classification) | ⬜ not yet assembled; `-AI-002`/`-AI-006` are supporting |
+| `60914643-HAN-Mei.md` | HAN Mei (requirements) | stage 1 (requirements classification) | ✅ canonical stage-1 excerpt landed post-lock via #90 (10 inline markers: 5 approve / 5 redirect); `-AI-002`/`-AI-006` remain supporting; re-verification note in `docs/ai-use-log.yaml` |
 | `60938585-LI-Shiyi.md` | LI Shiyi (architecture) | stage 2 (architecture candidate evaluation) | ✅ canonical stage-2 excerpt landed via #76 (one inline marker); S3 build record moved to `-s3.md` |
 | `60105888-DA-Buna.md` | Buna DA (testing) | stage 5 (architecture revision on test evidence) | ✅ canonical Stage-5 excerpt with inline intervention markers; `-AI003`/`-AI004`/`-AI012` remain supporting |
 
 ## Coverage checklist
 
-State as of 2026-11-23 HKT (issue #50 deadlines: 11/20 23:00 all five final,
+State as of 2026-11-25 HKT (issue #50 deadlines: 11/20 23:00 all five final,
 11/21 23:59 lock). "✅" means the file exists **and** carries inline `[INTERVENTION]`
 markers; a file without markers does not count as done.
 
 | # | Pipeline stage demonstrated | Canonical file | Annotator | Status |
 |---|---|---|---|---|
-| 1 | Requirements classification | `60914643-HAN-Mei.md` | HAN Mei | ⬜ not present (only `-AI-002` / `-AI-006` supporting files) |
+| 1 | Requirements classification | `60914643-HAN-Mei.md` | HAN Mei | ✅ canonical stage-1 excerpt landed post-lock via #90 (10 inline markers, 5 approve / 5 redirect); re-verification note in `docs/ai-use-log.yaml` |
 | 2 | Architecture candidate generation & evaluation | `60938585-LI-Shiyi.md` | LI Shiyi | ✅ canonical stage-2 excerpt landed via #76 (annotated, one inline marker); the S3 build record is preserved at `60938585-LI-Shiyi-s3.md` as stage-4 supporting |
 | 3 | Plan approval before code | `61022208-LIU-Jianwei.md`, `60368210-HUANG-Hongwei.md` | PM / HUANG Hongwei | ✅ both present, inline markers in place (#73 added HUANG's) |
 | 4 | Build + verification compliance | same two files as row 3 | PM / HUANG Hongwei | ✅ both present, inline markers in place |
