@@ -101,6 +101,32 @@ Record the zip sha256 and byte size.
 
 ## Execution record
 
-(to be appended by the release pass; REQ-SEC-005 evidence and the trace-matrix
-cell are flipped only after this section exists with the scan results, the D6
-word/page numbers, and the submitted sha.)
+**Final submission — 2026-11-25 (attempt 1).**
+
+- Freeze: main `e8d22a4830798605e288ec8cde4e10ec25e9da90`; tag
+  `submission-20261125-final`; built 2026-11-25 20:52 HKT.
+- Zip: `contentguard-group10-submission-20261125-final.zip` — **1,035,413 bytes**,
+  sha256 `5a08f976bb171613ce1f30308f26219c3deb82ba86570aeb11da2481ce9b8ed3`,
+  md5 `3735f80b80cbf61105a522da7898962f`.
+- Manifest: 187 tracked files / 187 archive entries; two-way name diff empty (±0).
+- Exclusions: 0 hits (no video/db/log/.env/token/`__pycache__`/.venv/node_modules/.git).
+- Secret scan (REQ-SEC-005): 1,474 regex hits; 1,436 triaged `example/placeholder`;
+  38 itemized false positives (long markdown links, long test names, comment
+  separators, and the #94 audit report's own scan output); **0 valid credentials**;
+  filename list 0 hits.
+- PII scan: no real emails; only the `user@example.com` fixture placeholder and
+  `n@pytest.mark.parametrize` regex false positives; D6-permitted member names and
+  student IDs appear in Report §1/§2 as expected.
+- Round-trip: `pip install -r requirements.txt` rc=0; `pytest test/offline -q` —
+  **535 passed**, 2 warnings, 10.34s.
+- D6 report: **9,202 words** (<10,000); **22 pages** at 12pt single spacing
+  (A4 Word render). Contribution weights are **equal at 1.00 each** by team
+  decision (issue #28); raw hours are 56.4 / 39.0 / 32.0 / 28.95 / 29.5.
+- D5: canonical transcripts **5/5** present (stage 1 post-lock via #90 with the
+  `docs/ai-use-log.yaml` re-verification note).
+- Canvas: Project (Zip file) assignment 324835 — **attempt 1, 2026-11-25 20:53 HKT,
+  late=False**, file_id `16687385`; Project (Demo Video) assignment 327885 —
+  **attempt 1, 2026-11-25 21:03 HKT, late=False**, 198,630,139 B, md5
+  `a222a6d103706877c6712aedf9614150`.
+- Verification report: `contentguard-demo-work/outputs/verify_e8d22a4_20261125.txt`
+  (external to the repository).
