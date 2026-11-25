@@ -627,3 +627,273 @@
 - Security / Efficiency: no credentials or secrets; transcript sanitized; no new dependencies; context budget/usage accounting bounded; no live-provider claim.
 - Operational metadata: head `c95fce3`, base `6b91946`; squash-merged as `397e002` on 2026-11-20; #43 closed. D5 note: the merged transcript is the S3 build session (stage-4 supporting evidence); the canonical Li stage-2 file remains a separate #50 deliverable, and this file should be renamed `60938585-LI-Shiyi-s3.md` when that lands.
 - Verdict: APPROVE (final) — review 2026-11-20T07:35:54Z; github.com/CS5351-Group10/contentguard/pull/52#pullrequestreview-5989077588
+
+> **2026-11-25 ledger backfill note (RM-041–RM-061).** This append writes the memos
+> for the 2026-11-20 → 11-23 review burst. The PR review bodies are the memos of
+> record; entries below are structured summaries, not verbatim transcriptions.
+> Numbering follows the label each reviewer posted in the review body; the four label
+> collisions in this burst are resolved by first-post precedence and disclosed below.
+> Dismissed interim reviews are recorded as chain entries with their verdicts noted,
+> not as final memos: RM-042's first pass on `3aa6b95` (CHANGES REQUIRED, 2026-11-21)
+> is superseded by the final governance approval recorded as RM-050; RM-049
+> (governance pass at `c5a9b2c`) is superseded by RM-050 at `07b542e`; RM-051
+> (`a2e280f`) is superseded by RM-053 at `8b0ece5`. RM-047 was first posted as
+> CHANGES REQUIRED and is followed by the final APPROVE as RM-048 after the fixes.
+> RM-042 and RM-050 are separate reviews: RM-042 is the chain label from the 11-21
+> dismissed initial (`6003554670`), RM-050 is the final approval at `07b542e`
+> (`6011567054`) — per the PM's reserved mapping. The RM-042 entry records the chain
+> and points to RM-050 as the memo of record; the final approval is not double-recorded.
+>
+> **Collision rulings (first-post precedence):**
+> - **RM-042** — creator-xiyuan posted the label on #75 (2026-11-21T06:35:53Z) and
+>   again on #77 (2026-11-21T12:06:39Z). #75 keeps RM-042 (later-memo semantics also
+>   point to #75); #77 is chain-assigned RM-057.
+> - **RM-056** — the PM's #88 review (2026-11-22T16:59:54Z) keeps RM-056; HUANG's
+>   #87 re-review (2026-11-22T23:07:41Z) is chain-assigned RM-060.
+> - **RM-057** — this ledger's #77 memo (first posted 2026-11-21T12:06:39Z) keeps
+>   RM-057; HUANG's #88 re-review (2026-11-23T03:55:54Z) is chain-assigned RM-061.
+> - **RM-058** — the PM's #88 re-review (2026-11-23T03:53:35Z) keeps RM-058; HUANG's
+>   first #89 review (2026-11-23T04:10:05Z, CHANGES REQUESTED) is chain-linked
+>   inside RM-059, whose final APPROVE at `3eb71a9` is the memo of record.
+>
+> **Final verdicts (backfilled 2026-11-25):** RM-054's final is RM-060 (APPROVE at
+> `40abaa2`; squash `d16c9d4`); RM-055's final is RM-061 (APPROVE at `84b92bc`;
+> squash `1e2d6db`); RM-056's final is RM-058 (PM re-review at `84b92bc`; squash
+> `1e2d6db`); RM-059's #89 final APPROVE at `3eb71a9` is squash `dc01ad1`. The
+> three CR entries keep their CHANGES REQUIRED verdict and point to these finals;
+> the finals are not double-recorded as separate approvals inside the CR entries.
+> RM-057's entry adapts the RM-040 skeleton fields to a docs-only man-hours review
+> (Arithmetic / Recording quality / Evidence-pointer integrity in place of
+> Architecture / Code / Test / Security).
+
+## RM-041 — PR #72: docs(consistency): sync ledgers, gates, requirements and transcript inventory with merged reality
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; governance/CI lane); architecture approval for `docs/architecture/**` by xiaolizi33 (LI Shiyi) at the same head
+- Spec alignment: no requirement change — a consistency sync of ledgers, gate rows, requirements and the transcript inventory with merged reality. Independently re-checkable facts verified: the six squash refs the body cites (`3cfdbc9` #64, `8481f98` #71, `ec04e5f` #74, `fb629c0` #63, `b88ae57` #65, `8637ab6` #70) are all ancestors of main, so "RM-015–RM-040 recorded as landed via #64" is true, not premature; trace-matrix TBD distribution matches the body (TBD (S3) = 0, TBD (S2) = 6, TBD (S5) = 5); the requirements.yaml PENDING set matches except REQ-PER-001, wrongly listed as pending in the body (P2: drop before merge)
+- Architecture alignment: n/a (docs/ledger sync; no code/CI/registry change). One reserve recorded: `transcripts/README.md` now carries two overlapping tables (canonical file list + five-stage coverage) — dedupe at the next docs pass, otherwise the "same fact written twice" drift this PR fixes returns
+- Code quality: n/a (docs-only, 11 files; single commit + one main merge)
+- Test quality: n/a; CI double-green on `721d46e`
+- Security / Efficiency: n/a
+- Operational metadata: an earlier domain review at `5becd9e` (2026-11-20T04:28:13Z, DISMISSED on the head update) found the gate-2 table row still reading "Lint + type-check" while gate 2 is 2a–2d active plus 2e in #69 — that P2 ("Active (2a–2d), 2e in #69") is not restated in the final memo and was deferred to a later ledger pass; xiaolizi33's architecture approval (AI-assisted under LI Shiyi's explicit instruction, `test_smoke.py` 9 passed + 31 requirements valid reproduced) carries the same REQ-PER-001 P2; the review states `docs/req/**` (requirements.yaml) needs @Mei-github's sign, and no separate requirements-owner review appears on the thread — PM to verify against CODEOWNERS resolution. Head `721d46e`, base `fb629c0`; squash-merged as `762cddc` on 2026-11-20 (18:07:09Z)
+- Verdict: APPROVE (final) — review 2026-11-20T08:54:15Z; github.com/CS5351-Group10/contentguard/pull/72#pullrequestreview-5989897511
+
+## RM-042 — PR #75: feat(s2): API intake, lookup and review integration (WIP) — governance chain (final memo shared with RM-050)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; governance lane); PM swordnew123 (LIU Jianwei) round-2/3 verification reviews. Label history: RM-042 posted on the dismissed initial review, and colliding on PR #77 (see append note)
+- Spec alignment: S2 API slice consumed against the #51 test-plan contract; governance surface only — API semantics and idempotency design are the architecture/PM lanes and are not signed here
+- Architecture alignment: the first round surfaced the S1/S2 contract gap — S2's offline negative test was correct test-first design (typed `MandatoryRuleViolation` → 422, no final effect), but the real S1 engine committed typed failures via `EnforcementAuthority.commit` without a pre-commit validation path. Ruled S1-owned and explicitly not blocking #75; closed by #83 (ADR-002) before this PR merged
+- Code quality: initial review at `3aa6b95` (2026-11-21T06:35:53Z, DISMISSED) found three governance blockers — ai-use-log placeholders (`REPLACE_WITH_ACTUAL_MODEL_ID`, `REPLACE_WITH_ACTUAL_COUNT`), `agent: codex` as a red-line question (OpenCode-only per AGENTS.md §4), and the doubled `transcripts/transcripts/` path — plus a WIP/draft-flag mismatch. PM round 2 at `7cae5a6` verified the transcript path and code fixes; PM round 3 at `6bdf85c` verified all four governance blockers closed (`agent: opencode`, real model id, `session_transcript` pointer, interventions 1) and diagnosed the gate-1 red as the lost literal `Test-Plan-Approved: #51` marker in the rewritten body
+- Test quality: interim re-review at `b4e86d7` confirmed three of four initial blockers closed; the governance verdict's zero-write 422 HTTP leg was later code-verified at `c5a9b2c` (real engine + real store; case/queue/audit/replay counts and case status asserted unchanged)
+- Security / Efficiency: the `agent: codex` question was resolved as a disclosed deviation, not a silent rewrite — the PM pre-authorized "truthful label + explicit disclosure" in round 2; this path-B handling was later formalized as the conditional acknowledgment in RM-047 and recorded as TD-11 (rule text and practice diverged, RM-036 class)
+- Operational metadata: memo of record is creator-xiyuan's governance APPROVE at `07b542e` (2026-11-22T09:49:15Z), recorded as RM-050 (the final re-review at this head); RM-042 is the chain label from the dismissed initial review (`6003554670`, 2026-11-21T06:35:53Z), not a second final approval; architecture re-approve by xiaolizi33 (LI Shiyi) at the same head 09:48:45Z. Head `07b542e`, base `257a97a`; squash-merged as `9e189e9` on 2026-11-22 (09:54:33Z; 17:54 HKT). Chain links: initial CHANGES REQUIRED github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6003554670; PM round 2 github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6005066219
+- Verdict: APPROVE (final; governance scope) — final review 2026-11-22T09:49:15Z; github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6011567054 (initial CHANGES REQUIRED 2026-11-21T06:35:53Z, github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6003554670, superseded)
+
+## RM-043 — PR #78: docs(man-hours): LIU phase-4/5 backfill rows per rule 6 (member-authorized, anchored)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: the PM's own man-hours backfill under rule 6 member-authorization — with member and reporter the same person, the only hours in the repo no second person had checked. Anchors verified against GitHub timestamps, not the report's description: phase ④ (11-20, declared 11:45–16:53) anchored 12:02–16:50 via #60 policy-review comments, #49 Train-A merge batch comments and the #72 refresh notice — all inside the declared interval; phase ⑤ (11-21, declared 18:15–20:10, marked running) anchored 19:25–20:03, including #76 review id 6004899505 reverse-checked via the API (APPROVED, 19:26 HKT). Arithmetic recomputed: 12.5 + 3.5 + 13.1 + 5.0 + 2.0 = 36.1, matching Report §2; ⑤'s 1h55m booked as 2.0h within the 0.5h step
+- Architecture alignment: n/a (docs-only, two files)
+- Code quality: n/a; three practices endorsed: a separate PR so no commit lands after the approval (the #39 pattern); the pre-18:15 session with no anchorable GitHub activity recorded as not counted rather than estimated; ⑤ marked running instead of padding to a full day
+- Test quality: n/a; CI green on `671330d`
+- Security / Efficiency: structural note recorded, not blocking: for PM rows, authorization, aggregation and rounding sit with one person — checkable anchors lower the risk to "the numbers have evidence" but not to "someone independently saw the duration"; recommendation to require a second member to confirm anchors on PM rows (this review performed that check once)
+- Operational metadata: head `671330d`, base `d0f38c1`; squash-merged as `3d63057` on 2026-11-21 (12:52:53Z)
+- Verdict: APPROVE — review 2026-11-21T12:48:36Z; github.com/CS5351-Group10/contentguard/pull/78#pullrequestreview-6005280814
+
+## RM-044 — PR #80: docs(transcripts): sync README to merged stage-2 reality (#76)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: post-#76 alignment of the stale README rows. Verified the files themselves on main `56ccc3c`, not just the wording: `60938585-LI-Shiyi.md` is the 123-line stage-2 candidate-evaluation excerpt (1 marker, header "stage-2 candidate evaluation") and `60938585-LI-Shiyi-s3.md` the 7121-line S3 build session (5 markers) — the canonical path now holds the stage-2 file and the misread RM-041 fixed is structurally resolved
+- Architecture alignment: n/a (docs-only, single file, no transcript content touched). The single marker is the "都保留" approval carrying the original reply, its context, and the "not originally typed inside OpenCode" declaration — provenance written into the evidence itself
+- Code quality: n/a
+- Test quality: n/a; CI double-green on `0af3452`
+- Security / Efficiency: two non-blocking reminders: (1) keep the "annotated excerpt, compiled from the contemporaneous review draft and #68 evidence" wording in Report §6/§7 — the file header itself declares a compilation, not a D5 "full, raw transcript"; (2) canonical coverage is 3/5 (LIU / HUANG / LI ✅; HAN-Mei stage-1 and DA-Buna stage-5 still supporting-only) — if the two do not land before 23:59, Report must state 3/5 rather than imply five
+- Operational metadata: head `0af3452`, base `56ccc3c`; squash-merged as `802c59a` on 2026-11-21 (14:42:28Z)
+- Verdict: APPROVE — review 2026-11-21T14:39:45Z; github.com/CS5351-Group10/contentguard/pull/80#pullrequestreview-6006036860
+
+## RM-045 — PR #81: docs(report): assemble member self-reflections from issue #27 (verbatim)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: §7 verbatim assembly checked on the three axes D6 cares about. Word counts recomputed: LIU 335 / Mei 316 / Li 369 / HUANG 375 / Buna 347 — all within the 300–500 band (the body's "within/near" hedge unnecessary). Verbatim sampling, not the declaration: Mei's and Buna's long sentences char-exact against #27; Li's 16 long sentences verbatim after stripping his own title line; the PM's own section verified with the assembly note removed; `TBD — author to supply` residue = 0 — "no rewording, no translation, no reordering" holds
+- Architecture alignment: n/a (docs-only)
+- Code quality: two assembly-level edits, both compliant: standard `### NAME (ID)` headings added (Buna's comment body lacked one — format, not content); member title lines and the PM's word-count meta row removed, as declared in the body
+- Test quality: n/a; CI (`blocking-gates`) still running at review time — docs-only, expected green; verdict subject to the final CI result
+- Security / Efficiency: reminder recorded: the body says Li's section supersedes the AI-assisted draft from #76 — that draft's wording must not survive anywhere in Report or appendix, or the same member has two reflection versions (the "same fact written twice" class)
+- Operational metadata: head `66c9715`, base `20f5f7b`; squash-merged as `4c3dc89` on 2026-11-21 (15:04:40Z)
+- Verdict: APPROVE — review 2026-11-21T14:59:52Z; github.com/CS5351-Group10/contentguard/pull/81#pullrequestreview-6006152695
+
+## RM-046 — PR #82: docs: refresh Report and README status banners to post-#81 reality
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: every banner claim machine-checked, because "banner contradicting body" is the defect this PR fixes: #79 approved (merged, squash `20f5f7b`); "draft PR #75" true at review time (the draft flag had just been flipped by Mei — had it still been false, the wording would have had to change); transcripts stages 2/3/4 landed with the LI stage-2 excerpt and `-s3.md` on main, 3/5 canonical; #81 merged (`4c3dc89`) with the five §7 reflections in range
+- Architecture alignment: n/a (docs-only; banners only, no numbers changed)
+- Code quality: n/a
+- Test quality: n/a; CI double-green on `339112b`
+- Security / Efficiency: n/a; the per-claim narration collapsed into pointers (issue #49 / debt register) — at close-out the report should point, not restate
+- Operational metadata: head `339112b`, base `4c3dc89`; squash-merged as `c24d2be` on 2026-11-21 (17:09:21Z)
+- Verdict: APPROVE — review 2026-11-21T15:43:33Z; github.com/CS5351-Group10/contentguard/pull/82#pullrequestreview-6006357909
+
+## RM-047 — PR #83: feat(policy): ADR-002 review_and_commit transition with pre-commit mandatory-rule validation (provenance ruling — superseded by RM-048)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei); Li's architecture P1 (posted 2026-11-22T01:05:05Z on the same head) independently code-read and endorsed
+- Spec alignment: the conditional formal acknowledgment of the RM-042 path-B deviation, delivered as requested: AI-017's fields verified real (`agent=zcode`, `model=zai/glm-5.3-flash`, operator LIU Jianwei, interventions 5, `pr: 83`; no placeholders) and the transcript header's "does not claim one [OpenCode session id]" singled out as the disclosure that matters. The acknowledgment is conditional, three conditions: the record never counts as D5 canonical nor is described anywhere as OpenCode session evidence; the rule must follow reality — a TD-11 debt-register row or an AGENTS.md §4 amendment, not neither; the acknowledgment covers provenance only, not code correctness
+- Architecture alignment: endorses Li's P1 on the replay identity: `enforcement.py` hashes the projected decision, so distinct review requests (a rationale-only edit, or a requested_outcome flip neutralized by the mandatory REJECT floor) collapse to one `payload_hash` and reconcile instead of returning the ADR-002-required CONFLICT — audit identity erased on a safety-critical path; the fix direction (persist and compare an immutable review-request identity: requested outcome, rationale, actor, case revision, pinned identity) approved, with the two real-store regressions Li required
+- Code quality: 7 files, +792/−12, verified via the API because the local `origin/main` was stale (a local diff would have over-reported four unrelated files); the invariants.md sentence placing `MandatoryRuleViolation` as action-refusal (not content judgment) under REQ-INV-002 endorsed; trace-matrix points REQ-FUN-003 / REQ-INV-003 at the new tests while keeping `TBD (S2, PR #75)` honest
+- Test quality: `blocking-gates` success on the current head; the gate-1 failed-run explanation (stale body in the event snapshot) accepted, but green counted from the current head only
+- Security / Efficiency: blocking gap: `transcripts/README.md` had no row for the new AI-017 transcript — a frozen (human-only) directory carrying an unlisted file; the row must be written by a human, not the session
+- Operational metadata: three fixes required (README row; TD-11 or §4 — one of the two; Li's P1 fixed or explicitly split with reasons); review at `2e6dac4`, 2026-11-22T01:33:52Z; superseded by RM-048 (final APPROVE at `7293b51` after all three fixes); #83 squash-merged as `257a97a` on 2026-11-22 (05:11:18Z)
+- Verdict: CHANGES REQUIRED — superseded by RM-048 (final); review 2026-11-22T01:33:52Z; github.com/CS5351-Group10/contentguard/pull/83#pullrequestreview-6009400840
+
+## RM-048 — PR #83: re-review at `7293b51` — all three RM-047 items closed (final)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; governance/provenance surface); Li's policy-scope re-approval at the same head 05:09:10Z is separate and not replaced by this vote
+- Spec alignment: RM-047's three conditions closed one by one: (1) `transcripts/README.md` rows added for AI-017 and AI-018, the AI-018 row self-disclosing "row and file placed by the session at the PM's explicit instruction (2026-11-22)" — disclosure before discovery, which decides record vs incident; (2) TD-11 chosen over the §4 amendment, preserving what the rule originally said: the rule was not changed, the practice diverged once, disclosed, and is recorded; (3) Li's P1 fixed beyond the ask (see Architecture alignment)
+- Architecture alignment: `store.py` adds a `review_request_hash` column with an existence-check migration (not a blind ALTER); the replay path compares `payload_hash` AND `review_request_hash` — the projected-decision semantics kept, the immutable request identity added; four tests cover the three regressions RM-047 endorsed (`test_g5_same_key_different_rationale_conflicts`, `test_g5_same_key_floor_overridden_outcome_conflicts`, `test_g5_review_request_on_evaluate_row_conflicts`) plus the legacy-schema migration test
+- Code quality: ai-use-log AI-017 (5 interventions) and AI-018 (2) fields verified real, no placeholders, no duplicate AI IDs; `pr: 83` on both
+- Test quality: CI double-green on `7293b51`, 12 files +1114/−19
+- Security / Efficiency: new non-blocking record: `transcripts/**` is frozen/human-only while AI-018's file and row were session-written at the PM's explicit instruction — accepted under the same disclosure standard as AI-017, but TD-11's wording does not yet cover frozen-path writes (and `check_structural.py`'s frozen guard covers only `.opencode/**` + `.agent/**`, so `transcripts/**` is a gateless rule); half-sentence in TD-11 or a new TD-12 requested — the same "docs say A, machine does B" structure
+- Operational metadata: head `7293b51`, base `c24d2be`; squash-merged as `257a97a` on 2026-11-22 (05:11:18Z)
+- Verdict: APPROVE (final) — review 2026-11-22T05:09:07Z; github.com/CS5351-Group10/contentguard/pull/83#pullrequestreview-6010496468
+
+## RM-049 — PR #75: governance pass at `c5a9b2c` (dismissed interim — superseded by RM-050)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; governance lane)
+- Spec alignment: full governance pass at `c5a9b2c` (26 files, +4958): `src/contentguard/policy/**` = 0 — the S1/S2 boundary held, one side decides and the other consumes (the root cause of the earlier contract conflict was both sides judging); API semantics explicitly not covered (Li's CHANGES REQUESTED still bound to `b4e86d7` at posting time)
+- Architecture alignment: n/a here; the zero-write 422 leg was verified in code, not by test name: real engine + real store, `post` returns 422 with "mandatory rule" in the detail, store counts and the case row (revision 4, escalated) unchanged — ADR-002 acceptance-matrix group 1 with a real HTTP leg; the 503 non-degradation tests present
+- Code quality: ai-use-log verified — 18 entries, no duplicates; AI-015 (`opencode/big-pickle`, HAN Mei, 1 intervention, `pr: 75`) and AI-019 (`zcode`, `zai/glm-5.3-flash`, LIU Jianwei, 2 interventions, `pr: 75`) fields real; the AI-019 README row carries the same PM-instruction disclosure as #83's AI-017/018 and is accepted under the same standard
+- Test quality: CI double-green on `c5a9b2c`; explicitly unverified and left for Li/PM spot-check: the rationale-only-retry 409 variant was not walked line-by-line (mechanism plausible via #83's `review_request_hash`), and the fastapi/uvicorn version bounds were not dependency-resolved (gate 2c counted instead)
+- Security / Efficiency: n/a beyond the governance surface above
+- Operational metadata: the author pre-announced this vote's own dismissal — the 09:19 comment said `cdee491` (AI-018/AI-019 corrections, TD-11 session count) was still outside the PR head, and those commits touch exactly the docs under review; also recorded: #83's merge (`257a97a`) removed the "#75 cannot merge before #83" constraint, and the draft had been flipped to ready. Review posted 2026-11-22T09:24:36Z at `c5a9b2c`, dismissed on the head update to `07b542e`; superseded by RM-050 (final)
+- Verdict: APPROVE (interim, governance scope) — DISMISSED on the push to `07b542e`; superseded by RM-050; review 2026-11-22T09:24:36Z; github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6011484392
+
+## RM-050 — PR #75: re-review at `07b542e` (governance scope) — final
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; governance lane); xiaolizi33's architecture re-approval at the same head landed 09:48:45Z, 30 seconds before this review
+- Spec alignment: `07b542e` closes both of Li's `c5a9b2c` P1s: the route-level staleness guard is removed so replay/staleness ordering belongs to the policy engine per ADR-002 — a same-key retry whose expected revision predates a committed transition now reaches the policy-owned reconciliation of the stored result instead of a route 409; and the earliest case read catches `StorageUnavailable` and maps it to 503 before any policy call. Three new tests match Li's asks (`test_real_engine_current_row_replay_reconciles_and_identity_conflicts`, `test_review_case_read_failure_is_503_with_zero_policy_calls`, `test_stale_review_revision_conflicts_through_policy`) — name and placement verified; the semantics left to Li's re-review, which this vote does not replace
+- Architecture alignment: governance scope: the S2/policy boundary stays intact and `cdee491`'s docs corrections verified — AI-019's log scope already covers `src/contentguard/api/routes/review.py`, so the `07b542e` edit to that file remains in declared scope without a log change; TD-11 rewritten to the requested form, naming all three disclosed zcode sessions (AI-017/AI-018 in #83, AI-019 in #75 — RM-042 path B) and the "RM-036 class: docs say A, machine runs B" framing
+- Code quality: n/a beyond the governance surface (the diff delta over `c5a9b2c` is exactly the two reviewed commits)
+- Test quality: CI double-green on `07b542e`, 28 files +5122/−2
+- Security / Efficiency: n/a
+- Operational metadata: process advice recorded at the reviewer's initiative: this was the second "approved, then head moved" cycle on this PR — push the final head before requesting review; RM-049's dismissal and this re-review are that cycle's cost. Head `07b542e`, base `257a97a`; squash-merged as `9e189e9` on 2026-11-22 (09:54:33Z; 17:54 HKT)
+- Verdict: APPROVE (final; governance scope) — review 2026-11-22T09:49:15Z; github.com/CS5351-Group10/contentguard/pull/75#pullrequestreview-6011567054
+
+## RM-051 — PR #84: docs(trace): flip S2 evidence rows to post-#83/#75 reality (dismissed interim — superseded by RM-053)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: evidence-status flips audited path by path, since a wrong flip forges coverage. 19 referenced test paths checked against main: 16 exist; the 3 missing (`test_demo_flags.py`, `test_evidence_access.py` — TBD (S5); `test_transaction_replay.py` — TBD (S2) on INV-002 and QUA-002) are all TBD-annotated, so the "future paths must be marked TBD" convention held. Three ghost paths cleaned: `test_intake.py` and `test_intake_validation.py` never existed yet hung off REQ-FUN-001, and the bare `test_review_queue.py` reference in requirements.yaml removed — this PR repairs the forged-looking state in reverse
+- Architecture alignment: requirements.yaml delta matches the claim exactly: PENDING 9 → 6 (FUN-001 and SEC-002 leave; SEC-004 becomes PARTIAL, not PENDING); keeping the whole table `baselined` accepted — flipping only the S2 rows to `verified` would manufacture inconsistency with the delivered INV rows
+- Code quality: the AI-019 provenance correction named the most valuable change: the blanket "no earlier transcript text was modified" replaced by the precise sentence naming the one in-place edit (one excerpt-declaration sentence at the head of its own transcript, branch commit `cdee491`, delivered in #75 and unreachable from main after the squash) plus the Addendum-over-rewrite policy for AI-018/AI-019 corrections; the accompanying "annotated record without a raw dump" caveat flagged for propagation into the README row so the limit does not live only in the yaml
+- Test quality: CI double-green cited at `6bb9b35` (an earlier head of this PR); 4 files +27/−20, no code/prompt/CI/policy change
+- Security / Efficiency: process note: the body was drafted by the zcode session under the RM-042 path-B disclosure class, no new ai-use-log entry — consistent with the #72/#82 docs-PR precedent, and the disclosure is required precisely because this PR edits trace evidence and provenance wording
+- Operational metadata: review attached at `a2e280f`, posted 2026-11-22T11:11:22Z; dismissed by the strict up-to-date requirement when `8b0ece5` landed; superseded by RM-053 (final at `8b0ece5`); #84 squash-merged as `bc30315` on 2026-11-22 (12:03:37Z)
+- Verdict: APPROVE (interim at `a2e280f`) — DISMISSED on the push to `8b0ece5`; superseded by RM-053; review 2026-11-22T11:11:22Z; github.com/CS5351-Group10/contentguard/pull/84#pullrequestreview-6011928924
+
+## RM-052 — PR #85: docs(log): append LI Shiyi 11-21 additional 1.5h (issue #28)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: one row plus one aggregation note, but hours feed D6 directly, so the two base facts were verified: the #28 report comment exists verbatim (xiaolizi33, 2026-11-21T16:31Z: "member-confirmed net personal effort … retrospective estimate … not a reconstructed timesheet") and the row's wording matches — an estimate written as an estimate, not as a timesheet
+- Architecture alignment: n/a (docs-only, single file)
+- Code quality: +2/−0 — append-only, no existing row touched (the man-hours ledger's baseline rule held)
+- Test quality: n/a; CI double-green on `1f5b537`
+- Security / Efficiency: all four anchors land on 11-21 (#76 close-out merge 22:31; §7 → #27 22:29; #75 architecture CR 22:39; #79 review + final-head approval 22:52/23:01, merge 23:01). Forward caveat recorded: the anchor covers only the 11-21 CR — the actual #75 re-review happened 11-22 17:24, after this report, and a future audit must not count it into 11-21 hours. Report §2 not yet reflecting the 1.5h (26.5 vs 28.0) accepted as a dated snapshot with a request: add "log rows appended after this timestamp are not yet reflected" and carry the row into the final aggregation. Minor: a missing `##` heading before the n/a section
+- Operational metadata: head `1f5b537`, base `9e189e9`; squash-merged as `9a8c08b` on 2026-11-22 (11:31:03Z)
+- Verdict: APPROVE — review 2026-11-22T11:13:14Z; github.com/CS5351-Group10/contentguard/pull/85#pullrequestreview-6011934635
+
+## RM-053 — PR #84: re-review at `8b0ece5` (final)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author); Li's architecture approval at the same head 11:53:14Z separate
+- Spec alignment: the reviewer's own false positive disclosed first: the re-run audit script swallowed a network error as a 404 and nearly reported `test_api_review_queue.py` as missing from main — recorded in the memo because "a checker that cannot distinguish truly-absent from unread is itself a source of false evidence". Corrected re-run: 19 references, only the 3 TBD-annotated paths missing; the three ghost paths still 0; the AI-019 provenance sentence still verbatim on head, the old sentence still on main (pre-merge)
+- Architecture alignment: `8b0ece5`'s change endorses Li's P2 direction: FUN-001 downgraded from delivered evidence to PARTIAL, naming the fake processor / lookup repository boundary and keeping real-chain queue/audit persistence, lost-ack reconciliation and no-duplicate consequential effects as pending — more accurate than either PENDING or full evidence; PENDING set unchanged (6: FUN-006/007, SEC-003/005, QUA-002, PER-001), no opportunistic flips
+- Code quality: n/a (docs-only, 4 files +27/−20)
+- Test quality: CI double-green on `8b0ece5`
+- Security / Efficiency: observation recorded for the PM: Li's 0.5h follow-up review hours were posted on the PR thread (11:54) rather than in `docs/contribution-log.md` — hours belong in the log; the next aggregation must land that row, not leave it in the thread
+- Operational metadata: head `8b0ece5`, base `9a8c08b`; squash-merged as `bc30315` on 2026-11-22 (12:03:37Z)
+- Verdict: APPROVE (final) — review 2026-11-22T12:02:14Z; github.com/CS5351-Group10/contentguard/pull/84#pullrequestreview-6012101123
+
+## RM-054 — PR #87: docs(log): append endgame tail hours (LI Shiyi 1.0h, LIU 05-tail 10.2h) — issue #28
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: first computed D6 weights checked on arithmetic and method: LIU 46.3 (⑤ 12.2 = #78's 2.0 + 10.2), LI 29.0 (⑤ 2.5 = 1.5 + 1.0), HUANG 22.75, Buna 11.0, Mei 4.5; sum 113.55, mean 22.71, weights 2.04 / 0.20 / 1.28 / 1.00 / 0.48 summing to 5.00 — the D6 convention (mean = 1.0, weights sum to 5) holds. LI ⑤'s 1.5h aggregation gap fixed at `cc80ef8` (the gap reported at #85); §3's canonical count 2/5 → 3/5 correct; the unverifiable "9 of 11" figures removed
+- Architecture alignment: n/a (docs-only, 2 files +17/−9)
+- Code quality: blocking finding — HUANG ⑤ 2.0h missing: the reviewer's own hours were posted on #28 at 21:18 HKT with anchors (the 21:18 comment plus seven review ids), while the PR's last commit (`cc80ef8`, 21:23) fixed exactly this class of gap for LI and missed HUANG — a systemic last-reporter gap, not a one-off
+- Test quality: CI double-green on `cc80ef8` at review time
+- Security / Efficiency: two changes required: (1) a contribution-log row for HUANG ⑤ 2.0h with those anchors; (2) Report §2 HUANG ⑤ 1.5 → 3.5, total 22.75 → 24.75, weights recomputed (sum 115.55, mean 23.11; 2.00 / 0.19 / 1.25 / 1.07 / 0.48 — rounded sum 4.99) plus a "weights sum to 5.00 before per-member rounding" note. The "computed at the #28 close-out" wording must become an as-of snapshot caveat: before the missing row lands, the table is a pre-close-out snapshot, not the close-out result
+- Operational metadata: review at `cc80ef8` (head at review time), 2026-11-22T14:40:19Z; base `bc30315`; PR #87 merged as `d16c9d4` on 2026-11-23 (03:38:13Z); the final re-review is RM-060 at `40abaa2`
+- Verdict: CHANGES REQUIRED — superseded by RM-060 (final APPROVE at `40abaa2`; squash `d16c9d4`) — review 2026-11-22T14:40:19Z; github.com/CS5351-Group10/contentguard/pull/87#pullrequestreview-6012831606
+
+## RM-055 — PR #88: docs(s5): lock Buna stage-5 transcript evidence
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: the 216-line `60105888-DA-Buna.md` verified: exactly five `[INTERVENTION]` markers (approve ×4, redirect ×1), each with type/by/rationale — the count the body claims is the count in the file; the excerpt policy states what is and is not reconstructed (no tool payloads, raw session turns or source-corpus text; local paths/credentials sanitized), consistent with the LI canonical excerpt standard; the logbook row's "deterministic offline baseline evidence only; does not establish live-provider or semantic replay acceptance or an approved architecture revision" endorsed as the honest framing
+- Architecture alignment: blocking finding — README coverage row 5 marks ✅ for "architecture revision based on test evidence" while the transcript records the release-acceptance audit and the review process, not the revision: its only "Revision verified by tests:" line refers to case revision/status, and the revision itself lives in ADR-002 (#79, `20f5f7b`); a grader opening the file would not find the decision it is claimed to prove. Requested two-line rewrite keeping ✅ with the ADR-002 anchor ("the revision itself is recorded in ADR-002, not in this transcript")
+- Code quality: minor: the README heading's em dash was normalized to a hyphen (`## Inventory —` → `## Inventory -`) — restore; after #65's GBK round-trip lesson, silent character normalization is worth tracking even when it introduces no mojibake
+- Test quality: the logbook's 535 tests / 47 source files not independently rerun (local venv 3.10 cannot run `conftest.py`'s `datetime.UTC`); accepted on CI green plus continuity with the previous 534/535 runs — disclosed as the review's verification boundary
+- Security / Efficiency: n/a beyond the above
+- Operational metadata: review at `545e124`, 2026-11-22T16:09:46Z; both points (row-5 anchor, em dash) addressed at `4c8dc7b` per RM-056's independent verification; base `bc30315`; PR #88 merged as `1e2d6db` on 2026-11-23 (04:01:20Z); the final re-review is RM-061 at `84b92bc`
+- Verdict: CHANGES REQUIRED — superseded by RM-061 (final APPROVE at `84b92bc`; squash `1e2d6db`) — review 2026-11-22T16:09:46Z; github.com/CS5351-Group10/contentguard/pull/88#pullrequestreview-6013195972
+
+## RM-056 — PR #88: docs(s5): lock Buna stage-5 transcript evidence (PM review at `4c8dc7b`)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; non-author)
+- Spec alignment: all three files read in full; status claims verified: #20 still open; #50/#27/#49 closed 2026-11-22; #75 merged 2026-11-22; 535 tests / 47 mypy files consistent with the post-#75 suite (#84, docs-only, in between); AI-003/AI-004 correctly framed as corpus-preparation supporting sessions with AI-012 as the stage-5 principal; gate 1 n/a (docs-only) and gate 6 n/a (no new agent session) per the #72/#82/#87 precedent — confirmed
+- Architecture alignment: structure endorsed — excerpt policy states what is and is not reconstructed; five `[INTERVENTION]` markers (approve ×4, redirect ×1) with type/by/rationale; no credentials or absolute paths; the lock checklist honestly leaves review/lock unchecked
+- Code quality: the `clarify transcript and ADR-002 relation` commit landed during this review and is reflected: the em-dash restore and the ADR-002 anchor on coverage row 5 (`20f5f7b`, #79 — verified) both accepted as improvements
+- Test quality: latest-head checks green on `4c8dc7b`
+- Security / Efficiency: P1 — "latest main" goes stale the moment #87 lands: transcript §7 ("after fetching latest main") and the evaluation-logbook row label `9e189e9` as latest main, true when fetched on 2026-11-22 (pre-#84) but #84 already moved main to `bc30315`; the evidence itself is sha-anchored so only the label is wrong — reword both to the anchored form ("local verification was performed on `main` at `9e189e9` (fetched 2026-11-22, pre-#84 state)"; the genuinely latest deterministic run is recorded at the freeze sha by the release checklist six-step). P2: §4 "MYPYPATH=mypy:" typo
+- Operational metadata: tracked for the PM close-out PR, no action inside #88: after #88 lands canonical = 4/5 (stage 1, Mei, still open) while Report.md:3 and :74 still say "3/5 — stage 5 open" — those lines sit inside #87's diff and will be synced with the late-hours aggregation; sequencing #87 merge → #88 → close-out PR; #88 needs a normal `git merge origin/main` after #87 (strict up-to-date; no force). Review at `4c8dc7b`, 2026-11-22T16:59:54Z; base `bc30315`; PR #88 merged as `1e2d6db` on 2026-11-23 (04:01:20Z); the final PM re-review is RM-058; the canonical 4/5 → 5/5 sync landed via #90.
+- Verdict: CHANGES REQUIRED — superseded by RM-058 (PM re-review at `84b92bc`; squash `1e2d6db`) — review 2026-11-22T16:59:54Z; github.com/CS5351-Group10/contentguard/pull/88#pullrequestreview-6013398220
+
+## RM-057 — PR #77: docs(man-hours): aggregate endgame member-reported hours into log and Report §2 (as-reported)
+
+- Reviewer(s): creator-xiyuan (HUANG Hongwei; non-author, code-owner)
+- Spec alignment: REQ-INV-005 / REQ-GOV-004 man-hours evidence discipline (D6 weights = individual total / mean); docs-only, two files (`Report.md` §2 + `docs/contribution-log.md`)
+- Arithmetic: all five totals and two subtotals recomputed independently and self-consistent — LIU 29.1 (③ 13.1 = 11.5 + 1.6 endgame row), HAN Mei 4.5, LI 26.5 (② 7.5 = 5.0 original row preserved in the log + 2.5 supplement — append-only discipline verified at source), HUANG 22.75, Buna 11.0
+- Recording quality: four-state empty-cell legend added (`blank` / `pending` / `not reported` / `unclaimed`) — the §2 table now self-explains its open cells instead of overloading one label
+- Evidence-pointer integrity: the three LI rows anchor `docs/evidence/60938585-closeout-handoff-20261120.md`, not yet on main at review time — hard merge-order requirement: #77 after #76. **Order not honored in fact:** #77 squash-merged 12:10:30Z, #76 at 14:31:35Z (`56ccc3c`) — the three anchors pointed at a not-yet-merged file for ~2h21m until #76 landed; final state consistent. Recorded as chain history, no retroactive action
+- Recording note: LIU ③ 1.6h is off the 0.5h protocol step (rule 7; 1.55 would step-round to 1.5) — decided and disclosed in #71, now fixed into 13.1/29.1; kept as-is, noted so the provenance of 1.6 stays queryable
+- Operational metadata: head `29111e6`, base `af63260`; CI double-green on `29111e6`; squash-merged as `d0f38c1` on 2026-11-21
+- Verdict: APPROVE — review 2026-11-21T12:06:39Z; github.com/CS5351-Group10/contentguard/pull/77#pullrequestreview-6005077304
+- Chain note: the review body carried the posted label "RM-042", colliding with #75's earlier-posted RM-042; chain-assigned RM-057 in this append per the PM's 2026-11-23 ruling (first-post precedence + later-memo semantics keep RM-042 on the #75 chain; see append note)
+
+## RM-058 — PR #88: re-review at `84b92bc` (PM; final for RM-056)
+
+- Reviewer(s): PM swordnew123 (LIU Jianwei; non-author)
+- Spec alignment: re-review of Buna DA's stage-5 canonical transcript after the RM-056 changes, with `main` synced to `d16c9d4` (post-#87) for the strict up-to-date requirement. The RM-056 P1 was fixed in both files: `docs/architecture/evaluation-logbook.md:14` asks "Does the main baseline at `9e189e9…` pass deterministic verification?" and records "fetched `main` in the pre-#84 state"; `transcripts/60105888-DA-Buna.md:163-166` retitles §7 "Historical main baseline" and anchors the same `9e189e9` / pre-#84 wording.
+- Architecture alignment: RM-055 remains satisfied at this head — `transcripts/README.md:54` keeps the em dash; row 5 at `:76` still points at ADR-002 (#79, `20f5f7b`) and states the revision is recorded there, not in this transcript.
+- Code quality: n/a (docs-only; 3 files, +222/−4)
+- Test quality: CI green on `84b92bc`
+- Security / Efficiency: the architecture-lane approval by @xiaolizi33 remains recorded at this head; re-review of the RM-055 items was requested from @creator-xiyuan (recorded in RM-061).
+- Operational metadata: review posted 2026-11-23T03:53:35Z; head `84b92bc`, merged on top of `d16c9d4`; squash-merged as `1e2d6db` on 2026-11-23 (04:01:20Z). Hours: 11/23 11:45–11:57, 0.2h.
+- Verdict: APPROVE (re-review at `84b92bc`; RM-056 CHANGES REQUESTED resolved) — github.com/CS5351-Group10/contentguard/pull/88#pullrequestreview-6016370475
+
+## RM-059 — PR #89: re-review at `3eb71a9` (final)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: re-review of the release checklist (method). The first pass (posted under the RM-058 label; chain-linked here) requested two changes: a Report-format section was missing from the checklist, and §3's exclusion assertions were largely tool-guaranteed rather than real checks. Both are closed at `3eb71a9`: §0.1 now states the D6 limits (≤10,000 words, >15 pages at 12 pt single spacing) and requires both numbers in the execution record; §3 now filters the step-2 `git ls-tree` output and states that untracked paths cannot enter a `git archive` (tracked junk is the only way the step can fail).
+- Architecture alignment: n/a (docs-only; 4 files, +116/−10). The reviewer also verified the canonical count carried by the same PR: the 4/5 statement matched main at that time (Mei stage-1 absent) and README/Report agreed.
+- Code quality: the review confirmed the `.gitignore` premise in §3 (no `.tmp` rule), recorded as a real reminder rather than boilerplate.
+- Test quality: n/a; CI double-green on `3eb71a9`
+- Security / Efficiency: n/a
+- Operational metadata: first review at `7dd2463` (2026-11-23T04:10:05Z, CHANGES REQUESTED, github.com/CS5351-Group10/contentguard/pull/89#pullrequestreview-6016475391); final re-review at `3eb71a9` (2026-11-23T04:36:04Z); merged on top of `1e2d6db`; squash-merged as `dc01ad1` on 2026-11-23 (04:37:55Z). Hours: 11/23 12:10–12:40 0.4h (first pass) + 12:35–12:55 0.3h (re-review).
+- Verdict: APPROVE (final) — review 2026-11-23T04:36:04Z; github.com/CS5351-Group10/contentguard/pull/89#pullrequestreview-6016623141
+
+## RM-060 — PR #87: re-review at `40abaa2` (final for RM-054; posted label RM-056, chain-assigned)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author)
+- Spec alignment: re-review after the RM-054 fixes. Verified the HUANG ⑤ 2.0h row in `docs/contribution-log.md` — including the "per-review `Hours:` headers are not summed" qualifier that blocks a future 3.9h mis-sum — and the §2 recompute: LIU 46.3 / Mei 4.5 / LI 29.0 / HUANG 24.75 / Buna 11.0, sum 115.55, mean 23.11, weights 2.00 / 0.19 / 1.25 / 1.07 / 0.48; the "weights sum to 5.00 before per-member rounding" note was accepted.
+- Architecture alignment: n/a (docs-only; 2 files, +26/−9)
+- Code quality: the snapshot pinning at `cc80ef8` (2026-11-22 21:23 HKT) and the "rows reported after that … nothing silently dropped" wording were accepted as converting the table from a claimed result into a dated snapshot.
+- Test quality: CI double-green on `40abaa2`
+- Security / Efficiency: forward warning recorded (not a defect in this PR): the table is computed from reported totals while Mei ①/③, HUANG ① and Buna ④/⑤ were open cells; any later cell changes all five weights, so the table must be recomputed or the as-of basis stated. The close-out PR carries that statement.
+- Operational metadata: review posted 2026-11-22T23:07:41Z; head `40abaa2`, base `bc30315`; squash-merged as `d16c9d4` on 2026-11-23 (03:38:13Z). Hours: 11/23 07:10–07:30, 0.3h.
+- Verdict: APPROVE — github.com/CS5351-Group10/contentguard/pull/87#pullrequestreview-6015018094; posted label RM-056 collides with the PM's #88 memo (first-post precedence keeps RM-056 there), chain-assigned RM-060.
+
+## RM-061 — PR #88: re-review at `84b92bc` (final for RM-055; posted label RM-057, chain-assigned)
+
+- Reviewer(s): domain CR creator-xiyuan (HUANG Hongwei; non-author, code-owner)
+- Spec alignment: verified RM-055's two points fixed at `84b92bc`: README coverage row 5 anchors the revision in ADR-002 (#79, `20f5f7b`) and states it is not in the transcript; the em dash in `## Inventory —` is restored; the file still carries five `[INTERVENTION]` markers. Independently checked the PM's RM-056 P1: the `9e189e9` "latest main" wording in the transcript and logbook is now the fetched pre-#84 snapshot.
+- Architecture alignment: n/a (docs-only; 3 files, +222/−4)
+- Code quality: one residual non-blocking wording ("Latest main commit" in the checklist) noted for a future pass; not a merge blocker.
+- Test quality: CI double-green on `84b92bc`
+- Security / Efficiency: process observation recorded: the review chain stalled on a CR pinned to an older head; a direct "your CR is pinned" note would have saved a re-read.
+- Operational metadata: review posted 2026-11-23T03:55:54Z; head `84b92bc`, merged on top of `d16c9d4`; squash-merged as `1e2d6db` on 2026-11-23 (04:01:20Z). Hours: 11/23 11:55–12:15, 0.3h.
+- Verdict: APPROVE — github.com/CS5351-Group10/contentguard/pull/88#pullrequestreview-6016382138; posted label RM-057 collides with the ledger's #77 memo, chain-assigned RM-061.
