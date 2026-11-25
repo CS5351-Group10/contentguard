@@ -100,7 +100,9 @@ append-only log and the recording protocol live in `docs/contribution-log.md`.
 > / LI 32.0 / HUANG 28.95 / Buna 29.5; mean 37.17h. The final weights remain
 > **equal at 1.00 each** by team decision (issue #28); the hours are the raw
 > effort evidence, not the ratio. Mei's demo-recording hours are now reported;
-> open cells remain Mei ①, HUANG ①, and Buna ① (`unclaimed`).
+> the HAN Mei ⑤ rows are reported on 11-25 for work performed across 11-23→25
+> (report date ≠ work date; the ② row is explicitly retrospective); open cells
+> remain Mei ①, HUANG ①, and Buna ① (`unclaimed`).
 
 ## 3. Software engineering process and how we optimized it
 

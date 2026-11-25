@@ -120,8 +120,8 @@ entry, so nothing below rewrites any recorded hours.
 | LIU Jianwei | ⑤ | 3.9 | 11-22 20:15 → 11-23 01:49 HKT endgame takeover tail (rule 6, member-authorized v3): #87 tail continuation, deliverables verification, #88 review and close-out; anchors: issue #28 comment (2026-11-22T18:17Z) |
 | LIU Jianwei | ⑤ | 1.2 | 11-23 11:39–12:37 HKT close-out: #89 release-checklist PR authoring/merge 1.0h net (excluding the #88 re-review) + RM-058 #88 re-review 0.2h (11:45–11:57); anchors: #89 PR timestamps, review 6016370475; anchored by the issue #28 close-out comment |
 | HAN Mei | ② | 2.0 | 11-25 final report (retrospective): community-guidelines research and initial Community Content Policy; evidence PR #11; anchor: issue #28 comment 2026-11-25T03:04:02Z |
-| HAN Mei | ⑤ | 4.0 | 11-25 final report: interactive web demo frontend, offline→live DeepSeek API integration exploration, human-review UI refinement; evidence issue #86; anchor: issue #28 comment 2026-11-25T03:04:02Z |
-| HAN Mei | ⑤ | 12.0 | 11-25 final report: demo video structure, narration and editing (baseline vs enhanced comparison); evidence issue #86 + demo video; anchor: issue #28 comment 2026-11-25T03:04:02Z |
+| HAN Mei | ⑤ | 4.0 | 11-25 final report (work 11-23→25): interactive web demo frontend, offline→live DeepSeek API integration exploration, human-review UI refinement; evidence issue #86; anchor: issue #28 comment 2026-11-25T03:04:02Z |
+| HAN Mei | ⑤ | 12.0 | 11-25 final report (work 11-23→25): demo video structure, narration and editing (baseline vs enhanced comparison); evidence issue #86 + demo video; anchor: issue #28 comment 2026-11-25T03:04:02Z |
 | HAN Mei | ⑥ | 0.5 | 11-25 final report: D5 stage-1 canonical transcript cross-check (intervention classifications/rationales); evidence PR #90; anchor: issue #28 comment 2026-11-25T03:04:02Z |
 | HAN Mei | ⑥ | 0.5 | 11-25 final report: final Spec §5 / D1/D7 compliance audit (structure, README, Gate 3, traceability, AI-use log); evidence issue #86; anchor: issue #28 comment 2026-11-25T03:04:02Z |
 | HUANG Hongwei | ⑤ | 2.0 | 11-25 final report: #92/#90/#91/#95 review passes, 08:25–15:10 HKT (per-review Hours headers not summed; the 11-23 portion is in the existing 2.2h row); anchors: issue #28 comment 2026-11-25T11:18:43Z, reviews 6049708804 / 6052232928 / 6052663370 / 6052855260 / 6053014892 |
@@ -168,8 +168,10 @@ entry, so nothing below rewrites any recorded hours.
 > aggregation; waiting excluded) → 56.4h. Recomputed totals: LIU 56.4 / Mei 39.0 /
 > LI 32.0 / HUANG 28.95 / Buna 29.5; mean 37.17h. The final weights remain
 > **equal at 1.00 each** by team decision (issue #28); hours are the raw effort
-> evidence, not the ratio. Mei's demo-recording hours are now reported; open
-> cells remain Mei ①, HUANG ①, Buna ① (`unclaimed`).
+> evidence, not the ratio. Mei's demo-recording hours are now reported; the
+> HAN Mei ⑤ rows are reported on 11-25 for work performed across 11-23→25
+> (report date ≠ work date; the ② row is explicitly retrospective); open cells
+> remain Mei ①, HUANG ①, Buna ① (`unclaimed`).
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
