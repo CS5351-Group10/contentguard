@@ -1,0 +1,33 @@
+Architecture / Report 一致性审计 — Findings
+审计日期：2026-11-25（HKT）
+基线：GitHub origin/main dc01ad1c21174da4ea4cc794a24bdedbb5419c7f（已 fetch）。
+注意：工作区 contentguard 当前是 feat/43-s3-analysis，不能用该分支的 Report 行号替代以下 main 行号。审计使用 main 的独立归档，未修改产品、治理或架构文件。
+
+F01 [中] Report.md:179 — S5 架构修订被描述为仍未发生。
+证据：docs/architecture/adr/002-human-review-transition-precommit-validation.md:1、trace-matrix.md:21/26 已记录 ADR-002 和 PR #83 的 review_and_commit 验收；transcripts/README.md:76 已将测试证据触发的修订关联到 ADR-002。
+建议：加入“测试证据 → ADR-002 → S1 transition 实现 #83 → S2 adapter 对齐 #75 → trace 行更新”的实际演进链；将仍未完成的完整 benchmark 单独标为 pending，避免混淆架构修订和完整 S5 评估。
+
+F02 [中] Report.md:274 — “S2 intake/queue ... not implemented” 与 main 不一致。
+证据：src/contentguard/api/ 下已有 intake/review/lookup 路由和 adapter；docs/architecture/trace-matrix.md:24/26/32/34 已列 #75 API 测试，:21/26 已列 ADR-002 transition 测试。
+建议：改为“S2 HTTP boundary 与 review adapter 已实现；FUN-001 real-chain persistence/lost-ack acceptance、QUA-002 等仍 pending”。不能把有边界测试等同于全链路验收，也不能将整个 S2 标成未实现。
+
+F03 [中] Report.md:247、252–256、262 — §5.2/§5.3 主体仍停留在 S1 快照，缺少现有架构↔代码映射。
+证据：trace-matrix.md:19–40 已覆盖 #52 analysis、#62 release acceptance、#69 structural checks、#83 policy transition、#75 API boundary；Report 的八个 REQ ID / 121 tests 明确标注旧日期，作为历史数据可保留。
+建议：保留历史快照，并补一个当前 main 小节，列上述新增证据与 remaining TBD；§5.3 补 ADR-002 的 policy-owned mandatory-rule precommit validation 和 S2 exception projection。不要把历史 121/260 直接改成未经运行验证的新数字。
+
+F04 [中] Report.md:143、155、270 — 历史 SHA 存在，但部分并不在 main 祖先链中。
+验证：b410daf、e0cc849、afe390b 均为本地可解析 commit，但 git merge-base --is-ancestor <sha> origin/main 均为非零；它们是历史分支证据，不能称为 main 可达 revision。其余 §3–§5 引用的 25ddd8a/397e002/539ae7cf/6b91946/6f47cc2/7b0ee1e/9cd38f7/b2e67f1/e60dd50 均可达。
+建议：历史测试结果保留原 SHA，附永久 commit/PR 链接及“pre-squash branch head”说明；另外提供 main merge SHA。不要将旧测试结果重新归因给 squash merge。afe390b 在 §4，属于本次引用扫描的附带发现。
+
+F05 [中] Report.md:34、53–58 — 工时表是旧 cutoff，不能作为最终汇总。
+证据：docs/contribution-log.md:120 明列 cutoff 后 Mei phase-③、Buna ③ continuation 9.5h + ⑤ 3.0h，以及 reviewer 0.4h 待下一次汇总。Report 已披露这件事，因此不是算术错误。现表总和 115.55h / 5 = 23.11h；所列权重按旧表计算成立。
+建议：最终交付前按成员确认的后续条目汇总并重算 mean/weights；Mei 的 itemized hours 与 member total 存在待确认差异，不能自行猜测。Buna 7.0/11.0 可作为旧快照保留，不能未经确认直接当成最终数。
+
+核对通过 / 不应误报：
+1. Report.md:74 的 4/5 canonical 与当前 main transcripts/README.md:60、72 一致：Mei canonical 尚未组装。当前 main 不支持改成 5/5；也未在 §3/§5 发现 3/5。若另有未合并交付，需在合并后重审。
+2. trace-matrix 31 个 requirement 行与 registry 的基线声明一致；S1/S2 review 行已翻为实际证据，但 FUN-001/SEC-003/QUA-002 等仍有明确 partial/TBD，不能声称全部 trace 已翻。
+3. §3–§5 的独立完整仓库路径引用均能在 main 解析；runtime catalog 中省略目录的测试名应结合 test/offline/ 解析。
+4. “11 architecture artifacts”不在当前 §3/§5 的实际文字中。docs/architecture/ 现有 13 个文件，其中两个正式 ADR 与一个 placeholder；不能用目录文件总数否定 D2 的 11-artifact 口径。若加入该声明，应同时列 inventory 与排除规则。
+5. ADR-001 的 advisory/authoritative split 与当前模块边界一致；ADR-002 是缺少的后续演进说明，不是 ADR-001 被推翻。
+
+验证限制：本次为文档、源码和 Git 引用审计，没有宣称测试通过。系统 Python 3.9 在 datetime.UTC 导入失败；Python 3.12 未安装 pytest，因此未取得当前 main 的 collected/pass 数。121 与 260 均只作为 Report 已注明 revision/date 的历史结果审阅。未发布评论、提交或虚构本次工时。
