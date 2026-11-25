@@ -5,6 +5,11 @@ Branch: audit/submission-contentguard (from latest main)
 Snapshot sha: dc01ad1c21174da4ea4cc794a24bdedbb5419c7f (origin/main HEAD)
 Build timestamp: 2026-11-25 02:38:04 UTC
 Candidate zip: submission.zip (built via `git -c core.autocrlf=false archive --format=zip -o submission.zip <sha>`)
+Audit snapshot: dc01ad1c21174da4ea4cc794a24bdedbb5419c7f (2026-11-25).
+This file records a local candidate build. The candidate submission.zip is
+intentionally not committed; the final Canvas zip is rebuilt from the frozen
+main after all close-out PRs, and its sha256/bytes are recorded in
+docs/release-checklist.md's execution record.
 
 ------------------------------------------------------------------------
 Step 1 — Freeze
@@ -142,22 +147,29 @@ Scope: transcripts/, prompts/, fixtures/, Report.md, git history, demo video.
    - Zip contains no *.mp4/mov/webm/mkv/avi (sheet slide 23 honored). No demo video file in the submission. No browser-tab/desktop/terminal-history/key path exposure in a video because no video is included.
    Severity: N/A (no video).
 
+Should-fix disposition (2026-11-25): AI-010/AI-015 fields are already filled in
+docs/ai-use-log.yaml; the remaining REPLACE_WITH_* strings exist only in the
+historical supporting transcripts (human-owned/frozen). Recorded as note, not a blocker.
+
 ------------------------------------------------------------------------
 Finding severity summary (blocker / should-fix / note)
 ------------------------------------------------------------------------
 Blocker: 0.
-Should-fix: 1 — ai-use-log AI-010/AI-015 `pr:`/model/count placeholders (human-owned; fill before merge).
+Should-fix: 0.
 Note:
   - Absolute local paths in 2 transcripts (/mnt/c/..., /mnt/d/...).
   - user@example.com placeholder in test fixture (example/placeholder).
   - docs/architecture/adr/001-placeholder.md compatibility redirect (by design).
   - trace-matrix TBD (S1/S2/S3) markers (planned work, not fake evidence).
   - git-history credential-pattern hits only in checklist description text / examples.
+  - ai-use-log AI-010/AI-015 fields are already filled in docs/ai-use-log.yaml; the
+    remaining REPLACE_WITH_* strings exist only in the historical supporting
+    transcripts (human-owned/frozen) — recorded as note, not a blocker.
 
 ------------------------------------------------------------------------
 #86 summary (one line)
 ------------------------------------------------------------------------
 0 blockers / 0 secret findings / PII limited to D6-permitted Report §1/§2 member
 name+ID plus one example/placeholder email; absolute local paths in 2 transcripts
-(note) and ai-use-log PR-number placeholders (should-fix, human-owned); zip
+(note) and ai-use-log placeholders (note, human-owned; fields already filled); zip
 self-contained with 535/535 offline tests passing — fit to submit.
