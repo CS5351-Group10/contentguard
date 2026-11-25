@@ -580,7 +580,7 @@ requirements:
   changed_date: '2026-11-16'
   verification:
     method: manual-review
-    evidence: PARTIAL — docs/ai-use-log.yaml entries + docs/review-memo.md review records + transcripts/ session evidence; the five canonical transcripts are not yet locked (lock 2026-11-21 23:59)
+    evidence: PARTIAL — docs/ai-use-log.yaml entries + docs/review-memo.md review records + transcripts/ session evidence; the five canonical transcripts are now present — stage 1 (60914643-HAN-Mei.md) landed post-lock on 2026-11-25 via #90 with the re-verification note in docs/ai-use-log.yaml; the original lock date remains 2026-11-21 23:59, disclosed as-is
   source:
     origin: "Team plan §1.3 and repo Prompt.md"
     links:
