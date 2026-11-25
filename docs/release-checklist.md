@@ -25,9 +25,10 @@ the demo video (sheet slide 23); no API keys in the submission.
 - README four required items: purpose + architecture; project file organization;
   how to run the offline tests, the live tests, and the full suite; the GitHub
   repo URL.
-- D5 canonical annotated transcripts, one per member (5 expected; the current
-  4/5 state (Mei stage 1 open) and its disposition are recorded in the
-  execution record).
+- D5 canonical annotated transcripts, one per member (5 expected; all five are
+  present — stage 1 landed post-lock via #90 with the re-verification note in
+  `docs/ai-use-log.yaml`; the canonical set and its disposition are recorded in
+  the execution record).
 - AI-use log up to date at submission (submission-model hard requirement).
 
 ## 0.1 Report format (D6)
