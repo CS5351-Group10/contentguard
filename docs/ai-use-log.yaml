@@ -66,6 +66,10 @@ entries:
       canonical excerpt assembly. The rationales are retained
       from the owner's supplied review notes. The original
       supporting transcript remains unchanged.
+      Note on the count: the session-level human_interventions value (3) is the
+      decision-turn count; this excerpt records four points because it also
+      includes the opening scope instruction (transcript source line 28, a
+      redirect) alongside the three logged decision turns.
     human_interventions: 3
     intervention_summary: >-
       Approved the implementation plan before code changes.
@@ -153,6 +157,10 @@ entries:
       notes. The original supporting transcript remains unchanged.
       Missing messages and tool payloads are not reconstructed.
       AI-015 is outside the scope of this canonical excerpt.
+      Note on the count: the session-level human_interventions value (5) is the
+      decision-turn count; this excerpt records six points because it also
+      includes the opening user instruction alongside the five logged decision
+      turns.
       Session: ses_e170e175cffeErOe3BcXI8zqed.
     human_interventions: 5
     intervention_summary: >-
