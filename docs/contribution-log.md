@@ -125,6 +125,9 @@ entry, so nothing below rewrites any recorded hours.
 | HAN Mei | ⑥ | 0.5 | 11-25 final report: D5 stage-1 canonical transcript cross-check (intervention classifications/rationales); evidence PR #90; anchor: issue #28 comment 2026-11-25T03:04:02Z |
 | HAN Mei | ⑥ | 0.5 | 11-25 final report: final Spec §5 / D1/D7 compliance audit (structure, README, Gate 3, traceability, AI-use log); evidence issue #86; anchor: issue #28 comment 2026-11-25T03:04:02Z |
 | HUANG Hongwei | ⑤ | 2.0 | 11-25 final report: #92/#90/#91/#95 review passes, 08:25–15:10 HKT (per-review Hours headers not summed; the 11-23 portion is in the existing 2.2h row); anchors: issue #28 comment 2026-11-25T11:18:43Z, reviews 6049708804 / 6052232928 / 6052663370 / 6052855260 / 6053014892 |
+| LI Shiyi | ⑤ | 2.0 | 11-25 final report ("11.25补充工时 2h"): Report §3/§5 architecture consistency audit (#93); phase ⑤ assigned by the PM from the task type; anchor: issue #28 comment 2026-11-25T12:33:41Z |
+| Buna DA | ⑥ | 6.0 | 11-25 final report: independent submission audit + content suitability (REQ-SEC-005, #94); prior 23.5h → 29.5h; anchor: issue #28 comment 2026-11-25T12:33:48Z |
+| LIU Jianwei | ⑥ | 5.0 | 11-25 submission close-out (member-authorized, PM estimate): 12:00–13:08 pre-session #90/#92 review + HANDOFF 1.0h; 13:08–15:10 #90–#95 PR chain (comments/reviews/merges) 2.0h; 15:10–16:20 #86 delta check + freeze/tag + zip build + verify_zip + Report render 1.5h; 20:20–20:50 final hours aggregation + #96 0.5h; waiting/idle excluded; anchors: this session's GitHub comments/reviews/merges, tag `submission-20261125`, zip/verify timestamps |
 
 > Aggregated by the PM on 2026-11-18 00:50 HKT from anchored, member-reported entries.
 > LIU's 16.0h covers the #8/#9/#10 report through early 11/16; later phase-②/③ PM work
@@ -157,13 +160,16 @@ entry, so nothing below rewrites any recorded hours.
 > 01:00 HKT close-out: HAN Mei +19.0h (② 2.0; ⑤ 4.0 demo frontend + 12.0 demo
 > video; ⑥ 0.5 D5 canonical + 0.5 Spec §5 audit) → 39.0h cumulative; HUANG
 > Hongwei ⑤ +2.0h (11-25 review passes; the 11:18Z consolidation supersedes the
-> interim 05:20Z 2.0h figure) → 28.95h cumulative. No further 11-25 reports were
-> recorded for LIU Jianwei / LI Shiyi / Buna DA; their totals remain 51.4 / 30.0 /
-> 23.5. Recomputed totals: LIU 51.4 / Mei 39.0 / LI 30.0 / HUANG 28.95 / Buna 23.5;
-> mean 34.57h. The final weights remain **equal at 1.00 each** by team decision
-> (issue #28); hours are the raw effort evidence, not the ratio. Mei's
-> demo-recording hours are now reported; open cells remain Mei ①, HUANG ①, Buna ①
-> (`unclaimed`).
+> interim 05:20Z 2.0h figure) → 28.95h cumulative; LI Shiyi ⑤ +2.0h (11-25
+> close-out report; phase ⑤ assigned by the PM from the task type) → 32.0h;
+> Buna DA ⑥ +6.0h (11-25 independent submission audit, REQ-SEC-005) → 29.5h;
+> LIU Jianwei ⑥ +5.0h (11-25 submission close-out: 1.0h pre-session reviews +
+> 2.0h PR chain/merges + 1.5h delta check/freeze/zip/verify + 0.5h final hours
+> aggregation; waiting excluded) → 56.4h. Recomputed totals: LIU 56.4 / Mei 39.0 /
+> LI 32.0 / HUANG 28.95 / Buna 29.5; mean 37.17h. The final weights remain
+> **equal at 1.00 each** by team decision (issue #28); hours are the raw effort
+> evidence, not the ratio. Mei's demo-recording hours are now reported; open
+> cells remain Mei ①, HUANG ①, Buna ① (`unclaimed`).
 
 ## CR assignment log (domain-assigned review, proposal §4.2)
 
